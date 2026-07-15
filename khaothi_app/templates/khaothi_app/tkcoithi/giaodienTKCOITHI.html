@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cổng Thư ký Coi thi - VNUK</title>
+    <!-- Google Fonts & Tailwind -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .hidden-view { display: none !important; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
+
+    <!-- Header Navbar -->
+    <header class="bg-white px-8 py-4 flex justify-between items-center border-b-4 border-orange-500 shadow-sm z-10 relative">
+        <div class="flex items-center gap-4">
+            <div class="flex flex-col border-r-2 border-gray-300 pr-4 cursor-pointer" onclick="navigate('view-home')">
+                <h1 class="text-4xl font-bold text-[#4a1414] tracking-tight">VN<span class="text-blue-900">UK</span></h1>
+                <p class="text-[10px] uppercase text-gray-600 font-semibold mt-1">Institute for Research</p>
+                <p class="text-[10px] uppercase text-gray-600 font-semibold">& Executive Education</p>
+            </div>
+            <div class="pl-2">
+                <h2 class="text-2xl font-bold text-[#9e1c22]">ĐẠI HỌC ĐÀ NẴNG</h2>
+                <h2 class="text-2xl font-bold text-[#9e1c22] mt-1">VIỆN NGHIÊN CỨU VÀ ĐÀO TẠO VIỆT - ANH</h2>
+            </div>
+        </div>
+        <div class="flex flex-col gap-2 text-xs">
+            <div class="flex items-center bg-gray-100 p-2 rounded border border-gray-200 w-64 shadow-inner">
+                <i data-lucide="clipboard-list" class="w-4 h-4 text-gray-500 mr-2"></i>
+                <span class="text-sm font-bold text-[#9e1c22]">Thư ký Coi thi</span>
+            </div>
+            <div class="flex items-center bg-gray-100 p-2 rounded border border-gray-200 w-64 justify-between shadow-inner">
+                <div class="flex items-center">
+                    <i data-lucide="shield-check" class="w-4 h-4 text-gray-500 mr-2"></i>
+                    <span class="text-sm text-gray-500 font-mono font-bold">TK_CoiThi01</span>
+                </div>
+                <button onclick="window.location.href='/'" class="bg-gray-300 text-gray-700 text-xs px-3 py-1 font-bold rounded hover:bg-gray-400 transition-colors">ĐĂNG XUẤT</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Horizontal Tabs -->
+    <nav class="bg-[#9e1c22] text-white px-8 flex relative z-50 shadow-md">
+        <button id="nav-btn-home" class="nav-btn px-6 py-3 text-sm font-semibold border-r border-red-800 transition-colors hover:bg-red-800 bg-red-800" onclick="navigate('view-home')">Giám sát Phòng thi</button>
+        <button id="nav-btn-thay-the" class="nav-btn px-6 py-3 text-sm font-semibold border-r border-red-800 transition-colors hover:bg-red-800" onclick="navigate('view-thay-the')">Thay giám thị khẩn cấp</button>
+        <button id="nav-btn-su-co" class="nav-btn px-6 py-3 text-sm font-semibold border-r border-red-800 transition-colors hover:bg-red-800" onclick="navigate('view-su-co')">Báo cáo Sự cố / Biên bản</button>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-[1500px] mx-auto w-full p-6 relative">
+        <!-- Toast System -->
+        <div id="toast-global" class="hidden-view fixed bottom-6 right-6 text-white px-6 py-4 rounded shadow-xl flex items-center gap-3 animate-fade-in-up z-[200]">
+            <i id="toast-global-icon" class="w-5 h-5"></i>
+            <div>
+                <h4 class="font-bold text-xs" id="toast-global-title">Thành công</h4>
+                <p class="text-[10px] opacity-90" id="toast-global-msg"></p>
+            </div>
+        </div>
+
+        <!-- VIEW: GIÁM SÁT PHÒNG THI -->
+        <div id="view-home" class="view-section animate-fade-in flex flex-col h-full">
+            <div class="flex justify-between items-end border-b border-gray-200 pb-4 mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-blue-900 mb-1 flex items-center gap-2"><i data-lucide="monitor" class="text-blue-600"></i> Giám sát Trạng thái ca thi trực tuyến</h2>
+                    <p class="text-sm text-gray-600">Kiểm soát sỹ số dự thi, tình hình phân bổ giám thị và ghi nhận các phòng thi hoàn tất.</p>
+                </div>
+            </div>
+
+            <div class="bg-white border rounded-lg shadow-sm overflow-hidden mb-6">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead class="bg-gray-100 font-bold text-gray-700 border-b">
+                        <tr>
+                            <th class="px-6 py-3.5">Mã lớp học phần</th>
+                            <th class="px-6 py-3.5">Học phần thi</th>
+                            <th class="px-6 py-3.5 text-center">Sỹ số đăng ký</th>
+                            <th class="px-6 py-3.5 text-center">Trạng thái phòng</th>
+                            <th class="px-6 py-3.5 text-right">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="phong-tbody" class="divide-y divide-gray-100 font-sans">
+                        <!-- Filled by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- VIEW: THAY GIÁM THỊ KHẨN CẤP -->
+        <div id="view-thay-the" class="view-section hidden-view animate-fade-in h-full flex flex-col">
+            <h2 class="text-xl font-bold text-blue-900 mb-4 pb-2 border-b flex items-center gap-2"><i data-lucide="user-minus"></i> Khai báo Thay đổi Giám thị khẩn cấp</h2>
+            
+            <div class="grid grid-cols-3 gap-6">
+                <div class="col-span-1 bg-white p-6 border rounded-lg shadow-sm text-xs flex flex-col gap-4 font-sans">
+                    <h3 class="font-bold text-slate-800 text-sm pb-2 border-b">Khai báo vắng mặt / Đi muộn</h3>
+                    
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Giảng viên gặp sự cố:</label>
+                        <select id="tt-gv-code" class="w-full p-2.5 border rounded outline-none bg-white">
+                            <option value="GV001">Nguyễn Văn A (IT)</option>
+                            <option value="GV002">Trần Thị B (QTKD)</option>
+                            <option value="GV003">Lê Hoàng C (KHXH)</option>
+                            <option value="GV004">Phạm Minh D (NN Anh)</option>
+                            <option value="GV005">Đặng Thanh E (IT)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Chọn Ca thi bị ảnh hưởng:</label>
+                        <select id="tt-shift-desc" class="w-full p-2.5 border rounded outline-none font-mono bg-white">
+                            <option value="Ca 3 - 2026-07-18 - Tiếng Anh GTQT 3">Ca 3 (18/07) - Tiếng Anh - P.201</option>
+                            <option value="Ca 1 - 2026-07-16 - Nhập môn Lập trình">Ca 1 (16/07) - Lập trình - P.101</option>
+                            <option value="Ca 1 - 2026-07-17 - Marketing căn bản">Ca 1 (17/07) - Marketing - P.301</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Lý do thay thế khẩn cấp:</label>
+                        <textarea id="tt-reason" placeholder="Ví dụ: Bị ốm đột xuất, xe hỏng dọc đường..." class="w-full p-2.5 border rounded h-20 outline-none"></textarea>
+                    </div>
+
+                    <button onclick="submitReplacementRequest()" class="bg-[#9e1c22] hover:bg-red-800 text-white font-bold py-2.5 rounded shadow flex items-center justify-center gap-1.5">
+                        <i data-lucide="send" class="w-4 h-4"></i> GỬI YÊU CẦU THAY THẾ
+                    </button>
+                </div>
+
+                <div class="col-span-2 bg-white p-6 border rounded-lg shadow-sm text-xs font-sans">
+                    <h3 class="font-bold text-gray-800 text-sm pb-2 border-b mb-4">Lịch sử điều động thay thế giám thị</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-gray-50 text-gray-700 font-bold border-b">
+                                <tr>
+                                    <th class="px-4 py-2.5">Thời gian</th>
+                                    <th class="px-4 py-2.5">Cán bộ sự cố</th>
+                                    <th class="px-4 py-2.5">Ca thi</th>
+                                    <th class="px-4 py-2.5">Lý do vắng</th>
+                                    <th class="px-4 py-2.5 text-center">Trạng thái</th>
+                                </tr>
+                            </table>
+                            <div class="text-center py-6 text-gray-400 italic">Hội đồng thi hoạt động đúng giờ. Chưa phát sinh trường hợp thay đổi đột xuất.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: BÁO CÁO SỰ CỐ -->
+        <div id="view-su-co" class="view-section hidden-view animate-fade-in h-full flex flex-col">
+            <h2 class="text-xl font-bold text-blue-900 mb-4 pb-2 border-b flex items-center gap-2"><i data-lucide="alert-octagon"></i> Lập biên bản vi phạm quy chế & Sự cố phòng thi</h2>
+            
+            <div class="max-w-2xl bg-white border p-8 rounded-lg shadow-sm text-xs font-sans flex flex-col gap-4">
+                <h3 class="font-bold text-sm text-indigo-950 pb-2 border-b flex items-center gap-1.5"><i data-lucide="file-warning"></i> Biên bản ghi nhận sự cố bất thường</h3>
+                
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">Loại sự cố / Biên bản:</label>
+                    <select id="sc-type" class="w-full p-2.5 border rounded outline-none bg-white">
+                        <option value="vi_pham">Lập Biên bản vi phạm quy chế (Sinh viên gian lận)</option>
+                        <option value="mat_dien">Sự cố mất điện / Mất kết nối internet đột ngột</option>
+                        <option value="de_thieu">Đề thi bị thiếu trang / mờ chữ</option>
+                        <option value="khac">Các sự cố bất khả kháng khác</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Lớp / Phòng thi xảy ra:</label>
+                        <input type="text" id="sc-room" placeholder="Ví dụ: P.101 - LHP-001" class="w-full p-2.5 border rounded outline-none bg-white" />
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Họ tên sinh viên (nếu vi phạm):</label>
+                        <input type="text" id="sc-sv" placeholder="Họ tên & MSV..." class="w-full p-2.5 border rounded outline-none bg-white" />
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">Nội dung chi tiết diễn biến sự cố:</label>
+                    <textarea id="sc-detail" placeholder="Ghi nhận cụ thể thời gian xảy ra, hình thức vi phạm quy chế hoặc tác động sự cố, phương án xử lý tại chỗ của giám thị..." class="w-full p-2.5 border rounded h-28 outline-none"></textarea>
+                </div>
+
+                <div class="flex justify-end gap-2">
+                    <button onclick="submitIncidentReport()" class="bg-[#9e1c22] hover:bg-red-800 text-white font-bold px-6 py-2.5 rounded shadow flex items-center gap-1.5">
+                        <i data-lucide="check-square" class="w-4 h-4"></i> LẬP & TRÌNH BIÊN BẢN
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts Section -->
+    <script>
+    // Synced global variables
+    let kyThiData = [];
+    let caThiData = [];
+    let lichThiData = [];
+    let hocPhiData = [];
+    let lopThiDiemData = [];
+
+        let phongThiGocData = [];
+        let tuiPhachData = [];
+        let phieuGiaoNhanData = [];
+        let canBoCoiThiData = [];
+        let phucKhaoData = [];
+        let auditLogsData = [];
+        
+        let isStateLoaded = false;
+        let activeViewId = "view-home";
+
+        window.onload = async function() {
+            initIcons();
+            await loadStateFromServer();
+            const savedViewId = sessionStorage.getItem('tkcoithi_activeViewId');
+            navigate(savedViewId || 'view-home');
+        };
+
+        function initIcons() { lucide.createIcons(); }
+
+        async function loadStateFromServer() {
+            try {
+            kyThiData = data.kyThiData || [];
+            caThiData = data.caThiData || [];
+            lichThiData = data.lichThiData || [];
+            hocPhiData = data.hocPhiData || [];
+            lopThiDiemData = data.lopThiDiemData || [];
+                const res = await fetch('/api/get_state/');
+                const data = await res.json();
+                
+                phongThiGocData = data.phongThiGocData;
+                tuiPhachData = data.tuiPhachData;
+                phieuGiaoNhanData = data.phieuGiaoNhanData;
+                canBoCoiThiData = data.canBoCoiThiData;
+                phucKhaoData = data.phucKhaoData;
+                auditLogsData = data.auditLogsData || [];
+                isStateLoaded = true;
+            } catch(e) {
+                console.error("Lỗi đồng bộ dữ liệu:", e);
+            }
+        }
+
+        async function saveStateToServer() {
+            try {
+                await fetch('/api/save_state/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        kyThiData,
+                        caThiData,
+                        lichThiData,
+                        hocPhiData,
+                        lopThiDiemData,
+                        phongThiGocData,
+                        tuiPhachData,
+                        phieuGiaoNhanData,
+                        canBoCoiThiData,
+                        phucKhaoData,
+                        auditLogsData
+                    })
+                });
+            } catch(e) {
+                console.error("Lỗi lưu dữ liệu:", e);
+            }
+        }
+
+        function navigate(viewId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden-view'));
+            const targetView = document.getElementById(viewId);
+            if(targetView) targetView.classList.remove('hidden-view');
+            sessionStorage.setItem('tkcoithi_activeViewId', viewId);
+
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.className = "nav-btn px-6 py-3 text-sm font-semibold border-r border-red-800 transition-colors hover:bg-red-800");
+
+            activeViewId = viewId;
+            if(viewId === 'view-home') {
+                document.getElementById('nav-btn-home').className += " bg-red-800";
+                renderPhongThi();
+            } else if(viewId === 'view-thay-the') {
+                document.getElementById('nav-btn-thay-the').className += " bg-red-800";
+            } else if(viewId === 'view-su-co') {
+                document.getElementById('nav-btn-su-co').className += " bg-red-800";
+            }
+            initIcons();
+        }
+
+        function renderPhongThi() {
+            const tbody = document.getElementById('phong-tbody');
+            tbody.innerHTML = '';
+
+            phongThiGocData.forEach(p => {
+                let badge = `<span class="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-[10px] font-bold">${p.status}</span>`;
+                if(p.status.includes("Đã nhận") || p.status.includes("Đã thi") || p.status.includes("Đã làm phách")) {
+                    badge = `<span class="bg-green-100 text-green-800 px-2 py-0.5 rounded text-[10px] font-bold">${p.status}</span>`;
+                }
+
+                let btn = `<button onclick="markRoomFinished('${p.id}')" class="bg-[#9e1c22] hover:bg-red-800 text-white font-bold px-3 py-1 rounded text-[10px] shadow transition-colors">XÁC NHẬN THI XONG</button>`;
+                if(p.status.includes("Đã thi xong") || p.status.includes("Đã nhận") || p.status.includes("Đã làm phách")) {
+                    btn = `<span class="text-gray-400 italic text-[10px]">Đã chốt hội đồng</span>`;
+                }
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4 font-mono font-bold text-gray-800">${p.id}</td>
+                        <td class="px-6 py-4 font-semibold text-gray-900">${p.subjectName}</td>
+                        <td class="px-6 py-4 text-center font-bold text-indigo-700">${p.papers} SV</td>
+                        <td class="px-6 py-4 text-center">${badge}</td>
+                        <td class="px-6 py-4 text-right">${btn}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function markRoomFinished(rid) {
+            const p = phongThiGocData.find(x => x.id === rid);
+            if(p) {
+                p.status = "Đã thi xong";
+                showGlobalToast("Xác nhận thành công", `Đã xác nhận phòng thi ${rid} hoàn tất ca thi.`);
+                
+                const time = new Date().toLocaleString();
+                auditLogsData.push({
+                    time,
+                    actor: "Thư ký Coi thi",
+                    action: `Xác nhận phòng thi ${rid} thi xong sỹ số ${p.papers} bài.`
+                });
+
+                saveStateToServer();
+                renderPhongThi();
+            }
+        }
+
+        function submitReplacementRequest() {
+            const gvCode = document.getElementById('tt-gv-code').value;
+            const shift = document.getElementById('tt-shift-desc').value;
+            const reason = document.getElementById('tt-reason').value;
+
+            if(!reason) {
+                alert("Vui lòng ghi rõ lý do xin thay thế cán bộ coi thi!");
+                return;
+            }
+
+            const time = new Date().toLocaleString();
+            
+            auditLogsData.push({
+                time,
+                actor: "Thư ký Coi thi",
+                action: `Báo cáo khẩn cấp: Giám thị ${gvCode} vắng ca thi [${shift}]. Lý do: ${reason}.`
+            });
+
+            showGlobalToast("Gửi báo cáo thành công", "Yêu cầu thay thế cán bộ coi thi khẩn cấp đã được ghi nhận.");
+            document.getElementById('tt-reason').value = '';
+            saveStateToServer();
+        }
+
+        function submitIncidentReport() {
+            const type = document.getElementById('sc-type').value;
+            const room = document.getElementById('sc-room').value;
+            const sv = document.getElementById('sc-sv').value;
+            const detail = document.getElementById('sc-detail').value;
+
+            if(!room || !detail) {
+                alert("Vui lòng nhập đầy đủ lớp/phòng và nội dung diễn biến sự cố!");
+                return;
+            }
+
+            const time = new Date().toLocaleString();
+            let actionText = `Lập biên bản sự cố: [${type}] tại ${room}. Chi tiết: ${detail}`;
+            if(sv) actionText += ` | Sinh viên vi phạm: ${sv}`;
+
+            auditLogsData.push({
+                time,
+                actor: "Thư ký Coi thi",
+                action: actionText
+            });
+
+            showGlobalToast("Lập biên bản thành công", "Biên bản sự cố phòng thi đã được phê duyệt và lưu trữ.");
+            document.getElementById('sc-room').value = '';
+            document.getElementById('sc-sv').value = '';
+            document.getElementById('sc-detail').value = '';
+            saveStateToServer();
+        }
+
+        function showGlobalToast(title, msg, type = 'success') {
+            const toast = document.getElementById('toast-global');
+            const icon = document.getElementById('toast-global-icon');
+            
+            toast.className = "fixed bottom-6 right-6 text-white px-6 py-4 rounded shadow-xl flex items-center gap-3 animate-fade-in-up z-[200]";
+            
+            if (type === 'error') {
+                toast.classList.add('bg-red-600');
+                icon.setAttribute('data-lucide', 'alert-circle');
+            } else {
+                toast.classList.add('bg-green-600');
+                icon.setAttribute('data-lucide', 'check-circle-2');
+            }
+            
+            document.getElementById('toast-global-title').innerText = title;
+            document.getElementById('toast-global-msg').innerText = msg || '';
+            toast.classList.remove('hidden-view');
+            initIcons();
+            
+            setTimeout(() => toast.classList.add('hidden-view'), 4000);
+        }
+    </script>
+</body>
+</html>

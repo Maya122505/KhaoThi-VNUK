@@ -1,0 +1,156 @@
+<div id="view-tra-cuu-tui" class="view-section hidden-view animate-fade-in flex flex-col h-full">
+    <div class="mb-6 border-b border-gray-200 pb-4 flex justify-between items-end">
+        <div>
+            <h2 class="text-2xl font-bold text-blue-900 mb-1 flex items-center gap-2">
+                <i data-lucide="search" class="text-blue-600"></i> Tra cứu & Điều chỉnh túi bài thi
+            </h2>
+            <p class="text-sm text-gray-600">Tìm kiếm thông tin, xem mật khẩu chấm (yêu cầu xác thực) và điều phối lại phòng thi trong túi phách.</p>
+        </div>
+        <button id="btn-back-to-list-tui" onclick="switchTraCuuSubView('list')" class="hidden-view text-sm bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded font-semibold text-gray-700 transition-colors">
+            Quay lại danh sách
+        </button>
+    </div>
+
+    <div id="tui-subview-list" class="bg-white border border-gray-200 rounded-lg shadow-sm">
+        <div class="p-4 bg-gray-50 border-b border-gray-200 flex gap-4 items-center">
+            <div class="relative flex-1 max-w-sm">
+                <i data-lucide="search" class="absolute left-3 top-2.5 text-gray-400 w-4 h-4"></i>
+                <input type="text" id="filter-tui-id" placeholder="Nhập mã túi phách..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded outline-none text-sm focus:border-red-800" />
+            </div>
+            <select id="filter-tui-mon" class="border border-gray-300 rounded px-3 py-2 bg-white text-sm outline-none">
+                <option value="">Học phần: Tất cả</option>
+                <option value="ENG101">Tiếng Anh GTQT 3</option>
+                <option value="BUS201">Quản trị dự án</option>
+                <option value="CS101">Nhập môn Lập trình</option>
+                <option value="MKT205">Marketing căn bản</option>
+            </select>
+            <button onclick="traCuuCurrentPage=1; renderViewTraCuuTui()" class="bg-[#9e1c22] text-white px-5 py-2 rounded text-sm font-semibold hover:bg-red-800">Tìm kiếm</button>
+            <button onclick="resetFilterTraCuuTui()" class="border border-gray-300 text-gray-600 px-3 py-2 rounded text-sm hover:bg-gray-100">Làm mới</button>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-gray-50 text-gray-600 border-b">
+                    <tr>
+                        <th class="px-6 py-4 font-semibold">Mã Túi Phách</th>
+                        <th class="px-6 py-4 font-semibold">Học phần</th>
+                        <th class="px-6 py-4 font-semibold text-center">Số lượng bài</th>
+                        <th class="px-6 py-4 font-semibold text-center">Trạng thái</th>
+                        <th class="px-6 py-4 font-semibold text-right">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100" id="tra-cuu-tui-tbody"></tbody>
+            </table>
+        </div>
+        <!-- Pagination -->
+        <div class="p-4 border-t border-gray-200 flex justify-between items-center text-xs font-semibold text-gray-500">
+            <span id="tui-pagination-info">Hiển thị 1-3 của 4 túi</span>
+            <div class="flex gap-2">
+                <button id="tui-prev-page" onclick="changeTraCuuPage(-1)" class="px-3 py-1.5 border border-gray-200 rounded hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">Trước</button>
+                <button id="tui-next-page" onclick="changeTraCuuPage(1)" class="px-3 py-1.5 border border-gray-200 rounded hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">Sau</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="tui-subview-detail" class="hidden-view flex gap-6 animate-fade-in">
+        <div class="w-1/3 flex flex-col gap-6">
+            <div class="bg-white border border-blue-200 rounded-lg shadow-sm overflow-hidden">
+                <div class="bg-blue-50 border-b border-blue-200 p-4 font-bold text-blue-900 flex items-center gap-2">
+                    <i data-lucide="file-text" class="w-4 h-4"></i> THÔNG TIN TÚI BÀI THI
+                </div>
+                <div class="p-5 space-y-4 text-sm">
+                    <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+                        <span class="text-gray-500">Mã túi phách:</span>
+                        <span id="detail-tui-id" class="font-mono font-bold text-lg text-gray-800">--</span>
+                    </div>
+                    <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+                        <span class="text-gray-500">Trạng thái:</span>
+                        <span id="detail-tui-status" class="px-2 py-0.5 rounded text-xs font-bold">--</span>
+                    </div>
+                    <div class="pt-2">
+                        <span class="text-gray-500 font-semibold block mb-2">Mật khẩu chấm điểm (UC 7.2):</span>
+                        <div class="flex items-center justify-between bg-gray-50 px-3 py-2 rounded border border-gray-200 font-mono">
+                            <span id="detail-tui-pw" class="font-bold text-red-700 tracking-wider">••••••••</span>
+                            <button onclick="handleTriggerViewPassword()" class="text-gray-400 hover:text-blue-600 transition-colors" title="Xem mật khẩu">
+                                <i data-lucide="eye" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button id="btn-action-huy-tui" onclick="handleHuyTuiPhach()" class="w-full bg-white border border-red-200 text-red-600 font-bold py-3 px-4 rounded shadow-sm hover:bg-red-50 flex justify-center items-center gap-2 transition-all">
+                <i data-lucide="trash-2" class="w-4 h-4"></i> HỦY TÚI BÀI THI
+            </button>
+        </div>
+
+        <div class="w-2/3 bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col">
+            <!-- Tab Selector -->
+            <div class="flex border-b border-gray-200 bg-gray-50 rounded-t-lg overflow-hidden">
+                <button id="btn-detail-tab-view" onclick="switchDetailTab('view')" class="flex-1 py-3 text-center text-sm font-bold border-r border-gray-200 transition-colors bg-white text-[#9e1c22] border-b-2 border-b-[#9e1c22]">
+                    <i data-lucide="file-text" class="w-4 h-4 inline mr-1 pb-0.5"></i> Chi tiết & Mã phách
+                </button>
+                <button id="btn-detail-tab-edit" onclick="switchDetailTab('edit')" class="flex-1 py-3 text-center text-sm font-bold transition-colors text-gray-500 hover:text-gray-700">
+                    <i data-lucide="edit-3" class="w-4 h-4 inline mr-1 pb-0.5"></i> Điều chỉnh cấu trúc
+                </button>
+            </div>
+
+            <!-- Tab Content 1: View (Chi tiết phòng & Mã phách) -->
+            <div id="detail-tab-content-view" class="p-6 flex flex-col gap-6 flex-1 overflow-y-auto min-h-[350px]">
+                <div class="grid grid-cols-2 gap-6 h-full">
+                    <!-- Bảng danh sách phòng -->
+                    <div class="flex flex-col border border-gray-200 rounded shadow-sm bg-white">
+                        <div class="bg-gray-50 border-b border-gray-200 p-3 text-center font-bold text-gray-700 text-xs uppercase">Danh sách phòng đã ghép</div>
+                        <div class="p-3 overflow-y-auto flex-1 max-h-[250px]">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr class="border-b text-gray-500 font-semibold"><th class="pb-2">Mã phòng</th><th class="pb-2 text-right">Số bài</th></tr>
+                                </thead>
+                                <tbody id="detail-rooms-tbody" class="divide-y divide-gray-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- Bảng danh sách Mã phách -->
+                    <div class="flex flex-col border border-gray-200 rounded shadow-sm bg-white">
+                        <div class="bg-gray-50 border-b border-gray-200 p-3 text-center font-bold text-gray-700 text-xs uppercase">Bảng ánh xạ Mã phách gốc</div>
+                        <div class="p-3 overflow-y-auto flex-1 max-h-[250px]">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr class="border-b text-gray-500 font-semibold"><th class="pb-2 w-12">STT</th><th class="pb-2">Mã phách</th></tr>
+                                </thead>
+                                <tbody id="detail-phach-tbody" class="divide-y divide-gray-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content 2: Edit (Điều chỉnh cấu trúc) -->
+            <div id="detail-tab-content-edit" class="hidden-view flex flex-col flex-1">
+                <div class="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+                    <h3 class="font-bold text-xs text-gray-500 flex items-center gap-1 uppercase"><i data-lucide="arrow-right-left" class="w-4 h-4"></i> Điều phối phòng thi</h3>
+                    <span id="detail-tui-indicator" class="text-sm font-semibold px-3 py-1 rounded-full border bg-blue-50 text-blue-800 border-blue-200">Tổng tính toán: 0 bài</span>
+                </div>
+
+                <div id="adjust-error-banner" class="hidden-view bg-red-50 text-red-700 p-3 border-b border-red-200 text-xs font-bold animate-shake">
+                    <i data-lucide="alert-triangle" class="w-4 h-4 inline mr-1"></i> Số lượng vượt giới hạn 60 bài/túi. Vui lòng rút bớt phòng thi về Bảng B!
+                </div>
+
+                <div class="grid grid-cols-2 p-6 gap-6 h-[260px] bg-gray-50">
+                    <div class="bg-white border border-gray-300 rounded flex flex-col shadow-sm">
+                        <div class="bg-green-50 border-b border-green-200 p-2.5 text-center font-bold text-green-800 text-xs uppercase">Bảng A: Các phòng trong túi</div>
+                        <div class="p-2 space-y-1 overflow-y-auto flex-1" id="adjust-table-a"></div>
+                    </div>
+                    <div class="bg-white border border-gray-300 rounded flex flex-col shadow-sm">
+                        <div class="bg-gray-100 border-b border-gray-200 p-2.5 text-center font-bold text-gray-600 text-xs uppercase">Bảng B: Các phòng trống bên ngoài</div>
+                        <div class="p-2 space-y-1 overflow-y-auto flex-1" id="adjust-table-b"></div>
+                    </div>
+                </div>
+
+                <div class="p-4 border-t border-gray-200 bg-white rounded-b-lg flex justify-end">
+                    <button id="btn-save-adjust-tui" onclick="handleSaveAdjustTui()" class="px-6 py-2.5 rounded font-bold text-white bg-blue-600 hover:bg-blue-700 shadow flex items-center gap-2 transition-all">
+                        <i data-lucide="save" class="w-4 h-4"></i> Lưu thay đổi
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

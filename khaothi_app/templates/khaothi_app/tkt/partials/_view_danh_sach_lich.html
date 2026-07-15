@@ -1,0 +1,123 @@
+<div id="view-danh-sach-lich" class="view-section hidden-view animate-fade-in flex flex-col h-full">
+    <div class="mb-6 border-b border-gray-200 pb-4 flex justify-between items-end">
+        <div>
+            <h2 class="text-2xl font-bold text-blue-900 mb-1 flex items-center gap-2"><i data-lucide="calendar-plus" class="text-blue-600"></i> Lập Danh sách & Lịch thi</h2>
+            <p class="text-sm text-gray-600">Lọc nợ học phí để chốt danh sách sinh viên đủ điều kiện thi [UC 15.1] và lập lịch thi phòng/giám thị [UC 14.1].</p>
+        </div>
+        <div class="flex gap-2">
+            <button id="btn-dsl-tab-ds" onclick="switchDslTab('ds')" class="bg-blue-900 text-white px-4 py-2 rounded text-sm font-semibold shadow">1. Lập Danh sách thi</button>
+            <button id="btn-dsl-tab-lich" onclick="switchDslTab('lich')" class="bg-gray-100 text-gray-700 px-4 py-2 rounded text-sm font-semibold hover:bg-gray-200">2. Lập Lịch thi</button>
+        </div>
+    </div>
+
+    <!-- Tab Content 1: Danh sách thi -->
+    <div id="dsl-tab-ds" class="grid grid-cols-3 gap-6 flex-1">
+        <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5 space-y-4">
+            <h3 class="font-bold text-[#9e1c22] border-b pb-2 text-sm uppercase">Cấu hình lập danh sách [UC 15.1]</h3>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1">CHỌN HỌC PHẦN CẦN LẬP:</label>
+                <select id="dsl-subject-select" class="w-full p-2 border border-gray-300 rounded text-sm bg-white outline-none">
+                    <option value="ENG101">Tiếng Anh GTQT 3</option>
+                    <option value="BUS201">Quản trị dự án</option>
+                    <option value="CS101">Nhập môn Lập trình</option>
+                </select>
+            </div>
+            <div class="bg-yellow-50 text-yellow-800 p-3 rounded text-xs border border-yellow-100 leading-relaxed">
+                ⚠️ <strong>Quy tắc nghiệp vụ:</strong> Hệ thống tự động đồng bộ danh sách nợ học phí từ Tổ tài vụ để khóa/cấm thi các sinh viên nợ học phí.
+            </div>
+            <button onclick="handleSyncDoiChieuHocPhi()" class="w-full bg-orange-500 text-white font-bold py-2.5 rounded shadow hover:bg-orange-600 transition-colors flex items-center justify-center gap-2">
+                <i data-lucide="refresh-cw" class="w-4 h-4"></i> Đồng bộ & Lọc học phí
+            </button>
+            <button onclick="handleSaveDanhSachThi()" class="w-full bg-[#9e1c22] text-white font-bold py-2.5 rounded shadow hover:bg-red-800 transition-colors flex items-center justify-center gap-2">
+                <i data-lucide="save" class="w-4 h-4"></i> Gửi duyệt danh sách thi
+            </button>
+        </div>
+
+        <div class="col-span-2 bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col">
+            <div class="p-4 bg-gray-50 border-b border-gray-200 font-bold text-gray-700 text-sm">
+                Kết quả đối chiếu điều kiện dự thi của sinh viên
+            </div>
+            <div class="flex-1 overflow-y-auto max-h-[350px]">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead class="bg-gray-100 text-gray-600 sticky top-0">
+                        <tr>
+                            <th class="px-4 py-2 border-b">Mã sinh viên</th>
+                            <th class="px-4 py-2 border-b">Họ tên</th>
+                            <th class="px-4 py-2 border-b">Lớp học</th>
+                            <th class="px-4 py-2 border-b text-center">Tình trạng học phí</th>
+                            <th class="px-4 py-2 border-b text-center">Đủ ĐK thi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dsl-students-tbody" class="divide-y divide-gray-100">
+                        <tr><td colspan="5" class="text-center text-gray-400 py-8 italic">Vui lòng bấm đồng bộ học phí ở bảng trái để chạy kiểm tra.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Content 2: Lập lịch thi -->
+    <div id="dsl-tab-lich" class="hidden-view grid grid-cols-3 gap-6 flex-1">
+        <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5 space-y-4">
+            <h3 class="font-bold text-blue-900 border-b pb-2 text-sm uppercase">Lập lịch ca thi & phòng [UC 14.1]</h3>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1">CHỌN KỲ THI:</label>
+                <select id="dsl-lich-kythi" class="w-full p-2 border border-gray-300 rounded text-sm bg-white outline-none" onchange="populateCaThiDropdown()"></select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1">CHỌN CA THI:</label>
+                <select id="dsl-lich-cathi" class="w-full p-2 border border-gray-300 rounded text-sm bg-white outline-none"></select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1">CHỌN HỌC PHẦN:</label>
+                <select id="dsl-lich-subject" class="w-full p-2 border border-gray-300 rounded text-sm bg-white outline-none">
+                    <option value="ENG101">Tiếng Anh GTQT 3</option>
+                    <option value="BUS201">Quản trị dự án</option>
+                    <option value="CS101">Nhập môn Lập trình</option>
+                </select>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">PHÒNG THI:</label>
+                    <select id="dsl-lich-phong" class="w-full p-2 border border-gray-300 rounded text-sm bg-white outline-none">
+                        <option value="P.101">Phòng 101</option>
+                        <option value="P.102">Phòng 102</option>
+                        <option value="P.201">Phòng 201</option>
+                        <option value="P.301">Phòng 301</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">GIÁM THỊ:</label>
+                    <select id="dsl-lich-giám-thị" class="w-full p-2 border border-gray-300 rounded text-sm bg-white outline-none">
+                        <option value="GV001">Nguyễn Văn A (GV001)</option>
+                        <option value="GV002">Trần Thị B (GV002)</option>
+                        <option value="GV003">Lê Hoàng C (GV003)</option>
+                    </select>
+                </div>
+            </div>
+            <button onclick="handleLậpLịchThiSubmit()" class="w-full bg-[#9e1c22] text-white font-bold py-2.5 rounded shadow hover:bg-red-800 transition-colors flex items-center justify-center gap-2">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i> Lập lịch ca thi
+            </button>
+        </div>
+
+        <div class="col-span-2 bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col">
+            <div class="p-4 bg-gray-50 border-b border-gray-200 font-bold text-gray-700 text-sm">
+                Danh sách lịch thi đã phân công trên hệ thống [UC 14.2]
+            </div>
+            <div class="flex-1 overflow-y-auto max-h-[350px]">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead class="bg-gray-100 text-gray-600 sticky top-0">
+                        <tr>
+                            <th class="px-4 py-2 border-b">Học phần</th>
+                            <th class="px-4 py-2 border-b">Ngày thi</th>
+                            <th class="px-4 py-2 border-b">Ca thi</th>
+                            <th class="px-4 py-2 border-b">Phòng</th>
+                            <th class="px-4 py-2 border-b">Giám thị</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dsl-lich-tbody" class="divide-y divide-gray-100"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

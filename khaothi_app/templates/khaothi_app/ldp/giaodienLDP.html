@@ -1,0 +1,28 @@
+{% extends 'khaothi_app/_shared/base.html' %}
+
+{% block title %}Cổng thông tin Lãnh đạo phòng - VNUK{% endblock %}
+
+{% block content %}
+    {% include 'khaothi_app/_shared/_header.html' with actor_info='khaothi_app/ldp/partials/_actor_info.html' %}
+
+    {% include 'khaothi_app/ldp/partials/_ldp_tabs.html' %}
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-[1500px] mx-auto w-full p-6 relative">
+        {% include 'khaothi_app/_shared/_toast.html' %}
+
+        {% include 'khaothi_app/ldp/partials/_view_home.html' %}
+
+        {% include 'khaothi_app/ldp/partials/_view_duyet_diem.html' %}
+        
+        {% include 'khaothi_app/ldp/partials/_view_duyet_phuc_khao.html' %}
+
+        {% include 'khaothi_app/ldp/partials/_view_duyet_thu_lao.html' %}
+
+        {% include 'khaothi_app/ldp/partials/_modal_duyet.html' %}
+    </main>
+{% endblock %}
+
+{% block scripts %}
+    {% include 'khaothi_app/ldp/partials/_scripts.html' %}
+{% endblock %}

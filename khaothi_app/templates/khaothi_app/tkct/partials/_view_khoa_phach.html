@@ -1,0 +1,23 @@
+<div id="view-khoa-phach" class="view-section hidden-view max-w-5xl mx-auto h-full animate-fade-in">
+    <div class="mb-6 border-b border-gray-200 pb-4">
+        <h2 class="text-2xl font-bold text-red-700 mb-1 flex items-center gap-2"><i data-lucide="lock" class="w-6 h-6 text-red-600"></i> Khóa danh sách mã phách</h2>
+        <p class="text-sm text-gray-600">Khóa vĩnh viễn dữ liệu mã phách của túi bài thi để bảo mật, chống can thiệp gian lận điểm số.</p>
+    </div>
+
+    <div class="bg-white border border-gray-200 rounded-lg shadow-sm">
+        <div class="bg-red-50 p-3 border-b border-red-100 flex items-center gap-2 text-red-800 text-xs font-semibold">
+            <i data-lucide="info" class="w-4 h-4 shrink-0"></i> Chỉ hiển thị các túi bài thi đã "Đối chiếu hợp lệ".
+        </div>
+        <table class="w-full text-left text-sm">
+            <thead class="bg-gray-100 border-b border-gray-200 text-gray-600">
+                <tr>
+                    <th class="px-6 py-4 font-semibold">Mã túi</th>
+                    <th class="px-6 py-4 font-semibold">Tên học phần</th>
+                    <th class="px-6 py-4 font-semibold text-center">Số lượng bài</th>
+                    <th class="px-6 py-4 font-semibold text-right">Thao tác an toàn</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100" id="khoa-phach-tbody"></tbody>
+        </table>
+    </div>
+</div>

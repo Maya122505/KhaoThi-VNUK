@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cổng Giao dịch Khảo thí Điện tử - VNUK</title>
+    <!-- Google Fonts & Tailwind -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .portal-card {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: all 0.2s ease-out;
+        }
+        .portal-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px -8px rgba(158, 28, 34, 0.16);
+            border-color: #9e1c22;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col justify-between">
+
+    <!-- Header Navbar -->
+    <header class="bg-white px-8 py-4 flex justify-between items-center border-b-4 border-orange-500 shadow-sm relative">
+        <div class="flex items-center gap-4">
+            <div class="flex flex-col border-r-2 border-gray-300 pr-4">
+                <h1 class="text-4xl font-bold text-[#4a1414] tracking-tight">VN<span class="text-blue-900">UK</span></h1>
+                <p class="text-[10px] uppercase text-gray-600 font-semibold mt-1">Institute for Research</p>
+                <p class="text-[10px] uppercase text-gray-600 font-semibold">& Executive Education</p>
+            </div>
+            <div class="pl-2">
+                <h2 class="text-2xl font-bold text-[#9e1c22]">ĐẠI HỌC ĐÀ NẴNG</h2>
+                <h2 class="text-2xl font-bold text-[#9e1c22] mt-0.5">VIỆN NGHIÊN CỨU VÀ ĐÀO TẠO VIỆT - ANH</h2>
+            </div>
+        </div>
+        <div class="text-xs text-gray-500 flex items-center gap-2 font-mono">
+            <i data-lucide="server" class="w-4 h-4 text-[#9e1c22]"></i>
+            SQLite Database Active
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-[1400px] mx-auto w-full px-6 py-12 flex-1 flex flex-col justify-center">
+        <div class="text-center mb-12">
+            <h2 class="text-4xl font-black text-slate-900 mb-3 tracking-tight">
+                CỔNG GIAO DỊCH KHẢO THÍ ĐIỆN TỬ
+            </h2>
+            <div class="w-32 h-1.5 bg-[#9e1c22] mx-auto rounded"></div>
+        </div>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mb-8">
+            <!-- 1. Tổ Khảo thí -->
+            <a href="/login/?role=tkt" class="portal-card rounded-2xl p-8 flex flex-col justify-between group cursor-pointer border-t-4 border-t-red-700 min-h-[190px]">
+                <div class="flex flex-col gap-5">
+                    <div class="bg-red-50 text-[#9e1c22] p-3.5 rounded-2xl w-fit group-hover:scale-105 transition-transform">
+                        <i data-lucide="award" class="w-7 h-7"></i>
+                    </div>
+                    <h3 class="text-base font-extrabold text-slate-900 group-hover:text-[#9e1c22] transition-colors leading-snug">Tổ Khảo thí (VNUK)</h3>
+                </div>
+                <div class="flex items-center gap-2 text-xs font-bold text-[#9e1c22] group-hover:translate-x-1.5 transition-transform pt-4">
+                    Đăng nhập Cổng <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </div>
+            </a>
+
+            <!-- 2. Thư ký Chấm thi -->
+            <a href="/login/?role=tkct" class="portal-card rounded-2xl p-8 flex flex-col justify-between group cursor-pointer border-t-4 border-t-blue-600 min-h-[190px]">
+                <div class="flex flex-col gap-5">
+                    <div class="bg-blue-50 text-blue-600 p-3.5 rounded-2xl w-fit group-hover:scale-105 transition-transform">
+                        <i data-lucide="file-signature" class="w-7 h-7"></i>
+                    </div>
+                    <h3 class="text-base font-extrabold text-slate-900 group-hover:text-blue-600 transition-colors leading-snug">Thư ký Chấm thi</h3>
+                </div>
+                <div class="flex items-center gap-2 text-xs font-bold text-blue-600 group-hover:translate-x-1.5 transition-transform pt-4">
+                    Đăng nhập Cổng <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </div>
+            </a>
+
+            <!-- 3. Lãnh đạo phòng -->
+            <a href="/login/?role=ldp" class="portal-card rounded-2xl p-8 flex flex-col justify-between group cursor-pointer border-t-4 border-t-purple-600 min-h-[190px]">
+                <div class="flex flex-col gap-5">
+                    <div class="bg-purple-50 text-purple-600 p-3.5 rounded-2xl w-fit group-hover:scale-105 transition-transform">
+                        <i data-lucide="user-check" class="w-7 h-7"></i>
+                    </div>
+                    <h3 class="text-base font-extrabold text-slate-900 group-hover:text-purple-600 transition-colors leading-snug">Lãnh đạo phòng Khảo thí</h3>
+                </div>
+                <div class="flex items-center gap-2 text-xs font-bold text-purple-600 group-hover:translate-x-1.5 transition-transform pt-4">
+                    Đăng nhập Cổng <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </div>
+            </a>
+
+            <!-- 4. Đơn vị chuyên môn -->
+            <a href="/login/?role=dvcm" class="portal-card rounded-2xl p-8 flex flex-col justify-between group cursor-pointer border-t-4 border-t-emerald-600 min-h-[190px]">
+                <div class="flex flex-col gap-5">
+                    <div class="bg-emerald-50 text-emerald-600 p-3.5 rounded-2xl w-fit group-hover:scale-105 transition-transform">
+                        <i data-lucide="graduation-cap" class="w-7 h-7"></i>
+                    </div>
+                    <h3 class="text-base font-extrabold text-slate-900 group-hover:text-emerald-600 transition-colors leading-snug">Đơn vị Chuyên môn</h3>
+                </div>
+                <div class="flex items-center gap-2 text-xs font-bold text-emerald-600 group-hover:translate-x-1.5 transition-transform pt-4">
+                    Đăng nhập Cổng <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </div>
+            </a>
+
+            <!-- 5. Giảng viên -->
+            <a href="/login/?role=gv" class="portal-card rounded-2xl p-8 flex flex-col justify-between group cursor-pointer border-t-4 border-t-amber-600 min-h-[190px]">
+                <div class="flex flex-col gap-5">
+                    <div class="bg-amber-50 text-amber-600 p-3.5 rounded-2xl w-fit group-hover:scale-105 transition-transform">
+                        <i data-lucide="book-open" class="w-7 h-7"></i>
+                    </div>
+                    <h3 class="text-base font-extrabold text-slate-900 group-hover:text-amber-600 transition-colors leading-snug">Giảng viên / CB Chấm thi</h3>
+                </div>
+                <div class="flex items-center gap-2 text-xs font-bold text-amber-600 group-hover:translate-x-1.5 transition-transform pt-4">
+                    Đăng nhập Cổng <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </div>
+            </a>
+
+            <!-- 6. Thư ký Coi thi -->
+            <a href="/login/?role=tkcoithi" class="portal-card rounded-2xl p-8 flex flex-col justify-between group cursor-pointer border-t-4 border-t-sky-500 min-h-[190px]">
+                <div class="flex flex-col gap-5">
+                    <div class="bg-sky-50 text-sky-600 p-3.5 rounded-2xl w-fit group-hover:scale-105 transition-transform">
+                        <i data-lucide="clipboard-list" class="w-7 h-7"></i>
+                    </div>
+                    <h3 class="text-base font-extrabold text-slate-900 group-hover:text-sky-600 transition-colors leading-snug">Thư ký Coi thi</h3>
+                </div>
+                <div class="flex items-center gap-2 text-xs font-bold text-sky-600 group-hover:translate-x-1.5 transition-transform pt-4">
+                    Đăng nhập Cổng <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </div>
+            </a>
+
+            <!-- 7. Chuyên viên hệ thống -->
+            <a href="/login/?role=cvht" class="portal-card rounded-2xl p-8 flex flex-col justify-between group cursor-pointer border-t-4 border-t-slate-700 min-h-[190px]">
+                <div class="flex flex-col gap-5">
+                    <div class="bg-slate-100 text-slate-700 p-3.5 rounded-2xl w-fit group-hover:scale-105 transition-transform">
+                        <i data-lucide="settings" class="w-7 h-7"></i>
+                    </div>
+                    <h3 class="text-base font-extrabold text-slate-900 group-hover:text-slate-700 transition-colors leading-snug">Chuyên viên Hệ thống</h3>
+                </div>
+                <div class="flex items-center gap-2 text-xs font-bold text-slate-700 group-hover:translate-x-1.5 transition-transform pt-4">
+                    Đăng nhập Cổng <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </div>
+            </a>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="max-w-[1400px] mx-auto w-full px-6 py-6 text-center text-slate-400 text-xs border-t border-gray-200">
+        &copy; 2026 Viện Nghiên cứu và Đào tạo Việt - Anh (VNUK), Đại học Đà Nẵng. Bảo lưu mọi quyền.
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

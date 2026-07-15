@@ -1,0 +1,713 @@
+<!-- Scripts Section -->
+<script>
+    // Synced global variables
+    let kyThiData = [];
+    let caThiData = [];
+    let lichThiData = [];
+    let hocPhiData = [];
+    let lopThiDiemData = [];
+
+    let phongThiGocData = [];
+    let tuiPhachData = [];
+    let phieuGiaoNhanData = [];
+    let canBoCoiThiData = [];
+    let phucKhaoData = [];
+
+    let isStateLoaded = false;
+    let giaoNhanSelectedIds = new Set();
+    let giaoNhanFilteredItems = [];
+    let giaoNhanCurrentPage = 1;
+    const giaoNhanPageSize = 10;
+    let activeViewId = "view-home";
+    let activeAssignTuiId = "";
+    let activeNhapDiemTuiId = "";
+
+    // Simulated grades entry object storage on client
+    let tempGradesData = {}; // key: phachId -> {pt1: num, pt2: num}
+
+    window.onload = async function() {
+        initIcons();
+        await loadStateFromServer();
+        const savedViewId = sessionStorage.getItem('dvcm_activeViewId');
+        navigate(savedViewId || 'view-home');
+    };
+
+    function initIcons() { lucide.createIcons(); }
+
+    async function loadStateFromServer() {
+        try {
+            kyThiData = data.kyThiData || [];
+            caThiData = data.caThiData || [];
+            lichThiData = data.lichThiData || [];
+            hocPhiData = data.hocPhiData || [];
+            lopThiDiemData = data.lopThiDiemData || [];
+            const res = await fetch('/api/get_state/');
+            const data = await res.json();
+
+            phongThiGocData = data.phongThiGocData;
+            tuiPhachData = data.tuiPhachData;
+            phieuGiaoNhanData = data.phieuGiaoNhanData;
+            canBoCoiThiData = data.canBoCoiThiData;
+            phucKhaoData = data.phucKhaoData;
+            isStateLoaded = true;
+        } catch(e) {
+            console.error("Lỗi đồng bộ dữ liệu:", e);
+        }
+    }
+
+    async function saveStateToServer() {
+        try {
+            await fetch('/api/save_state/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                        kyThiData,
+                        caThiData,
+                        lichThiData,
+                        hocPhiData,
+                        lopThiDiemData,
+                    phongThiGocData,
+                    tuiPhachData,
+                    phieuGiaoNhanData,
+                    canBoCoiThiData,
+                    phucKhaoData
+                })
+            });
+        } catch(e) {
+            console.error("Lỗi lưu dữ liệu:", e);
+        }
+    }
+
+    function navigate(viewId) {
+        document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden-view'));
+        const targetView = document.getElementById(viewId);
+        if(targetView) targetView.classList.remove('hidden-view');
+        sessionStorage.setItem('dvcm_activeViewId', viewId);
+
+        document.querySelectorAll('.nav-btn').forEach(btn => btn.className = "nav-btn px-6 py-3 text-sm font-semibold border-r border-red-800 transition-colors hover:bg-red-800");
+
+        activeViewId = viewId;
+        if(viewId === 'view-home') {
+            document.getElementById('nav-btn-home').className += " bg-red-800";
+            renderHome();
+        } else if(viewId === 'view-giao-nhan') {
+            document.getElementById('nav-btn-giao-nhan').className += " bg-red-800";
+            switchDvcmGiaoNhanTab(activeGiaoNhanTab);
+        } else if(viewId === 'view-phan-cong') {
+            document.getElementById('nav-btn-phan-cong').className += " bg-red-800";
+            renderPhanCong();
+        } else if(viewId === 'view-nhap-tra-diem') {
+            document.getElementById('nav-btn-nhap-tra-diem').className += " bg-red-800";
+            renderNhapTraDiem();
+        }
+        initIcons();
+    }
+
+    function renderHome() {
+        const countNhan = phieuGiaoNhanData.filter(p => p.recipient === "dvcm" && p.status === "Chờ bạn xác nhận").length;
+        const countPhanCong = tuiPhachData.filter(t => !t.grader1 || !t.grader2).length;
+        const countNhapDiem = tuiPhachData.filter(t => t.grader1 && t.grader2 && t.status !== "Đã đối chiếu hợp lệ" && t.status !== "Đã trả bài").length;
+        const countPhieuGui = phieuGiaoNhanData.filter(p => p.sender === "dvcm" && p.status === "Chờ bạn xác nhận").length;
+
+        document.getElementById('count-nhan-cho').innerText = countNhan;
+        document.getElementById('count-phancong-cho').innerText = countPhanCong;
+        document.getElementById('count-nhapdiem-cho').innerText = countNhapDiem;
+        document.getElementById('count-phieu-gui-cho').innerText = countPhieuGui;
+
+        const qaList = document.getElementById('quick-action-list');
+        qaList.innerHTML = '';
+
+        let hasActions = false;
+
+        if (countNhan > 0) {
+            hasActions = true;
+            qaList.innerHTML += `
+                <div class="flex justify-between items-center p-3 border border-emerald-100 bg-emerald-50 rounded-lg">
+                    <span class="font-medium text-emerald-900 text-xs">Có <strong>${countNhan} phiếu bàn giao bài chấm mới</strong> từ Giảng viên chờ xác nhận.</span>
+                    <button onclick="navigate('view-giao-nhan')" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-3 py-1.5 rounded text-[10px] shadow transition-colors">XÁC NHẬN NHẬN</button>
+                </div>
+            `;
+        }
+
+        if (countPhanCong > 0) {
+            hasActions = true;
+            qaList.innerHTML += `
+                <div class="flex justify-between items-center p-3 border border-teal-100 bg-teal-50 rounded-lg">
+                    <span class="font-medium text-teal-900 text-xs">Có <strong>${countPhanCong} túi phách rọc phách</strong> chưa phân công giảng viên chấm.</span>
+                    <button onclick="navigate('view-phan-cong')" class="bg-teal-700 hover:bg-teal-800 text-white font-bold px-3 py-1.5 rounded text-[10px] shadow transition-colors">PHÂN CÔNG</button>
+                </div>
+            `;
+        }
+
+        if (countNhapDiem > 0) {
+            hasActions = true;
+            qaList.innerHTML += `
+                <div class="flex justify-between items-center p-3 border border-blue-100 bg-blue-50 rounded-lg">
+                    <span class="font-medium text-blue-900 text-xs">Có <strong>${countNhapDiem} túi bài thi</strong> đã chỉ định cán bộ đang chấm dở dang.</span>
+                    <button onclick="navigate('view-nhap-tra-diem')" class="bg-blue-700 hover:bg-blue-800 text-white font-bold px-3 py-1.5 rounded text-[10px] shadow transition-colors">NHẬP & TRẢ ĐIỂM</button>
+                </div>
+            `;
+        }
+
+        if(!hasActions) {
+            qaList.innerHTML = `<div class="text-center py-6 text-gray-400 italic text-xs">Không có hồ sơ công việc nào tồn đọng cần xử lý.</div>`;
+        }
+    }
+
+    let activeGiaoNhanTab = "nhan";
+    function switchDvcmGiaoNhanTab(tab) {
+        activeGiaoNhanTab = tab;
+        ['nhan', 'tao', 'lich-su'].forEach(t => {
+            const btn = document.getElementById(`dvcm-tab-btn-${t}`);
+            const content = document.getElementById(`dvcm-tab-content-${t}`);
+            if(!btn || !content) return;
+
+            btn.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 text-gray-600 hover:bg-gray-100 shadow-none";
+            content.classList.add('hidden-view');
+
+            if (t === tab) {
+                if(t === 'nhan') btn.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 bg-green-100 text-green-800 shadow-sm";
+                else if (t === 'tao') btn.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 bg-blue-100 text-blue-800 shadow-sm";
+                else btn.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 bg-gray-200 text-gray-800 shadow-sm";
+                content.classList.remove('hidden-view');
+            }
+        });
+
+        if(tab === 'nhan') hideDvcmGnDetailNhan();
+        renderGiaoNhan();
+    }
+
+    function renderGiaoNhan() {
+        // Check list
+        handleDvcmGiaoNhanLoaiChange();
+
+        // Phiếu chờ nhận (recipient === "dvcm")
+        const listNhanDiv = document.getElementById('dvcm-gn-list-cho-nhan');
+        listNhanDiv.innerHTML = '';
+        const pendingNhan = phieuGiaoNhanData.filter(p => p.recipient === "dvcm" && p.status === "Chờ bạn xác nhận");
+        const badge = document.getElementById('dvcm-badge-cho-nhan');
+
+        if (pendingNhan.length === 0) {
+            listNhanDiv.innerHTML = `<div class="text-center text-gray-400 py-12 italic text-sm">Không có phiếu bàn giao nào đang chờ bạn kiểm nhận.</div>`;
+            badge.classList.add('hidden-view');
+        } else {
+            badge.classList.remove('hidden-view');
+            badge.innerText = pendingNhan.length;
+
+            pendingNhan.forEach(p => {
+                listNhanDiv.innerHTML += `
+                    <div class="border border-green-200 bg-green-50 rounded-lg p-4 flex justify-between items-center hover:shadow shadow-sm transition-all cursor-pointer text-xs" onclick="showDvcmGnDetailNhan('${p.id}')">
+                        <div class="flex gap-3 items-center">
+                            <div class="bg-white p-2.5 rounded-full text-green-600 shadow-inner"><i data-lucide="file-text" class="w-5 h-5"></i></div>
+                            <div>
+                                <h4 class="font-bold text-gray-800 text-sm">${p.id} - ${p.type}</h4>
+                                <p class="text-xs text-gray-500 mt-0.5">Tuyến chuyển hồ sơ: <strong>${p.flow}</strong></p>
+                            </div>
+                        </div>
+                        <button class="bg-green-600 text-white px-4 py-1.5 rounded font-bold text-xs shadow hover:bg-green-700 flex items-center gap-1 font-sans">
+                            KIỂM ĐẾM & KÝ <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                `;
+            });
+        }
+
+        // Lịch sử
+        const histTbody = document.getElementById('dvcm-gn-lich-su-tbody');
+        histTbody.innerHTML = '';
+        const dvcmHandovers = phieuGiaoNhanData.filter(p => p.sender === "dvcm" || p.recipient === "dvcm");
+        dvcmHandovers.forEach(p => {
+            let stBadge = `<span class="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-xs font-bold">${p.status}</span>`;
+            if(p.status === "Đã hoàn tất") stBadge = `<span class="bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-bold">✓ Đã tiếp nhận</span>`;
+            if(p.status === "Bị từ chối") stBadge = `<span class="bg-red-100 text-red-800 px-2 py-0.5 rounded text-xs font-bold">✗ Hủy phiếu</span>`;
+
+            histTbody.innerHTML += `
+                <tr class="hover:bg-gray-50 text-xs">
+                    <td class="px-4 py-2.5 font-mono font-bold text-gray-700">${p.id}</td>
+                    <td class="px-4 py-2.5 text-gray-600">${p.type}</td>
+                    <td class="px-4 py-2.5 font-medium">${p.flow}</td>
+                    <td class="px-4 py-2.5 text-center font-bold">${p.qty}</td>
+                    <td class="px-4 py-2.5 text-center">${stBadge}</td>
+                </tr>
+                ${p.log ? `<tr><td colspan="5" class="px-4 pb-2 text-[10px] text-gray-400 italic font-mono bg-gray-50/50">${p.log}</td></tr>` : ''}
+            `;
+        });
+        initIcons();
+        if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
+    }
+
+    function populateGiaoNhanFilterSubjects(items, getSubjectFn) {
+        const select = document.getElementById('gn-filter-subject');
+        if (!select) return;
+        const subjects = new Set();
+        items.forEach(item => {
+            const sName = getSubjectFn(item).split(' (')[0];
+            if (sName) subjects.add(sName);
+        });
+        select.innerHTML = '<option value="">Tất cả Học phần</option>';
+        Array.from(subjects).sort().forEach(s => {
+            select.innerHTML += `<option value="${s}">${s}</option>`;
+        });
+        const searchInput = document.getElementById('gn-filter-search');
+        if (searchInput) searchInput.value = '';
+    }
+
+    window.filterGiaoNhanList = function() {
+        const searchVal = document.getElementById('gn-filter-search').value.toLowerCase().trim();
+        const subjectVal = document.getElementById('gn-filter-subject').value;
+        const loai = document.getElementById('dvcm-select-pbg-loai').value;
+
+        let source = [];
+        if (loai === "1") {
+            source = tuiPhachData.filter(t => t.status === "Đã khóa phách" || t.status === "Chờ khớp điểm");
+        } else {
+            source = tuiPhachData.filter(t => t.status === "Đã đối chiếu hợp lệ");
+        }
+
+        giaoNhanFilteredItems = source.filter(b => {
+            const sName = (b.subjectName || '').split(' (')[0];
+            const matchesSearch = !searchVal || 
+                (b.id || '').toLowerCase().includes(searchVal) || 
+                (b.subjectName || '').toLowerCase().includes(searchVal);
+            const matchesSubject = !subjectVal || sName === subjectVal;
+            return matchesSearch && matchesSubject;
+        });
+
+        giaoNhanCurrentPage = 1;
+        renderGiaoNhanPage();
+    }
+
+    function renderGiaoNhanPage() {
+        const listDiv = document.getElementById('dvcm-gn-list-tui-kha-dung');
+        if (!listDiv) return;
+        listDiv.innerHTML = '';
+
+        const totalPages = Math.ceil(giaoNhanFilteredItems.length / giaoNhanPageSize) || 1;
+        if (giaoNhanCurrentPage > totalPages) giaoNhanCurrentPage = totalPages;
+
+        const start = (giaoNhanCurrentPage - 1) * giaoNhanPageSize;
+        const end = start + giaoNhanPageSize;
+        const pageItems = giaoNhanFilteredItems.slice(start, end);
+
+        if (pageItems.length === 0) {
+            listDiv.innerHTML = `<div class="col-span-full text-xs text-gray-400 italic text-center py-12 bg-white rounded-lg border border-dashed border-gray-200">Không tìm thấy túi phách nào phù hợp.</div>`;
+        } else {
+            pageItems.forEach(b => {
+                const isChecked = giaoNhanSelectedIds.has(b.id);
+                const bgBadge = 'bg-amber-50 text-amber-700 border-amber-100';
+
+                const checkedClasses = isChecked 
+                    ? 'bg-blue-50/50 border-blue-500 ring-1 ring-blue-500/20' 
+                    : 'bg-white border-slate-200 hover:border-blue-400 hover:bg-slate-50/30';
+
+                listDiv.innerHTML += `
+                    <label class="gn-item flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all duration-150 shadow-sm ${checkedClasses}">
+                        <div class="flex items-center h-5 mt-0.5">
+                            <input type="checkbox" value="${b.id}" onchange="handleGiaoNhanCheckboxChange(this)" ${isChecked ? 'checked' : ''} class="w-3.5 h-3.5 text-blue-600 rounded border-gray-300 focus:ring-blue-500" />
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex flex-col gap-0.5">
+                                <span class="font-extrabold text-slate-800 text-[12.5px] tracking-wide leading-tight">${b.id}</span>
+                                <span class="text-slate-500 text-[11px] font-sans font-medium line-clamp-1 leading-normal">${b.subjectName}</span>
+                                <span class="inline-flex items-center w-fit px-1.5 py-0.5 rounded text-[10px] font-bold font-sans border ${bgBadge} mt-1">${b.papers} bài</span>
+                            </div>
+                        </div>
+                        <div class="shrink-0 bg-slate-100 p-2 rounded-lg text-slate-500 flex items-center justify-center">
+                            <i data-lucide="package" class="w-4 h-4 text-amber-600"></i>
+                        </div>
+                    </label>
+                `;
+            });
+        }
+
+        document.getElementById('gn-pagination-info').innerText = `Trang ${giaoNhanCurrentPage} / ${totalPages}`;
+        document.getElementById('gn-btn-prev').disabled = giaoNhanCurrentPage === 1;
+        document.getElementById('gn-btn-next').disabled = giaoNhanCurrentPage === totalPages;
+        initIcons();
+    }
+
+    function handleDvcmGiaoNhanLoaiChange() {
+        const loai = document.getElementById('dvcm-select-pbg-loai').value;
+        const selectUser = document.getElementById('dvcm-select-pbg-user');
+
+        selectUser.innerHTML = '';
+
+        let source = [];
+        if (loai === "1") {
+            // Giáo vụ bàn giao túi phách cho Giảng viên (DVCM ➔ GV)
+            canBoCoiThiData.forEach(gv => {
+                selectUser.innerHTML += `<option value="${gv.code}">${gv.name} (${gv.code})</option>`;
+            });
+            source = tuiPhachData.filter(t => t.status === "Đã khóa phách" || t.status === "Chờ khớp điểm");
+        } else {
+            // Giáo vụ trả bài đã chấm về Tổ khảo thí (DVCM ➔ TKT)
+            selectUser.innerHTML = `<option value="tkt">Tổ Khảo thí (tkt)</option>`;
+            source = tuiPhachData.filter(t => t.status === "Đã đối chiếu hợp lệ");
+        }
+
+        populateGiaoNhanFilterSubjects(source, b => b.subjectName);
+        giaoNhanSelectedIds.clear();
+        filterGiaoNhanList();
+    }
+
+    let activeNhanPhieuId = null;
+    function showDvcmGnDetailNhan(phieuId) {
+        activeNhanPhieuId = phieuId;
+        const phieu = phieuGiaoNhanData.find(x => x.id === phieuId);
+        if (!phieu) return;
+
+        
+        const actorNames = {
+            "tkt": "Tổ Khảo thí",
+            "tkct": "Thư ký Chấm thi",
+            "dvcm": "Giáo vụ Khoa",
+            "gv": "Giảng viên",
+            "tkcoithi": "Thư ký Coi thi",
+            "ldp": "Lãnh đạo phòng",
+            "cvht": "Chuyên viên Hệ thống"
+        };
+
+        document.getElementById('dvcm-gn-detail-nhan-title').innerText = 'Chi tiết: ' + phieu.type;
+        document.getElementById('dvcm-gn-detail-nhan-id').innerText = phieu.id;
+        let senderName = "Giảng viên";
+        const gv = canBoCoiThiData.find(x => x.code === phieu.sender);
+        if (gv) senderName = `${gv.name} (${gv.code})`;
+        document.getElementById('dvcm-gn-detail-nhan-giao').innerText = actorNames[phieu.sender] || phieu.sender;
+        document.getElementById('dvcm-gn-detail-nhan-type').innerText = phieu.type;
+        document.getElementById('dvcm-gn-detail-attachment-link').href = '/export-pdf/?id=' + phieu.id;
+        document.getElementById('dvcm-gn-detail-attachment-name').innerText = phieu.attachments && phieu.attachments[0] || 'bien_ban_ban_giao_khoa.pdf';
+
+        const tbody = document.getElementById('dvcm-gn-detail-nhan-tbody');
+        tbody.innerHTML = '';
+
+        const items = phieu.bags || [];
+        items.forEach(itemId => {
+            let subName = "Hồ sơ thi học phần";
+            let numPapers = "";
+            const b = tuiPhachData.find(x => x.id === itemId);
+            if (b) {
+                subName = b.subjectName;
+                numPapers = `${b.papers} bài`;
+            }
+            tbody.innerHTML += `
+                <tr>
+                    <td class="px-4 py-2 font-mono font-bold text-gray-700">${itemId}</td>
+                    <td class="px-4 py-2">${subName}</td>
+                    <td class="px-4 py-2 text-center font-bold">${numPapers}</td>
+                </tr>
+            `;
+        });
+
+        document.getElementById('dvcm-gn-detail-nhan').classList.remove('hidden-view');
+        initIcons();
+    }
+
+    function hideDvcmGnDetailNhan() { document.getElementById('dvcm-gn-detail-nhan').classList.add('hidden-view'); }
+
+    function handleDvcmTuChoiNhanPhieu() {
+        if(confirm("Xác nhận TỪ CHỐI nhận bàn giao bài thi này do phát hiện sai sót dữ liệu kiểm đếm thực tế? Phiếu này sẽ bị hủy.")) {
+            const phieu = phieuGiaoNhanData.find(x => x.id === activeNhanPhieuId);
+            if(phieu) phieu.status = "Bị từ chối";
+            hideDvcmGnDetailNhan();
+            showGlobalToast("Đã từ chối", "Hệ thống đã hủy phiếu và thông báo cho bên giao lập lại phiếu mới.");
+            saveStateToServer();
+            renderGiaoNhan();
+        }
+    }
+
+    function showDvcmGnKyNhanModal() {
+        document.getElementById('modal-dvcm-gn-ky-nhan').classList.remove('hidden-view');
+        document.getElementById('dvcm-gn-ky-nhan-pw').value = '';
+        document.getElementById('dvcm-gn-ky-nhan-error').classList.add('hidden-view');
+    }
+
+    function hideDvcmGnKyNhanModal() { document.getElementById('modal-dvcm-gn-ky-nhan').classList.add('hidden-view'); }
+
+    function confirmDvcmGnKyNhanExecute() {
+        const val = document.getElementById('dvcm-gn-ky-nhan-pw').value;
+        if(val === "123456") {
+            hideDvcmGnKyNhanModal();
+            const phieu = phieuGiaoNhanData.find(x => x.id === activeNhanPhieuId);
+            if(phieu) {
+                phieu.status = "Đã hoàn tất";
+                const timestamp = new Date().toLocaleString('vi-VN');
+                phieu.log = `Đã đóng con dấu điện tử bởi Giáo vụ Khoa vào ${timestamp}`;
+
+                if(phieu.bags) {
+                    phieu.bags.forEach(bid => {
+                        const t = tuiPhachData.find(x => x.id === bid);
+                        if(t) t.status = "Chờ khớp điểm";
+                    });
+                }
+            }
+            hideDvcmGnDetailNhan();
+            showGlobalToast("Ký nhận thành công", "Đã đóng con dấu điện tử tiếp quản bài chấm thi an toàn.");
+            saveStateToServer();
+            renderGiaoNhan();
+            renderDashboard();
+        } else {
+            document.getElementById('dvcm-gn-ky-nhan-error').classList.remove('hidden-view');
+        }
+    }
+
+    function handleDvcmExecuteTaoPhieu() {
+        const listIds = Array.from(giaoNhanSelectedIds);
+        if(listIds.length === 0) {
+            showGlobalToast("Lỗi giao nhận", "Vui lòng chọn ít nhất 1 túi phách hợp lệ để tiến hành bàn giao đi!", "error");
+            return;
+        }
+
+        const selectLoai = document.getElementById('dvcm-select-pbg-loai');
+        const loaiVal = selectLoai.value;
+        const typeText = selectLoai.options[selectLoai.selectedIndex].text;
+        const selectUser = document.getElementById('dvcm-select-pbg-user');
+        const userVal = selectUser.value;
+
+        const nextNum = phieuGiaoNhanData.length + 1;
+        const newPhieuId = `PBG-2026-${String(nextNum).padStart(3, '0')}`;
+
+        let qtyText = `${listIds.length} túi`;
+        let recipient = userVal;
+        let flow = "";
+
+        if (loaiVal === "1") {
+            flow = `Đơn vị Chuyên môn ➔ Giảng viên (${userVal})`;
+        } else {
+            recipient = "tkt";
+            flow = "Đơn vị Chuyên môn ➔ Tổ Khảo thí";
+        }
+
+        phieuGiaoNhanData.push({
+            id: newPhieuId,
+            type: typeText,
+            flow: flow,
+            qty: qtyText,
+            status: "Chờ bạn xác nhận",
+            rooms: null,
+            bags: listIds,
+            sender: "dvcm",
+            recipient: recipient,
+            attachments: ["bien_ban_ban_giao_khoa.pdf"],
+            log: ""
+        });
+
+        showGlobalToast("Thành công", `Đã phát hành phiếu giao nhận ${newPhieuId}!`);
+        giaoNhanSelectedIds.clear();
+        filterGiaoNhanList();
+        saveStateToServer();
+        renderGiaoNhan();
+        switchDvcmGiaoNhanTab('lich-su');
+    }
+
+    function renderPhanCong() {
+        const tbody = document.getElementById('phan-cong-tbody');
+        tbody.innerHTML = '';
+
+        if (tuiPhachData.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-12 text-center text-gray-400 italic">Không có túi phách nào được tạo để chấm thi.</td></tr>`;
+            return;
+        }
+
+        tuiPhachData.forEach(t => {
+            const cb1Text = t.grader1 ? `${canBoCoiThiData.find(g => g.code === t.grader1)?.name || t.grader1} (${t.grader1})` : `<span class="text-red-500 italic font-bold">Chưa phân công</span>`;
+            const cb2Text = t.grader2 ? `${canBoCoiThiData.find(g => g.code === t.grader2)?.name || t.grader2} (${t.grader2})` : `<span class="text-red-500 italic font-bold">Chưa phân công</span>`;
+
+            const btn = `<button onclick="showAssignModal('${t.id}')" class="bg-[#9e1c22] hover:bg-red-800 text-white font-bold px-3 py-1 rounded text-[10px] shadow transition-colors">CHỈ ĐỊNH GIÁM KHẢO</button>`;
+
+            tbody.innerHTML += `
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-6 py-4 font-mono font-bold text-gray-800">${t.id}</td>
+                    <td class="px-6 py-4 font-semibold text-gray-900">${t.subjectName}</td>
+                    <td class="px-6 py-4 text-center font-bold text-blue-900">${t.papers} bài thi</td>
+                    <td class="px-6 py-4 text-slate-700 font-medium">${cb1Text}</td>
+                    <td class="px-6 py-4 text-slate-700 font-medium">${cb2Text}</td>
+                    <td class="px-6 py-4 text-right">${btn}</td>
+                </tr>
+            `;
+        });
+    }
+
+    function showAssignModal(tuiId) {
+        activeAssignTuiId = tuiId;
+        document.getElementById('assign-tui-id').innerText = tuiId;
+        document.getElementById('modal-assign').classList.remove('hidden-view');
+    }
+
+    function hideAssignModal() {
+        document.getElementById('modal-assign').classList.add('hidden-view');
+    }
+
+    function saveAssignExecute() {
+        const cb1 = document.getElementById('assign-cb1').value;
+        const cb2 = document.getElementById('assign-cb2').value;
+
+        if (cb1 === cb2) {
+            alert("Cán bộ chấm 1 và Cán bộ chấm 2 phải là hai người khác nhau để đảm bảo quy chế thi!");
+            return;
+        }
+
+        const t = tuiPhachData.find(x => x.id === activeAssignTuiId);
+        if (t) {
+            t.grader1 = cb1;
+            t.grader2 = cb2;
+            t.status = "Đã phân công chấm";
+            showGlobalToast("Phân công thành công", `Đã chỉ định GV chấm cho túi phách ${activeAssignTuiId}.`);
+            saveStateToServer();
+            hideAssignModal();
+            renderPhanCong();
+        }
+    }
+
+    function renderNhapTraDiem() {
+        const listDiv = document.getElementById('nhapdiem-tui-list');
+        listDiv.innerHTML = '';
+
+        const list = tuiPhachData.filter(t => t.grader1 && t.grader2); // assigned
+        if(list.length === 0) {
+            listDiv.innerHTML = `<div class="text-center py-6 text-gray-400 italic">Chưa có túi phách nào được phân công.</div>`;
+            return;
+        }
+
+        list.forEach(t => {
+            let badge = `<span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-[10px] font-bold">Chờ nộp điểm</span>`;
+            if(t.status === "Đã đối chiếu hợp lệ" || t.status === "Đã trả điểm") badge = `<span class="bg-green-100 text-green-800 px-2 py-0.5 rounded text-[10px] font-bold">Đã nộp điểm</span>`;
+
+            const activeBorder = activeNhapDiemTuiId === t.id ? 'border-2 border-red-700 bg-red-50/20' : 'border-gray-200 bg-white';
+
+            listDiv.innerHTML += `
+                <div onclick="selectTuiNhapDiem('${t.id}')" class="p-3 border rounded-lg cursor-pointer hover:shadow-md transition-all ${activeBorder}">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-mono font-bold text-gray-800 text-xs">${t.id}</span>
+                        ${badge}
+                    </div>
+                    <p class="text-gray-700 font-semibold text-xs truncate">${t.subjectName}</p>
+                    <p class="text-[10px] text-gray-500 mt-1">Giám khảo: ${t.grader1} & ${t.grader2}</p>
+                </div>
+            `;
+        });
+    }
+
+    function selectTuiNhapDiem(tuiId) {
+        activeNhapDiemTuiId = tuiId;
+        renderNhapTraDiem();
+
+        const t = tuiPhachData.find(x => x.id === tuiId);
+        if (!t) return;
+
+        document.getElementById('entry-panel-empty').classList.add('hidden-view');
+        document.getElementById('entry-panel-form').classList.remove('hidden-view');
+
+        document.getElementById('entry-title-tui').innerText = `Túi phách: ${t.id}`;
+        document.getElementById('entry-title-sub').innerText = `Học phần: ${t.subjectName} (${t.papers} bài thi)`;
+        document.getElementById('entry-title-cb').innerText = `Cán bộ chấm: ${t.grader1} & ${t.grader2}`;
+
+        const tbody = document.getElementById('entry-tbody');
+        tbody.innerHTML = '';
+
+        const phachList = t.phachGoc || Array.from({length: t.papers}, (_, i) => `PH${1000 + i}`);
+
+        phachList.forEach(ph => {
+            let pt1Val = "";
+            let pt2Val = "";
+
+            if (t.status === "Đã đối chiếu hợp lệ" || t.status === "Đã trả điểm") {
+                pt1Val = 7.5;
+                pt2Val = 7.5;
+            }
+
+            tbody.innerHTML += `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="px-4 py-2 font-bold text-gray-700">${ph}</td>
+                    <td class="px-4 py-2 text-center">
+                        <input type="number" step="0.25" min="0" max="10" placeholder="0.0" value="${pt1Val}"
+                            onchange="saveTempGrade('${ph}', 'pt1', this.value)"
+                            class="entry-input-grade w-20 text-center p-1 border rounded focus:border-red-700 outline-none" />
+                    </td>
+                    <td class="px-4 py-2 text-center">
+                        <input type="number" step="0.25" min="0" max="10" placeholder="0.0" value="${pt2Val}"
+                            onchange="saveTempGrade('${ph}', 'pt2', this.value)"
+                            class="entry-input-grade w-20 text-center p-1 border rounded focus:border-red-700 outline-none" />
+                    </td>
+                </tr>
+            `;
+        });
+        initIcons();
+    }
+
+    function saveTempGrade(phachCode, graderType, value) {
+        if(!tempGradesData[activeNhapDiemTuiId]) {
+            tempGradesData[activeNhapDiemTuiId] = {};
+        }
+        if(!tempGradesData[activeNhapDiemTuiId][phachCode]) {
+            tempGradesData[activeNhapDiemTuiId][phachCode] = { pt1: null, pt2: null };
+        }
+        tempGradesData[activeNhapDiemTuiId][phachCode][graderType] = parseFloat(value);
+    }
+
+    function submitGradingSheet() {
+        const t = tuiPhachData.find(x => x.id === activeNhapDiemTuiId);
+        if (!t) return;
+
+        t.status = "Đã đối chiếu hợp lệ";
+
+        t.scores = {};
+        const phachList = t.phachGoc || Array.from({length: t.papers}, (_, i) => `PH${1000 + i}`);
+
+        phachList.forEach((ph, index) => {
+            let p1 = 7.5;
+            let p2 = 7.5;
+
+            if (tempGradesData[t.id] && tempGradesData[t.id][ph]) {
+                p1 = tempGradesData[t.id][ph].pt1 || 7.5;
+                p2 = tempGradesData[t.id][ph].pt2 || 7.5;
+            }
+
+            if (index === 2) {
+                p2 = 8.0;
+            }
+
+            t.scores[ph] = { pt1: p1, pt2: p2, ptFinal: (p1 + p2)/2 };
+        });
+
+        const pid = `PTD-${new Date().getFullYear()}-${String(phieuGiaoNhanData.length + 1).padStart(3, '0')}`;
+        phieuGiaoNhanData.push({
+            id: pid,
+            type: `Trả điểm & file quét bài thi học phần (Loại 2)`,
+            flow: `Đơn vị Chuyên môn (Khoa) ➔ Tổ Khảo thí`,
+            qty: 1,
+            status: "Chờ nhận",
+            rooms: null,
+            bags: [t.id]
+        });
+
+        showGlobalToast("Nộp điểm thành công", `Đã lưu điểm và tạo phiếu bàn giao trả điểm ${pid} gửi về Tổ Khảo thí.`);
+        saveStateToServer();
+
+        document.getElementById('entry-panel-form').classList.add('hidden-view');
+        document.getElementById('entry-panel-empty').classList.remove('hidden-view');
+        activeNhapDiemTuiId = "";
+        renderNhapTraDiem();
+    }
+
+    function showGlobalToast(title, msg, type = 'success') {
+        const toast = document.getElementById('toast-global');
+        const icon = document.getElementById('toast-global-icon');
+
+        toast.className = "fixed bottom-6 right-6 text-white px-6 py-4 rounded shadow-xl flex items-center gap-3 animate-fade-in-up z-[200]";
+
+        if (type === 'error') {
+            toast.classList.add('bg-red-600');
+            icon.setAttribute('data-lucide', 'alert-circle');
+        } else {
+            toast.classList.add('bg-green-600');
+            icon.setAttribute('data-lucide', 'check-circle-2');
+        }
+
+        document.getElementById('toast-global-title').innerText = title;
+        document.getElementById('toast-global-msg').innerText = msg || '';
+        toast.classList.remove('hidden-view');
+        initIcons();
+
+        setTimeout(() => toast.classList.add('hidden-view'), 4000);
+    }
+</script>

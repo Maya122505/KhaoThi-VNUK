@@ -1,0 +1,35 @@
+<!-- VIEW: phê duyệt thù lao -->
+<div id="view-duyet-thu-lao" class="view-section hidden-view animate-fade-in h-full flex flex-col">
+    <h2 class="text-xl font-bold text-blue-900 mb-4 pb-2 border-b flex items-center gap-2"><i data-lucide="clock"></i> Phê duyệt Quyết toán Thù lao coi thi</h2>
+    <div class="bg-white border rounded-lg shadow-sm p-6 mb-6">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h4 class="font-bold text-gray-800 text-sm">Báo cáo quyết toán giờ coi thi học kỳ III (2025-2026)</h4>
+                <p class="text-xs text-gray-500 mt-1">Đơn giá áp dụng: 100,000 VND / giờ coi thi. Yêu cầu toàn bộ lịch trình phải được Giảng viên xác nhận trước khi trình duyệt.</p>
+            </div>
+            <div class="flex gap-2">
+                <button id="btn-duyet-thulao-action" onclick="showDuyetModal('thulao', 'Báo cáo Quyết toán Thù lao coi thi')" class="bg-indigo-700 hover:bg-indigo-800 text-white font-bold px-4 py-2 rounded text-xs shadow flex items-center gap-1.5 font-sans">
+                    <i data-lucide="file-signature" class="w-4 h-4"></i> KÝ PHÊ DUYỆT
+                </button>
+            </div>
+        </div>
+        <div id="thulao-status-stamp" class="mb-4"></div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+                <thead class="bg-gray-100 text-gray-700 font-bold border-b">
+                    <tr>
+                        <th class="px-4 py-2.5">Mã GV</th>
+                        <th class="px-4 py-2.5">Họ tên Cán bộ coi thi</th>
+                        <th class="px-4 py-2.5">Đơn vị / Khoa</th>
+                        <th class="px-4 py-2.5 text-center">Số ca thi</th>
+                        <th class="px-4 py-2.5 text-center">Tổng giờ thi</th>
+                        <th class="px-4 py-2.5 text-right">Tổng thù lao</th>
+                    </tr>
+                </thead>
+                <tbody id="duyet-thulao-tbody" class="divide-y divide-gray-100 font-sans">
+                    <!-- Filled by JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

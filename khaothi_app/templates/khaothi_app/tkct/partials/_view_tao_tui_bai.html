@@ -1,0 +1,69 @@
+<div id="view-tao-tui-bai" class="view-section hidden-view animate-fade-in">
+    <div class="mb-6 border-b border-gray-200 pb-4">
+        <h2 class="text-2xl font-bold text-blue-900 mb-1 flex items-center gap-2">
+            <i data-lucide="folder-open" class="text-blue-600"></i> Tạo túi bài thi
+        </h2>
+        <p class="text-sm text-gray-600">Gom nhóm các phòng thi chưa làm phách của cùng học phần. Hệ thống tự cắt túi tối đa 60 bài/túi và không xé lẻ phòng thi.</p>
+    </div>
+
+    <div class="flex gap-6">
+        <div class="w-2/3 bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col">
+            <div class="bg-gray-50 p-4 border-b border-gray-200 flex gap-4 items-center rounded-t-lg">
+                <span class="text-sm font-semibold text-gray-700 whitespace-nowrap">Chọn học phần:</span>
+                <select id="tao-tui-hoc-phan" onchange="renderViewTaoTui()" class="flex-1 border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-[#9e1c22]">
+                    <option value="">-- Tất cả học phần --</option>
+                    <option value="ENG101">Tiếng Anh GTQT 3</option>
+                    <option value="BUS201">Quản trị dự án</option>
+                    <option value="CS101">Nhập môn Lập trình</option>
+                    <option value="MKT205">Marketing căn bản</option>
+                </select>
+            </div>
+            <div class="overflow-x-auto min-h-[300px]">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-white border-b border-gray-200 text-gray-700">
+                        <tr>
+                            <th class="px-4 py-3 w-12 text-center">
+                                <input id="tao-tui-check-all" type="checkbox" onchange="toggleAllPhongTaoTui(this.checked)" class="w-4 h-4 text-red-600 rounded cursor-pointer" />
+                            </th>
+                            <th class="px-4 py-3 font-semibold">Mã phòng thi</th>
+                            <th class="px-4 py-3 font-semibold">Tên học phần</th>
+                            <th class="px-4 py-3 font-semibold text-center">Số lượng bài thi thực tế</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tao-tui-tbody" class="divide-y divide-gray-100"></tbody>
+                </table>
+            </div>
+            <div class="bg-gray-50 p-4 border-t border-gray-200 rounded-b-lg flex justify-between items-center">
+                <span class="text-sm text-gray-600">Đã chọn: <strong id="tao-tui-selected-count" class="text-red-700 text-lg">0</strong> phòng thi</span>
+                <button onclick="handleAlternativeFlow3a()" class="text-sm text-blue-600 hover:underline font-semibold flex items-center gap-1">
+                    <i data-lucide="check-circle-2" class="w-4 h-4"></i> Chọn tất cả các phòng thi của cùng một môn
+                </button>
+            </div>
+        </div>
+
+        <div class="w-1/3">
+            <div class="bg-white border border-gray-200 rounded-lg shadow-sm sticky top-4">
+                <div class="bg-[#9e1c22] text-white p-4 rounded-t-lg font-bold flex items-center gap-2">
+                    <i data-lucide="layers" class="w-5 h-5"></i> THUẬT TOÁN CHIA TÚI
+                </div>
+                <div class="p-6">
+                    <div class="mb-4 flex justify-between items-end border-b border-dashed border-gray-200 pb-3">
+                        <span class="text-gray-600 text-sm font-semibold">Số phòng gom:</span>
+                        <span id="preview-so-phong" class="text-lg font-bold text-gray-800">0 Phòng</span>
+                    </div>
+                    <div class="mb-4 flex justify-between items-end border-b border-dashed border-gray-200 pb-3">
+                        <span class="text-gray-600 text-sm font-semibold">Tổng số bài thi:</span>
+                        <span id="preview-tong-bai" class="text-2xl font-black text-blue-900">0</span>
+                    </div>
+                    <div id="preview-danh-sach-tui" class="space-y-2 mb-6 max-h-48 overflow-y-auto">
+                        <div class="text-xs text-gray-400 italic">Chọn phòng thi ở bảng trái để xem phân bổ cắt túi...</div>
+                    </div>
+
+                    <button onclick="handleGhepPhongSubmit()" class="w-full bg-[#9e1c22] hover:bg-red-800 text-white font-bold py-3.5 px-4 rounded shadow transition-all flex justify-center items-center gap-2">
+                        <i data-lucide="plus-circle" class="w-5 h-5"></i> Ghép phòng
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

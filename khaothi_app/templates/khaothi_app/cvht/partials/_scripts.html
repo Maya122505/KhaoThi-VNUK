@@ -1,0 +1,313 @@
+<!-- Scripts Section -->
+<script>
+    // Synced global variables
+    let kyThiData = [];
+    let caThiData = [];
+    let lichThiData = [];
+    let hocPhiData = [];
+    let lopThiDiemData = [];
+
+    let phongThiGocData = [];
+    let tuiPhachData = [];
+    let phieuGiaoNhanData = [];
+    let canBoCoiThiData = [];
+    let phucKhaoData = [];
+    let auditLogsData = [];
+    let systemConfigsData = {};
+
+    let isStateLoaded = false;
+    let activeViewId = "view-home";
+    let isSystemLocked = false;
+
+    window.onload = async function() {
+        initIcons();
+        await loadStateFromServer();
+        const savedViewId = sessionStorage.getItem('cvht_activeViewId');
+        navigate(savedViewId || 'view-home');
+    };
+
+    function initIcons() { lucide.createIcons(); }
+
+    async function loadStateFromServer() {
+        try {
+            kyThiData = data.kyThiData || [];
+            caThiData = data.caThiData || [];
+            lichThiData = data.lichThiData || [];
+            hocPhiData = data.hocPhiData || [];
+            lopThiDiemData = data.lopThiDiemData || [];
+            const res = await fetch('/api/get_state/');
+            const data = await res.json();
+
+            phongThiGocData = data.phongThiGocData;
+            tuiPhachData = data.tuiPhachData;
+            phieuGiaoNhanData = data.phieuGiaoNhanData;
+            canBoCoiThiData = data.canBoCoiThiData;
+            phucKhaoData = data.phucKhaoData;
+            auditLogsData = data.auditLogsData || [];
+            systemConfigsData = data.systemConfigsData || {};
+            isStateLoaded = true;
+        } catch(e) {
+            console.error("Lỗi đồng bộ dữ liệu:", e);
+        }
+    }
+
+    async function saveStateToServer() {
+        try {
+            await fetch('/api/save_state/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                        kyThiData,
+                        caThiData,
+                        lichThiData,
+                        hocPhiData,
+                        lopThiDiemData,
+                    phongThiGocData,
+                    tuiPhachData,
+                    phieuGiaoNhanData,
+                    canBoCoiThiData,
+                    phucKhaoData,
+                    auditLogsData,
+                    systemConfigsData
+                })
+            });
+        } catch(e) {
+            console.error("Lỗi lưu dữ liệu:", e);
+        }
+    }
+
+    function navigate(viewId) {
+        document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden-view'));
+        const targetView = document.getElementById(viewId);
+        if(targetView) targetView.classList.remove('hidden-view');
+        sessionStorage.setItem('cvht_activeViewId', viewId);
+
+        document.querySelectorAll('.nav-btn').forEach(btn => btn.className = "nav-btn px-6 py-3 text-sm font-semibold border-r border-red-800 transition-colors hover:bg-red-800");
+
+        activeViewId = viewId;
+        if(viewId === 'view-home') {
+            document.getElementById('nav-btn-home').className += " bg-red-800";
+            renderLogs();
+        } else if(viewId === 'view-danh-muc') {
+            document.getElementById('nav-btn-danh-muc').className += " bg-red-800";
+        } else if(viewId === 'view-cau-hinh') {
+            document.getElementById('nav-btn-cau-hinh').className += " bg-red-800";
+            document.getElementById('config-type-selector').value = "nhap_diem_hp";
+            switchConfigType("nhap_diem_hp");
+        }
+        initIcons();
+    }
+
+    function switchConfigType(val) {
+        document.querySelectorAll('.config-sub-view').forEach(el => el.classList.add('hidden-view'));
+        if(val === 'nhap_diem_hp') {
+            document.getElementById('config-area-nhap-diem-hp').classList.remove('hidden-view');
+            loadSubjectConfigNhapDiem(document.getElementById('config-nd-subject').value);
+        } else if(val === 'phuc_khao') {
+            document.getElementById('config-area-phuc-khao').classList.remove('hidden-view');
+            loadSubjectConfigPhucKhao(document.getElementById('config-pk-subject').value);
+        } else if(val === 'nop_de') {
+            document.getElementById('config-area-nop-de').classList.remove('hidden-view');
+        } else if(val === 'nhap_thanh_phan') {
+            document.getElementById('config-area-nhap-thanh-phan').classList.remove('hidden-view');
+        } else if(val === 'trong_so') {
+            document.getElementById('config-area-trong-so').classList.remove('hidden-view');
+        } else if(val === 'dieu_kien') {
+            document.getElementById('config-area-dieu-kien').classList.remove('hidden-view');
+        } else if(val === 'quy_doi') {
+            document.getElementById('config-area-quy-doi').classList.remove('hidden-view');
+        }
+        initIcons();
+    }
+
+    function renderLogs() {
+        const tbody = document.getElementById('logs-tbody');
+        tbody.innerHTML = '';
+
+        if(auditLogsData.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="3" class="px-6 py-12 text-center text-gray-400 italic">Nhật ký trống.</td></tr>`;
+            return;
+        }
+
+        [...auditLogsData].reverse().forEach(log => {
+            let badge = `<span class="text-blue-900 font-bold">${log.actor}</span>`;
+            if(log.actor === 'Hệ thống') badge = `<span class="text-gray-500 font-bold">${log.actor}</span>`;
+            if(log.actor === 'Thư ký Coi thi') badge = `<span class="text-sky-600 font-bold">${log.actor}</span>`;
+
+            tbody.innerHTML += `
+                <tr class="hover:bg-gray-50 text-xs border-b">
+                    <td class="px-6 py-3 font-semibold text-gray-400">${log.time}</td>
+                    <td class="px-6 py-3 font-bold">${badge}</td>
+                    <td class="px-6 py-3 text-gray-700">${log.action}</td>
+                </tr>
+            `;
+        });
+    }
+
+    function loadSubjectConfigNhapDiem(subId) {
+        const cfg = systemConfigsData.nhapDiem?.[subId] || { start: "", end: "", publish: "" };
+        document.getElementById('config-nd-start').value = cfg.start || "";
+        document.getElementById('config-nd-end').value = cfg.end || "";
+        document.getElementById('config-nd-publish').value = cfg.publish || "";
+        validateNhapDiemDates();
+    }
+
+    function loadSubjectConfigPhucKhao(subId) {
+        const cfg = systemConfigsData.phucKhao?.[subId] || { start: "", end: "", deadline: "" };
+        document.getElementById('config-pk-start').value = cfg.start || "";
+        document.getElementById('config-pk-end').value = cfg.end || "";
+        document.getElementById('config-pk-deadline').value = cfg.deadline || "";
+        validatePhucKhaoDates();
+    }
+
+    function validateNhapDiemDates() {
+        const start = document.getElementById('config-nd-start').value;
+        const end = document.getElementById('config-nd-end').value;
+        const publish = document.getElementById('config-nd-publish').value;
+
+        const errBox = document.getElementById('config-nd-error');
+        const btn = document.getElementById('btn-save-nd');
+
+        if (start && end && publish) {
+            if (new Date(start) >= new Date(end) || new Date(end) >= new Date(publish)) {
+                errBox.classList.remove('hidden-view');
+                btn.setAttribute('disabled', 'true');
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
+                return false;
+            }
+        }
+        errBox.classList.add('hidden-view');
+        btn.removeAttribute('disabled');
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        return true;
+    }
+
+    function validatePhucKhaoDates() {
+        const start = document.getElementById('config-pk-start').value;
+        const end = document.getElementById('config-pk-end').value;
+        const deadline = document.getElementById('config-pk-deadline').value;
+
+        const errBox = document.getElementById('config-pk-error');
+        const warnBox = document.getElementById('config-pk-warning');
+        const btn = document.getElementById('btn-save-pk');
+
+        errBox.classList.add('hidden-view');
+        warnBox.classList.add('hidden-view');
+        btn.removeAttribute('disabled');
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+        if (start && end) {
+            if (new Date(end) <= new Date(start)) {
+                errBox.classList.remove('hidden-view');
+                btn.setAttribute('disabled', 'true');
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
+                return false;
+            }
+        }
+
+        if (end && deadline) {
+            const diffTime = Math.abs(new Date(deadline) - new Date(end));
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            if (diffDays > 7) {
+                warnBox.classList.remove('hidden-view');
+            }
+        }
+        return true;
+    }
+
+    function saveConfigNhapDiem() {
+        if (!validateNhapDiemDates()) return;
+        const subId = document.getElementById('config-nd-subject').value;
+
+        if(!systemConfigsData.nhapDiem) systemConfigsData.nhapDiem = {};
+        systemConfigsData.nhapDiem[subId] = {
+            start: document.getElementById('config-nd-start').value,
+            end: document.getElementById('config-nd-end').value,
+            publish: document.getElementById('config-nd-publish').value
+        };
+
+        showGlobalToast("Lưu cấu hình", `Đã lưu cấu hình thời gian nhập & công bố điểm cho học phần ${subId}.`);
+        saveStateToServer();
+    }
+
+    function saveConfigPhucKhao() {
+        if (!validatePhucKhaoDates()) return;
+        const subId = document.getElementById('config-pk-subject').value;
+
+        if(!systemConfigsData.phucKhao) systemConfigsData.phucKhao = {};
+        systemConfigsData.phucKhao[subId] = {
+            start: document.getElementById('config-pk-start').value,
+            end: document.getElementById('config-pk-end').value,
+            deadline: document.getElementById('config-pk-deadline').value
+        };
+
+        showGlobalToast("Lưu cấu hình", `Đã lưu cấu hình thời gian phúc khảo cho học phần ${subId}.`);
+        saveStateToServer();
+    }
+
+    function clearSystemLogs() {
+        if(confirm("Bạn có chắc chắn muốn xóa toàn bộ lịch sử nhật ký hệ thống?")) {
+            auditLogsData = [];
+            showGlobalToast("Xóa nhật ký", "Đã xóa toàn bộ nhật ký sự kiện hệ thống.");
+            saveStateToServer();
+            renderLogs();
+        }
+    }
+
+    function toggleSystemLock() {
+        isSystemLocked = !isSystemLocked;
+        const btn = document.getElementById('btn-lock-system');
+        const text = document.getElementById('system-lock-text');
+
+        if(isSystemLocked) {
+            btn.innerText = "MỞ KHÓA CỔNG";
+            btn.className = "bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 font-bold px-4 py-2 rounded";
+            text.innerText = "● TOÀN BỘ CỔNG GIAO DỊCH ĐANG KHÓA (LOCKED)";
+            text.className = "text-red-600 font-mono font-bold text-[10px] block mt-0.5";
+            showGlobalToast("Khóa hệ thống", "Đã khóa toàn bộ cổng giao dịch khảo thí thành công.", "error");
+        } else {
+            btn.innerText = "TẠM KHÓA CỔNG";
+            btn.className = "bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 font-bold px-4 py-2 rounded";
+            text.innerText = "● HỆ THỐNG ĐANG MỞ (OPERATIONAL)";
+            text.className = "text-green-600 font-mono font-bold text-[10px] block mt-0.5";
+            showGlobalToast("Mở hệ thống", "Hệ thống đã phục hồi trạng thái hoạt động bình thường.");
+        }
+    }
+
+    async function resetDatabaseToSeed() {
+        if(confirm("CẢNH BÁO: Thao tác này sẽ làm mới toàn bộ database về trạng thái mặc định của VNUK. Bạn có chắc chắn muốn khôi phục?")) {
+            try {
+                await fetch('/api/save_state/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reset: true })
+                });
+                window.location.reload();
+            } catch(e) {
+                console.error(e);
+            }
+        }
+    }
+
+    function showGlobalToast(title, msg, type = 'success') {
+        const toast = document.getElementById('toast-global');
+        const icon = document.getElementById('toast-global-icon');
+
+        toast.className = "fixed bottom-6 right-6 text-white px-6 py-4 rounded shadow-xl flex items-center gap-3 animate-fade-in-up z-[200]";
+
+        if (type === 'error') {
+            toast.classList.add('bg-red-600');
+            icon.setAttribute('data-lucide', 'alert-circle');
+        } else {
+            toast.classList.add('bg-green-600');
+            icon.setAttribute('data-lucide', 'check-circle-2');
+        }
+
+        document.getElementById('toast-global-title').innerText = title;
+        document.getElementById('toast-global-msg').innerText = msg || '';
+        toast.classList.remove('hidden-view');
+        initIcons();
+
+        setTimeout(() => toast.classList.add('hidden-view'), 4000);
+    }
+</script>

@@ -1,0 +1,24 @@
+{% extends 'khaothi_app/_shared/base.html' %}
+
+{% block title %}Cổng Chuyên viên Hệ thống - VNUK{% endblock %}
+
+{% block content %}
+    {% include 'khaothi_app/_shared/_header.html' with actor_info='khaothi_app/cvht/partials/_actor_info.html' %}
+
+    {% include 'khaothi_app/cvht/partials/_cvht_tabs.html' %}
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-[1500px] mx-auto w-full p-6 relative">
+        {% include 'khaothi_app/_shared/_toast.html' %}
+
+        {% include 'khaothi_app/cvht/partials/_view_nhat_ky.html' %}
+
+        {% include 'khaothi_app/cvht/partials/_view_danh_muc.html' %}
+        
+        {% include 'khaothi_app/cvht/partials/_view_cau_hinh.html' %}
+    </main>
+{% endblock %}
+
+{% block scripts %}
+    {% include 'khaothi_app/cvht/partials/_scripts.html' %}
+{% endblock %}

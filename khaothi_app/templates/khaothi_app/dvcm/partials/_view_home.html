@@ -1,0 +1,41 @@
+<!-- VIEW: HOME -->
+<div id="view-home" class="view-section animate-fade-in flex flex-col h-full">
+    <div class="flex justify-between items-end border-b border-gray-200 pb-4 mb-6">
+        <div>
+            <h2 class="text-2xl font-bold text-blue-900 mb-1 flex items-center gap-2"><i data-lucide="home" class="text-blue-600"></i> Bảng tin Giáo vụ Khoa</h2>
+            <p class="text-sm text-gray-600">Tiếp nhận túi phách bài thi từ Tổ Khảo thí, phân công giảng viên chấm thi, nhập điểm và bàn giao kết quả.</p>
+        </div>
+    </div>
+
+    <!-- Counters -->
+    <div class="grid grid-cols-4 gap-6 mb-8 text-xs font-sans">
+        <div class="bg-white rounded-lg p-5 border border-l-4 border-l-emerald-600 shadow-sm flex flex-col">
+            <div class="text-gray-500 text-xs font-bold uppercase tracking-wide">Yêu cầu nhận bài mới</div>
+            <div class="text-3xl font-black text-gray-800 mt-2" id="count-nhan-cho">0</div>
+            <span class="text-xs text-emerald-600 font-semibold mt-2">Bàn giao túi phách từ Tổ Khảo thí</span>
+        </div>
+        <div class="bg-white rounded-lg p-5 border border-l-4 border-l-teal-600 shadow-sm flex flex-col">
+            <div class="text-gray-500 text-xs font-bold uppercase tracking-wide">Túi bài chưa phân công chấm</div>
+            <div class="text-3xl font-black text-gray-800 mt-2" id="count-phancong-cho">0</div>
+            <span class="text-xs text-teal-600 font-semibold mt-2">Cần chỉ định cán bộ chấm thi 1 & 2</span>
+        </div>
+        <div class="bg-white rounded-lg p-5 border border-l-4 border-l-blue-600 shadow-sm flex flex-col">
+            <div class="text-gray-500 text-xs font-bold uppercase tracking-wide">Bản điểm chấm dở dang</div>
+            <div class="text-3xl font-black text-gray-800 mt-2" id="count-nhapdiem-cho">0</div>
+            <span class="text-xs text-blue-600 font-semibold mt-2">Đang chờ Giảng viên chấm thi nộp điểm</span>
+        </div>
+        <div class="bg-white rounded-lg p-5 border border-l-4 border-l-yellow-600 shadow-sm flex flex-col">
+            <div class="text-gray-500 text-xs font-bold uppercase tracking-wide">Phiếu trả điểm chờ nhận</div>
+            <div class="text-3xl font-black text-gray-800 mt-2" id="count-phieu-gui-cho">0</div>
+            <span class="text-xs text-yellow-600 font-semibold mt-2">Đã lập và bàn giao về Tổ Khảo thí</span>
+        </div>
+    </div>
+
+    <!-- Quick Action List -->
+    <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6 text-xs font-sans">
+        <h3 class="font-bold text-gray-800 mb-4 pb-2 border-b">Hồ sơ công việc cần xử lý gấp</h3>
+        <div class="flex flex-col gap-3" id="quick-action-list">
+            <!-- Dynamic -->
+        </div>
+    </div>
+</div>

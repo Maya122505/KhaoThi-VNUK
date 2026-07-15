@@ -1,0 +1,24 @@
+{% extends 'khaothi_app/_shared/base.html' %}
+
+{% block title %}Cổng Giảng viên & CB Chấm thi - VNUK{% endblock %}
+
+{% block content %}
+    {% include 'khaothi_app/_shared/_header.html' with actor_info='khaothi_app/gv/partials/_actor_info.html' %}
+
+    {% include 'khaothi_app/gv/partials/_gv_tabs.html' %}
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-[1500px] mx-auto w-full p-6 relative">
+        {% include 'khaothi_app/_shared/_toast.html' %}
+
+        {% include 'khaothi_app/gv/partials/_view_lich_coi_thi.html' %}
+
+        {% include 'khaothi_app/gv/partials/_view_nhap_diem.html' %}
+        
+        {% include 'khaothi_app/gv/partials/_view_giao_nhan.html' %}
+    </main>
+{% endblock %}
+
+{% block scripts %}
+    {% include 'khaothi_app/gv/partials/_scripts.html' %}
+{% endblock %}

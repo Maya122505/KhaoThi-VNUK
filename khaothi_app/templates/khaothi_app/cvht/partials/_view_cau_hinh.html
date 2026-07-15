@@ -1,0 +1,169 @@
+<!-- VIEW: Cấu hình -->
+<div id="view-cau-hinh" class="view-section hidden-view animate-fade-in h-full flex flex-col font-sans">
+    <div class="flex justify-between items-center border-b pb-4 mb-6">
+        <div>
+            <h2 class="text-xl font-bold text-blue-900 flex items-center gap-2">
+                <i data-lucide="settings-2"></i> Quản lý Cấu hình Hệ thống
+            </h2>
+            <p class="text-xs text-gray-500 mt-1">Thiết lập các mốc thời gian, giới hạn và quy định vận hành khảo thí VNUK.</p>
+        </div>
+
+        <!-- Config Selector Dropdown from Use Case diagram -->
+        <div class="flex items-center gap-2 text-xs">
+            <label class="font-bold text-gray-700">Loại Cấu hình:</label>
+            <select id="config-type-selector" onchange="switchConfigType(this.value)" class="bg-gray-100 border border-gray-300 text-gray-800 font-bold text-xs p-2 rounded outline-none shadow-sm cursor-pointer focus:border-[#9e1c22] bg-white">
+                <option value="nhap_diem_hp">1. Cấu hình thời gian nhập & công bố điểm thi kết thúc học phần (UC 10.7)</option>
+                <option value="phuc_khao">2. Cấu hình thời gian phúc khảo (UC 10.4)</option>
+                <option value="nop_de">3. Cấu hình thời hạn nộp đề thi</option>
+                <option value="nhap_thanh_phan">4. Cấu hình thời gian nhập điểm thành phần</option>
+                <option value="trong_so">5. Cấu hình cột điểm và trọng số</option>
+                <option value="dieu_kien">6. Cấu hình điều kiện dự thi</option>
+                <option value="quy_doi">7. Cấu hình Bảng quy đổi điểm ngoại ngữ</option>
+            </select>
+        </div>
+    </div>
+    <div id="config-area-nhap-diem-hp" class="config-sub-view max-w-3xl mx-auto w-full my-4">
+        <div class="w-full bg-white border p-8 rounded-lg shadow-sm flex flex-col gap-5 text-xs">
+            <h3 class="font-bold text-blue-950 text-sm pb-2 border-b flex items-center gap-1.5 border-l-4 border-l-red-700 pl-2">
+                <i data-lucide="calendar-days" class="text-red-700"></i> UC 10.7: Thời gian nhập & công bố điểm
+            </h3>
+
+            <div>
+                <label class="block font-bold text-gray-700 mb-1">Chọn Học phần cấu hình:</label>
+                <select id="config-nd-subject" onchange="loadSubjectConfigNhapDiem(this.value)" class="w-full p-2.5 border rounded outline-none bg-white font-semibold">
+                    <option value="ECO101">Kinh tế vi mô (ECO101)</option>
+                    <option value="PHI101">Triết học Mác-Lênin (PHI101)</option>
+                    <option value="MAT101">Toán cao cấp (MAT101)</option>
+                    <option value="ENG101">Tiếng Anh GTQT 3 (ENG101)</option>
+                </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">Thời gian bắt đầu nhập điểm:</label>
+                    <input type="datetime-local" id="config-nd-start" onchange="validateNhapDiemDates()" class="w-full p-2.5 border rounded outline-none" />
+                </div>
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">Thời hạn khóa cổng nhập điểm:</label>
+                    <input type="datetime-local" id="config-nd-end" onchange="validateNhapDiemDates()" class="w-full p-2.5 border rounded outline-none" />
+                </div>
+            </div>
+
+            <div>
+                <label class="block font-bold text-gray-700 mb-1">Thời gian tự động công bố điểm:</label>
+                <input type="datetime-local" id="config-nd-publish" onchange="validateNhapDiemDates()" class="w-full p-2.5 border rounded outline-none" />
+            </div>
+
+            <!-- Red Alert Box for Error -->
+            <div id="config-nd-error" class="hidden-view border border-red-200 bg-red-50 text-red-700 p-3 rounded font-bold flex items-center gap-1.5">
+                <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                <span>Thời hạn khóa cổng phải lớn hơn thời gian bắt đầu, thời gian công bố phải lớn hơn thời hạn khóa cổng!</span>
+            </div>
+
+            <button onclick="saveConfigNhapDiem()" id="btn-save-nd" class="bg-[#9e1c22] hover:bg-red-800 text-white font-bold py-2.5 rounded shadow flex items-center justify-center gap-1.5 font-sans mt-2">
+                <i data-lucide="save" class="w-4 h-4"></i> LƯU CẤU HÌNH NHẬP & CÔNG BỐ
+            </button>
+        </div>
+    </div>
+
+    <!-- Sub-view: Phúc khảo -->
+    <div id="config-area-phuc-khao" class="config-sub-view hidden-view max-w-3xl mx-auto w-full my-4">
+        <div class="w-full bg-white border p-8 rounded-lg shadow-sm flex flex-col gap-5 text-xs">
+            <h3 class="font-bold text-blue-950 text-sm pb-2 border-b flex items-center gap-1.5 border-l-4 border-l-blue-700 pl-2">
+                <i data-lucide="shield-alert" class="text-blue-700"></i> UC 10.4: Thiết lập thời gian phúc khảo
+            </h3>
+
+            <div>
+                <label class="block font-bold text-gray-700 mb-1">Chọn Học phần cấu hình:</label>
+                <select id="config-pk-subject" onchange="loadSubjectConfigPhucKhao(this.value)" class="w-full p-2.5 border rounded outline-none bg-white font-semibold">
+                    <option value="ECO101">Kinh tế vi mô (ECO101)</option>
+                    <option value="PHI101">Triết học Mác-Lênin (PHI101)</option>
+                    <option value="MAT101">Toán cao cấp (MAT101)</option>
+                    <option value="ENG101">Tiếng Anh GTQT 3 (ENG101)</option>
+                </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">Thời gian mở cổng nhận đơn:</label>
+                    <input type="datetime-local" id="config-pk-start" onchange="validatePhucKhaoDates()" class="w-full p-2.5 border rounded outline-none" />
+                </div>
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">Thời hạn khóa cổng nhận đơn:</label>
+                    <input type="datetime-local" id="config-pk-end" onchange="validatePhucKhaoDates()" class="w-full p-2.5 border rounded outline-none" />
+                </div>
+            </div>
+
+            <div>
+                <label class="block font-bold text-gray-700 mb-1">Thời hạn hoàn thành chấm phúc khảo:</label>
+                <input type="datetime-local" id="config-pk-deadline" onchange="validatePhucKhaoDates()" class="w-full p-2.5 border rounded outline-none" />
+            </div>
+
+            <!-- Red Alert Box for Error -->
+            <div id="config-pk-error" class="hidden-view border border-red-200 bg-red-50 text-red-700 p-3 rounded font-bold flex items-center gap-1.5">
+                <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                <span>Thời gian kết thúc phải lớn hơn thời gian bắt đầu.</span>
+            </div>
+
+            <!-- Yellow Alert Box for Warning -->
+            <div id="config-pk-warning" class="hidden-view border border-yellow-200 bg-yellow-50 text-yellow-800 p-3 rounded font-bold flex items-center gap-1.5 animate-pulse">
+                <i data-lucide="alert-triangle" class="w-4 h-4 text-yellow-600"></i>
+                <span>Cảnh báo: Thời hạn chấm xử lý đang vượt quá 7 ngày làm việc!</span>
+            </div>
+
+            <button onclick="saveConfigPhucKhao()" id="btn-save-pk" class="bg-[#9e1c22] hover:bg-red-800 text-white font-bold py-2.5 rounded shadow flex items-center justify-center gap-1.5 font-sans mt-2">
+                <i data-lucide="save" class="w-4 h-4"></i> LƯU CẤU HÌNH PHÚC KHẢO
+            </button>
+        </div>
+    </div>
+
+    <!-- Other config sub-views -->
+    <div id="config-area-nop-de" class="config-sub-view hidden-view bg-white border p-12 rounded-lg text-center text-gray-400 italic text-xs flex flex-col items-center justify-center min-h-[350px] max-w-3xl mx-auto w-full my-4">
+        <i data-lucide="file-text" class="w-12 h-12 text-gray-300 mb-2"></i>
+        <h4 class="font-bold text-gray-700 mb-1">Cấu hình thời hạn nộp đề thi</h4>
+        <p class="text-gray-500 max-w-md mt-1 leading-relaxed">Thiết lập thời hạn để giảng viên nộp đề thi chính thức và đề thi dự phòng lên hệ thống quản lý đề thi (UC 13.1). Tính năng này đang được phát triển theo lộ trình khảo thí.</p>
+    </div>
+
+    <div id="config-area-nhap-thanh-phan" class="config-sub-view hidden-view bg-white border p-12 rounded-lg text-center text-gray-400 italic text-xs flex flex-col items-center justify-center min-h-[350px] max-w-3xl mx-auto w-full my-4">
+        <i data-lucide="calendar" class="w-12 h-12 text-gray-300 mb-2"></i>
+        <h4 class="font-bold text-gray-700 mb-1">Cấu hình thời gian nhập điểm thành phần</h4>
+        <p class="text-gray-500 max-w-md mt-1 leading-relaxed">Cấu hình hạn chốt nhập điểm chuyên cần, giữa kỳ và bài tập cho các lớp học phần đối với Giảng viên dạy lớp.</p>
+    </div>
+
+    <div id="config-area-trong-so" class="config-sub-view hidden-view bg-white border p-12 rounded-lg text-center text-gray-400 italic text-xs flex flex-col items-center justify-center min-h-[350px] max-w-3xl mx-auto w-full my-4">
+        <i data-lucide="sliders" class="w-12 h-12 text-gray-300 mb-2"></i>
+        <h4 class="font-bold text-gray-700 mb-1">Cấu hình cột điểm và trọng số</h4>
+        <p class="text-gray-500 max-w-md mt-1 leading-relaxed">Thiết lập công thức tính điểm tổng kết học phần (ví dụ: Chuyên cần 10% - Giữa kỳ 30% - Cuối kỳ 60%). Điều chỉnh trọng số tùy biến theo quyết định của Hội đồng Đào tạo.</p>
+    </div>
+
+    <div id="config-area-dieu-kien" class="config-sub-view hidden-view bg-white border p-12 rounded-lg text-center text-gray-400 italic text-xs flex flex-col items-center justify-center min-h-[350px] max-w-3xl mx-auto w-full my-4">
+        <i data-lucide="check-square" class="w-12 h-12 text-gray-300 mb-2"></i>
+        <h4 class="font-bold text-gray-700 mb-1">Cấu hình điều kiện dự thi</h4>
+        <p class="text-gray-500 max-w-md mt-1 leading-relaxed">Thiết lập các điều kiện ràng buộc tư cách dự thi của sinh viên (Số buổi vắng mặt không quá 20%, đã đóng học phí đầy đủ, điểm thành phần đạt từ 3.0 trở lên...).</p>
+    </div>
+
+    <div id="config-area-quy-doi" class="config-sub-view hidden-view bg-white border p-12 rounded-lg text-center text-gray-400 italic text-xs flex flex-col items-center justify-center min-h-[350px] max-w-3xl mx-auto w-full my-4">
+        <i data-lucide="languages" class="w-12 h-12 text-gray-300 mb-2"></i>
+        <h4 class="font-bold text-gray-700 mb-1">Cấu hình Bảng quy đổi điểm ngoại ngữ</h4>
+        <p class="text-gray-500 max-w-md mt-1 leading-relaxed">Thiết lập bảng điểm quy đổi chứng chỉ ngoại ngữ quốc tế (IELTS, TOEFL, TOEIC) sang thang điểm 10 tương đương để công nhận miễn thi học phần ngoại ngữ.</p>
+    </div>
+
+    <!-- Common lock panel at bottom -->
+    <div class="mt-6 bg-white border p-5 rounded-lg shadow-sm text-xs flex justify-between items-center max-w-3xl mx-auto w-full">
+        <div>
+            <h4 class="font-bold text-gray-800">Khóa cổng khẩn cấp & Khôi phục dữ liệu gốc</h4>
+            <p class="text-gray-500 mt-1">Các tùy chọn khẩn cấp bảo trì hệ thống.</p>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="toggleSystemLock()" id="btn-lock-system" class="bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 font-bold px-4 py-2 rounded">
+                TẠM KHÓA CỔNG
+            </button>
+            <button onclick="resetDatabaseToSeed()" class="bg-amber-50 border border-amber-200 text-amber-800 font-bold px-4 py-2 rounded hover:bg-amber-100">
+                KHÔI PHỤC DỮ LIỆU GỐC
+            </button>
+        </div>
+    </div>
+    <div class="p-4 mt-2 bg-gray-50 border border-gray-200/60 rounded-lg text-[10px] text-gray-500 font-mono text-center shadow-inner" id="system-lock-text">
+        ● TRẠNG THÁI HỆ THỐNG: ĐANG HOẠT ĐỘNG BÌNH THƯỜNG (OPERATIONAL)
+    </div>
+</div>

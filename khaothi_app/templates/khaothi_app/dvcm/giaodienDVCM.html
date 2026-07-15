@@ -1,0 +1,28 @@
+{% extends 'khaothi_app/_shared/base.html' %}
+
+{% block title %}Cổng thông tin Đơn vị chuyên môn - VNUK{% endblock %}
+
+{% block content %}
+    {% include 'khaothi_app/_shared/_header.html' with actor_info='khaothi_app/dvcm/partials/_actor_info.html' %}
+
+    {% include 'khaothi_app/dvcm/partials/_dvcm_tabs.html' %}
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-[1500px] mx-auto w-full p-6 relative">
+        {% include 'khaothi_app/_shared/_toast.html' %}
+
+        {% include 'khaothi_app/dvcm/partials/_view_home.html' %}
+
+        {% include 'khaothi_app/dvcm/partials/_view_giao_nhan.html' %}
+        
+        {% include 'khaothi_app/dvcm/partials/_view_phan_cong.html' %}
+
+        {% include 'khaothi_app/dvcm/partials/_view_nhap_tra_diem.html' %}
+
+        {% include 'khaothi_app/dvcm/partials/_modal_phan_cong.html' %}
+    </main>
+{% endblock %}
+
+{% block scripts %}
+    {% include 'khaothi_app/dvcm/partials/_scripts.html' %}
+{% endblock %}

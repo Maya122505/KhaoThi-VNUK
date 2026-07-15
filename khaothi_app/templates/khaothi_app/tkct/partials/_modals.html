@@ -1,0 +1,114 @@
+<div id="overlay" class="hidden-view fixed inset-0 z-40 bg-black/0" onclick="closeAllDropdowns()"></div>
+
+<div id="modal-ghep-phong" class="hidden-view fixed inset-0 bg-black/60 z-[100] flex items-center justify-center animate-fade-in">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full overflow-hidden animate-fade-in-down">
+        <div class="bg-[#9e1c22] p-4 text-white font-bold text-lg">Xác nhận tạo túi</div>
+        <div class="p-6">
+            <p class="text-gray-700 text-sm mb-4">Xác nhận tạo túi cho các phòng thi đã chọn? Hệ thống sẽ tự động tính toán chia túi (tối đa 60 bài/túi).</p>
+            <div id="modal-ghep-phong-preview-list" class="bg-gray-50 p-2 text-xs text-gray-600 mb-6 font-mono border rounded"></div>
+            <div class="flex gap-3">
+                <button onclick="hideGhepPhongModal()" class="flex-1 bg-gray-100 text-gray-700 font-bold py-2.5 rounded hover:bg-gray-200">Hủy</button>
+                <button onclick="confirmGhepPhongExecute()" class="flex-1 bg-[#9e1c22] text-white font-bold py-2.5 rounded shadow hover:bg-red-800">Đồng ý</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-huy-tui" class="hidden-view fixed inset-0 bg-black/60 z-[100] flex items-center justify-center animate-fade-in">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full overflow-hidden animate-fade-in-down">
+        <div class="bg-red-600 p-4 text-white font-bold text-lg flex items-center gap-2"><i data-lucide="alert-triangle" class="w-5 h-5"></i> Cảnh báo</div>
+        <div class="p-6">
+            <p class="text-gray-700 text-sm mb-6">Bạn có chắc chắn muốn hủy túi bài thi này? Toàn bộ mã phách sẽ bị thu hồi và các phòng thi sẽ trở về trạng thái "Chưa làm phách".</p>
+            <div class="flex gap-3">
+                <button onclick="hideHuyTuiModal()" class="flex-1 bg-gray-100 text-gray-700 font-bold py-2.5 rounded hover:bg-gray-200">Hủy</button>
+                <button onclick="confirmHuyTuiExecute()" class="flex-1 bg-red-600 text-white font-bold py-2.5 rounded shadow hover:bg-red-700">Đồng ý</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-luu-tui" class="hidden-view fixed inset-0 bg-black/60 z-[100] flex items-center justify-center animate-fade-in">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full overflow-hidden animate-fade-in-down">
+        <div class="bg-blue-600 p-4 text-white font-bold text-lg">Xác nhận</div>
+        <div class="p-6">
+            <p class="text-gray-700 text-sm mb-6" id="txt-xac-nhan-luu-tui">Xác nhận lưu thay đổi cho túi bài thi [Mã túi]?</p>
+            <div class="flex gap-3">
+                <button onclick="hideLuuTuiModal()" class="flex-1 bg-gray-100 text-gray-700 font-bold py-2.5 rounded hover:bg-gray-200">Hủy</button>
+                <button onclick="confirmLuuTuiExecute()" class="flex-1 bg-blue-600 text-white font-bold py-2.5 rounded shadow hover:bg-blue-700">Đồng ý</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-pw-tracuu" class="hidden-view fixed inset-0 bg-black/60 z-[100] flex items-center justify-center animate-fade-in">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full overflow-hidden animate-fade-in-down">
+        <div class="bg-blue-600 p-4 text-white font-bold text-lg flex items-center gap-2"><i data-lucide="shield-alert" class="w-5 h-5"></i> Xác thực tài khoản</div>
+        <div class="p-6">
+            <label class="block text-sm font-bold text-gray-700 mb-2">Vui lòng nhập mật khẩu tài khoản của Thư ký:</label>
+            <input id="pw-tracuu-input" type="password" placeholder="••••••••" class="w-full px-4 py-3 border border-gray-300 rounded text-center text-lg tracking-widest outline-none mb-2 focus:border-blue-500" />
+            <p id="pw-tracuu-error" class="hidden-view text-red-600 text-sm font-bold text-center animate-shake">Mật khẩu không chính xác!</p>
+            <div class="flex gap-3 mt-4">
+                <button onclick="hidePwTraCuuModal()" class="flex-1 bg-gray-100 text-gray-700 font-bold py-2.5 rounded hover:bg-gray-200">Hủy</button>
+                <button onclick="confirmPwTraCuuExecute()" class="flex-1 bg-blue-600 text-white font-bold py-2.5 rounded shadow hover:bg-blue-700">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-khoa" class="hidden-view fixed inset-0 bg-black/60 z-[100] flex items-center justify-center animate-fade-in">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full overflow-hidden animate-fade-in-down">
+        <div class="bg-red-700 p-4 text-white font-bold text-lg flex items-center gap-2"><i data-lucide="lock" class="w-5 h-5"></i> Niêm phong điện tử</div>
+
+        <!-- Step 1: Confirmation -->
+        <div id="modal-khoa-step1" class="p-6">
+            <p class="text-gray-700 text-sm mb-6 bg-red-50 p-3 rounded border border-red-100" id="txt-xac-nhan-khoa">Bạn có chắc chắn muốn khóa danh sách mã phách của túi [Mã túi] đã chọn không? Sau khi khóa sẽ KHÔNG THỂ chỉnh sửa mã phách.</p>
+            <div class="flex gap-3">
+                <button onclick="hideKhoaModal()" class="flex-1 bg-gray-100 text-gray-700 font-bold py-2.5 rounded hover:bg-gray-200">Hủy</button>
+                <button onclick="goToKhoaStep2()" class="flex-1 bg-red-600 text-white font-bold py-2.5 rounded shadow hover:bg-red-700">Đồng ý</button>
+            </div>
+        </div>
+
+        <!-- Step 2: Password Authentication -->
+        <div id="modal-khoa-step2" class="p-6 hidden-view">
+            <label class="block text-sm font-bold text-gray-700 mb-2">Vui lòng nhập mật khẩu tài khoản để xác thực niêm phong:</label>
+            <input id="modal-khoa-pw-input" type="password" placeholder="••••••••" class="w-full px-4 py-3 border border-gray-300 rounded text-center text-lg tracking-widest outline-none focus:border-red-600" />
+            <p id="modal-khoa-error" class="hidden-view text-red-600 text-sm font-bold text-center mt-2 animate-shake">Mật khẩu không chính xác! Hãy kiểm tra lại mật khẩu</p>
+            <div class="flex gap-3 mt-6">
+                <button onclick="hideKhoaModal()" class="flex-1 bg-gray-100 text-gray-700 font-bold py-2.5 rounded hover:bg-gray-200">Hủy</button>
+                <button onclick="confirmKhoaExecute()" class="flex-1 bg-red-600 text-white font-bold py-2.5 rounded shadow hover:bg-red-700">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-gn-ky-nhan" class="hidden-view fixed inset-0 bg-black/60 z-[100] flex items-center justify-center animate-fade-in">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full overflow-hidden animate-fade-in-down">
+        <div class="bg-green-600 p-4 text-white font-bold text-lg flex items-center gap-2"><i data-lucide="file-signature" class="w-5 h-5"></i> Ký xác nhận điện tử</div>
+        <div class="p-6">
+            <p class="text-gray-700 text-xs mb-4 bg-green-50 text-green-800 p-3 rounded border border-green-100">Hệ thống tiến hành đóng con dấu điện tử gắn kèm mã định danh cá nhân và nhãn thời gian thực để làm bằng chứng pháp lý nội bộ.</p>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Nhập mật khẩu chữ ký điện tử:</label>
+            <input id="gn-ky-nhan-pw" type="password" placeholder="••••••••" class="w-full px-4 py-3 border border-gray-300 rounded text-center text-lg tracking-widest outline-none focus:border-green-600 mb-2" />
+            <p id="gn-ky-nhan-error" class="hidden-view text-red-600 text-xs font-bold text-center animate-shake">Mật khẩu không chính xác! Hãy kiểm tra lại</p>
+            <div class="flex gap-3 mt-4">
+                <button onclick="hideGnKyNhanModal()" class="flex-1 bg-gray-100 text-gray-700 font-bold py-2.5 rounded hover:bg-gray-200">Hủy bỏ</button>
+                <button onclick="confirmKyNhanPhieuExecute()" class="flex-1 bg-green-600 text-white font-bold py-2.5 rounded shadow hover:bg-green-700">XÁC NHẬN KÝ CHỐT</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-gn-ky-nhan-simulate" class="hidden-view fixed inset-0 bg-black/60 z-[100] flex items-center justify-center animate-fade-in">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full overflow-hidden animate-fade-in-down">
+        <div class="bg-blue-600 p-4 text-white font-bold text-lg flex items-center gap-2"><i data-lucide="file-signature" class="w-5 h-5"></i> Giả lập ký nhận (Tổ Khảo thí)</div>
+        <div class="p-6">
+            <p class="text-gray-700 text-xs mb-4 bg-blue-50 text-blue-800 p-3 rounded border border-blue-100">Bên nhận (Tổ Khảo thí) kiểm đếm bài thực tế và nhập mật khẩu để ký nhận (Ký điện tử nội bộ).</p>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Nhập mật khẩu tài khoản Tổ Khảo thí (mặc định: 123456):</label>
+            <input id="gn-ky-nhan-simulate-pw" type="password" placeholder="••••••••" class="w-full px-4 py-3 border border-gray-300 rounded text-center text-lg tracking-widest outline-none focus:border-blue-600 mb-2" />
+            <p id="gn-ky-nhan-simulate-error" class="hidden-view text-red-600 text-xs font-bold text-center animate-shake">Mật khẩu không chính xác! Hãy kiểm tra lại</p>
+            <div class="flex gap-3 mt-4">
+                <button onclick="hideGnSimulateReceiveModal()" class="flex-1 bg-gray-100 text-gray-700 font-bold py-2.5 rounded hover:bg-gray-200">Hủy bỏ</button>
+                <button onclick="confirmGnSimulateReceiveExecute()" class="flex-1 bg-blue-600 text-white font-bold py-2.5 rounded shadow hover:bg-blue-700">XÁC NHẬN KÝ CHỐT</button>
+            </div>
+        </div>
+    </div>
+</div>

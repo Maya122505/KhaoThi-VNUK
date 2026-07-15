@@ -1,0 +1,37 @@
+<!-- Header Navbar -->
+<header class="bg-white px-8 py-4 flex justify-between items-center border-b-4 border-orange-500 shadow-sm z-10 relative">
+    <div class="flex items-center gap-4">
+        <div class="flex flex-col border-r-2 border-gray-300 pr-4 cursor-pointer" onclick="navigate('view-home')">
+            <h1 class="text-4xl font-bold text-[#4a1414] tracking-tight">VN<span class="text-blue-900">UK</span></h1>
+            <p class="text-[10px] uppercase text-gray-600 font-semibold mt-1">Institute for Research</p>
+            <p class="text-[10px] uppercase text-gray-600 font-semibold">& Executive Education</p>
+        </div>
+        <div class="pl-2">
+            <h2 class="text-2xl font-bold text-[#9e1c22]">ĐẠI HỌC ĐÀ NẴNG</h2>
+            <h2 class="text-2xl font-bold text-[#9e1c22] mt-1">VIỆN NGHIÊN CỨU VÀ ĐÀO TẠO VIỆT - ANH</h2>
+        </div>
+    </div>
+    <div class="flex flex-col gap-2 text-xs">
+        <div class="flex items-center bg-gray-100 p-2 rounded border border-gray-200 w-64 justify-between shadow-inner">
+            <div class="flex items-center">
+                <i data-lucide="users" class="w-4 h-4 text-gray-500 mr-2"></i>
+                <span class="text-sm font-bold text-[#9e1c22]">Cán bộ Giảng viên</span>
+            </div>
+            <!-- Lecturer Select Switcher inside card -->
+            <select id="gv-switcher" onchange="switchLecturer(this.value)" class="bg-white border border-gray-300 text-gray-700 text-[10px] px-2 py-0.5 rounded outline-none font-bold">
+                <option value="GV001">GV. Nguyễn Văn A (IT)</option>
+                <option value="GV002">GV. Trần Thị B (QTKD)</option>
+                <option value="GV003">GV. Lê Hoàng C (KHXH)</option>
+                <option value="GV004">GV. Phạm Minh D (Anh)</option>
+                <option value="GV005">GV. Đặng Thanh E (IT)</option>
+            </select>
+        </div>
+        <div class="flex items-center bg-gray-100 p-2 rounded border border-gray-200 w-64 justify-between shadow-inner">
+            <div class="flex items-center">
+                <i data-lucide="shield-check" class="w-4 h-4 text-gray-500 mr-2"></i>
+                <span class="text-sm text-gray-500 font-mono font-bold" id="selected-gv-code">GV001</span>
+            </div>
+            <button onclick="window.location.href='/'" class="bg-gray-300 text-gray-700 text-xs px-3 py-1 font-bold rounded hover:bg-gray-400 transition-colors">ĐĂNG XUẤT</button>
+        </div>
+    </div>
+</header>

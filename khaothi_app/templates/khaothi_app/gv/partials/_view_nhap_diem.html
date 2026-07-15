@@ -1,0 +1,55 @@
+<!-- VIEW: NHẬP ĐIỂM CHẤM THI -->
+<div id="view-cham-thi" class="view-section hidden-view animate-fade-in h-full flex flex-col">
+    <h2 class="text-xl font-bold text-blue-900 mb-4 pb-2 border-b flex items-center gap-2"><i data-lucide="edit-3"></i> Nhập điểm chấm thi theo túi phách phân công</h2>
+
+    <div class="grid grid-cols-3 gap-6">
+        <!-- Left panel: List of assigned bags -->
+        <div class="col-span-1 flex flex-col gap-3">
+            <h3 class="font-bold text-gray-800 text-xs uppercase tracking-wide mb-1">Túi phách được phân công</h3>
+            <div id="gv-tui-list" class="flex flex-col gap-2.5">
+                <!-- Filled by JS -->
+            </div>
+        </div>
+
+        <!-- Right panel: Grade entry sheet -->
+        <div class="col-span-2">
+            <div id="entry-panel-empty" class="bg-white rounded-lg border border-dashed border-gray-300 p-12 text-center text-gray-400 italic text-xs flex flex-col items-center justify-center min-h-[300px]">
+                <i data-lucide="file-spreadsheet" class="w-10 h-10 text-gray-300 mb-2"></i>
+                Vui lòng chọn một túi bài thi ở danh sách bên trái để nhập bảng điểm và ký xác nhận chấm thi.
+            </div>
+
+            <div id="entry-panel-form" class="bg-white rounded-lg border border-gray-200 shadow-sm p-6 hidden-view">
+                <div class="flex justify-between items-start pb-4 border-b mb-6">
+                    <div>
+                        <h3 class="font-bold text-[#9e1c22] text-sm" id="entry-title-tui">Túi phách: ...</h3>
+                        <p class="text-[10px] text-gray-500 mt-0.5" id="entry-title-sub">Học phần: ...</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded text-[10px]" id="entry-title-grader">Giám khảo: ...</span>
+                    </div>
+                </div>
+
+                <!-- Grades Sheet Table -->
+                <div class="max-h-[350px] overflow-y-auto border rounded mb-6">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead class="bg-gray-50 font-bold text-gray-700 sticky top-0 border-b">
+                            <tr>
+                                <th class="px-4 py-2">Mã phách</th>
+                                <th class="px-4 py-2 text-center">Điểm số bạn chấm (0.0 - 10.0)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="entry-tbody" class="divide-y font-mono">
+                            <!-- Filled by JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="flex justify-end gap-2 text-xs">
+                    <button onclick="submitGrading()" class="bg-[#9e1c22] hover:bg-red-800 text-white font-bold px-4 py-2 rounded shadow flex items-center gap-1.5 font-sans">
+                        <i data-lucide="check-square" class="w-4 h-4"></i> KÝ XÁC NHẬN BẢNG ĐIỂM
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

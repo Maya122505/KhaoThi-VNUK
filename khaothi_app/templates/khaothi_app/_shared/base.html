@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Cổng Khảo thí VNUK{% endblock %}</title>
+    <!-- Google Fonts & Tailwind -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .hidden-view { display: none !important; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+    {% block head_extra %}{% endblock %}
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
+    {% block content %}{% endblock %}
+    
+    <!-- Profile Modal (Shared for all actors) -->
+    {% if request.user.is_authenticated %}
+    <div id="profile-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-red-800 to-amber-700 px-6 py-4 flex justify-between items-center text-white">
+                <h3 class="text-lg font-bold flex items-center gap-2">
+                    <i data-lucide="user-circle" class="w-5 h-5"></i>
+                    Hồ Sơ Cán Bộ / Tài Khoản
+                </h3>
+                <button onclick="hideProfileModal()" class="text-white hover:text-gray-200">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <!-- Body -->
+            <div class="p-6 space-y-4 text-sm">
+                <div class="flex items-center gap-3 pb-3 border-b border-gray-100">
+                    <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-red-800 font-bold text-lg">
+                        {{ request.user.username|slice:":2"|upper }}
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-gray-900 text-base">{{ request.user.full_name|default:request.user.username }}</h4>
+                        <span class="inline-block bg-red-100 text-red-800 text-[10px] px-2 py-0.5 rounded font-bold uppercase mt-1">
+                            {{ request.user.get_role_display }}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-3 gap-2">
+                    <span class="text-gray-500 font-medium">Mã tài khoản:</span>
+                    <span class="col-span-2 text-gray-900 font-semibold font-mono">{{ request.user.username }}</span>
+                    
+                    <span class="text-gray-500 font-medium">Email:</span>
+                    <span class="col-span-2 text-gray-900">{{ request.user.email|default:"Chưa cập nhật" }}</span>
+                    
+                    {% if request.user.role == 'gv' %}
+                    <span class="text-gray-500 font-medium">Khoa quản lý:</span>
+                    <span class="col-span-2 text-gray-900 font-bold text-blue-900">
+                        {% if request.user.giang_vien_profile and request.user.giang_vien_profile.khoa %}
+                            {{ request.user.giang_vien_profile.khoa.ten_khoa }}
+                        {% else %}
+                            Chưa phân khoa
+                        {% endif %}
+                    </span>
+                    <span class="text-gray-500 font-medium">Số điện thoại:</span>
+                    <span class="col-span-2 text-gray-900">
+                        {{ request.user.giang_vien_profile.sdt|default:"Chưa cập nhật" }}
+                    </span>
+                    {% else %}
+                    <span class="text-gray-500 font-medium">Đơn vị / Khoa:</span>
+                    <span class="col-span-2 text-gray-900 font-bold text-blue-900">
+                        {% if request.user.nhan_vien_profile %}
+                            {% if request.user.nhan_vien_profile.don_vi %}
+                                {{ request.user.nhan_vien_profile.don_vi }}
+                            {% elif request.user.nhan_vien_profile.khoa %}
+                                {{ request.user.nhan_vien_profile.khoa.ten_khoa }}
+                            {% else %}
+                                Phòng ĐT&ĐBCLGD VNUK
+                            {% endif %}
+                        {% else %}
+                            Phòng ĐT&ĐBCLGD VNUK
+                        {% endif %}
+                    </span>
+                    <span class="text-gray-500 font-medium">Số điện thoại:</span>
+                    <span class="col-span-2 text-gray-900">
+                        {{ request.user.nhan_vien_profile.sdt|default:"Chưa cập nhật" }}
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            <!-- Footer -->
+            <div class="bg-gray-50 px-6 py-4 flex justify-end">
+                <button onclick="hideProfileModal()" class="bg-gray-200 text-gray-700 text-xs px-4 py-2 font-bold rounded hover:bg-gray-300 transition-colors">
+                    Đóng
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <script>
+        function showProfileModal() {
+            const modal = document.getElementById('profile-modal');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modal.querySelector('.transform').classList.remove('scale-95');
+            }, 10);
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }
+        function hideProfileModal() {
+            const modal = document.getElementById('profile-modal');
+            modal.classList.add('opacity-0');
+            modal.querySelector('.transform').classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+    </script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>
