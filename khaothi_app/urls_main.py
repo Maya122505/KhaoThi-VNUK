@@ -10,6 +10,7 @@ urlpatterns = [
     path('logout/', views_common.logout_view, name='logout'),
     path('api/get_state/', views_common.get_state, name='get_state'),
     path('api/save_state/', views_common.save_state, name='save_state'),
+    path('api/log_error/', views_common.log_client_error, name='log_client_error'),
     path('export-pdf/', views_common.export_pdf_view, name='export_pdf'),
 
     # =================================================

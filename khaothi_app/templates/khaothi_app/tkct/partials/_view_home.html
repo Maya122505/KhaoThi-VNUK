@@ -1,7 +1,7 @@
 <div id="view-home" class="view-section hidden-view animate-fade-in h-full flex flex-col">
     <div class="flex justify-between items-end border-b border-gray-200 pb-4 mb-6">
         <div>
-            <h2 class="text-2xl font-bold text-blue-900 mb-1 flex items-center gap-2"><i data-lucide="layout-dashboard" class="text-blue-600"></i> Bảng điều khiển (Dashboard)</h2>
+            <h2 class="text-2xl font-bold text-blue-900 mb-1 flex items-center gap-2"><i data-lucide="layout-dashboard" class="text-blue-600"></i>Dashboard</h2>
             <p class="text-sm text-gray-600">Tổng quan tình trạng xử lý túi bài thi, mã phách và giao nhận của phiên làm việc hiện tại.</p>
         </div>
         <div class="text-sm font-semibold text-gray-600 bg-white border border-gray-200 px-4 py-2 rounded shadow-sm flex items-center gap-2">
@@ -51,7 +51,7 @@
                 <div class="grid grid-cols-4 gap-4">
                     <button onclick="navigate('view-tao-tui-bai')" class="flex flex-col items-center justify-center p-4 border border-gray-200 rounded-lg hover:border-[#9e1c22] hover:bg-red-50 transition-all group">
                         <i data-lucide="folder-plus" class="w-7 h-7 text-[#9e1c22] mb-2 group-hover:scale-110 transition-transform"></i>
-                        <span class="text-xs font-bold text-gray-700 text-center">Tạo túi bài thi<br/>(Ghép phòng)</span>
+                        <span class="text-xs font-bold text-gray-700 text-center">Tạo túi bài thi</span>
                     </button>
                     <button onclick="navigate('view-nhap-doi-chieu')" class="flex flex-col items-center justify-center p-4 border border-gray-200 rounded-lg hover:border-yellow-500 hover:bg-yellow-50 transition-all group">
                         <i data-lucide="file-check-2" class="w-7 h-7 text-yellow-600 mb-2 group-hover:scale-110 transition-transform"></i>
@@ -84,28 +84,18 @@
                     </thead>
                     <tbody class="divide-y divide-gray-100" id="dash-tui-tbody"></tbody>
                 </table>
+                <div id="dash-tui-pagination" class="flex justify-between items-center mt-4 pt-3 border-t text-xs text-gray-500 font-sans">
+                    <!-- Tự động vẽ bằng JS -->
+                </div>
             </div>
         </div>
 
         <div class="w-1/3 bg-white rounded-lg border border-gray-200 shadow-sm p-5 flex flex-col">
-            <h3 class="font-bold text-gray-800 mb-4 border-b border-gray-100 pb-2 flex justify-between items-center">
+            <h3 class="font-bold text-gray-800 mb-4 border-b border-gray-100 pb-2 flex justify-between items-center font-sans">
                 Thông báo nghiệp vụ khẩn
             </h3>
-            <div class="space-y-4 flex-1 overflow-y-auto">
-                <div class="p-3 bg-red-50 border border-red-100 rounded-lg flex gap-3 items-start cursor-pointer hover:bg-red-100 transition-colors" onclick="navigate('view-giao-nhan')">
-                    <div class="bg-white p-1.5 rounded-full shadow-sm text-red-600 shrink-0"><i data-lucide="file-signature" class="w-4 h-4"></i></div>
-                    <div>
-                        <h4 class="text-sm font-bold text-gray-800">Yêu cầu nhận bàn giao bài gốc [UC 16.1]</h4>
-                        <p class="text-xs text-gray-600 mt-1">Tổ Khảo thí vừa gửi phiếu bàn giao bài thi gốc Học kỳ III. Vui lòng đếm bài vật lý và ký điện tử xác nhận trách nhiệm.</p>
-                    </div>
-                </div>
-                <div class="p-3 bg-yellow-50 border border-yellow-100 rounded-lg flex gap-3 items-start">
-                    <div class="bg-white p-1.5 rounded-full shadow-sm text-yellow-600 shrink-0"><i data-lucide="shield" class="w-4 h-4"></i></div>
-                    <div>
-                        <h4 class="text-sm font-bold text-gray-800">Nguyên tắc ẩn danh tuyệt đối [UC 7.1]</h4>
-                        <p class="text-xs text-gray-600 mt-1">Mã phách sinh ra bắt buộc là chuỗi ngẫu nhiên không có quy luật để chống can thiệp hoặc đoán điểm bài thi.</p>
-                    </div>
-                </div>
+            <div id="dash-notifications-list" class="space-y-4 flex-1 overflow-y-auto font-sans">
+                <!-- Tự động hiển thị động bằng JS -->
             </div>
         </div>
     </div>

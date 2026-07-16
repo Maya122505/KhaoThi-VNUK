@@ -4,14 +4,14 @@
     </button>
     <div class="relative group">
         <button id="nav-btn-tui-bai" class="nav-btn px-6 py-3 text-sm font-semibold border-r border-red-800 flex items-center gap-2 transition-colors hover:bg-red-800" onclick="toggleDropdown('dropdown-tui-bai', event)">
-            Quản lý túi bài thi & Mã phách <i data-lucide="chevron-down" class="w-4 h-4" id="icon-tui-bai"></i>
+            Quản lý túi bài thi <i data-lucide="chevron-down" class="w-4 h-4" id="icon-tui-bai"></i>
         </button>
         <div id="dropdown-tui-bai" class="dropdown-menu hidden-view absolute top-full left-0 bg-white border border-gray-200 shadow-xl min-w-[280px] flex-col text-gray-800 rounded-b-md overflow-hidden animate-fade-in-down">
             <button class="text-left px-5 py-3 text-sm hover:bg-gray-50 border-b border-gray-100 flex items-center gap-3 transition-colors" onclick="navigate('view-tao-tui-bai')">
-                <i data-lucide="folder-open" class="w-4 h-4 text-blue-600"></i> <span id="text-tao-tui-bai" class="font-bold text-[#9e1c22]">Tạo túi bài thi (Ghép phòng)</span>
+                <i data-lucide="folder-open" class="w-4 h-4 text-blue-600"></i> <span id="text-tao-tui-bai" class="font-bold text-[#9e1c22]">Tạo túi bài thi</span>
             </button>
             <button class="text-left px-5 py-3 text-sm hover:bg-gray-50 border-b border-gray-100 flex items-center gap-3 transition-colors" onclick="navigate('view-tra-cuu-tui')">
-                <i data-lucide="search" class="w-4 h-4 text-blue-600"></i> <span id="text-tra-cuu-tui">Tra cứu & Điều chỉnh túi</span>
+                <i data-lucide="search" class="w-4 h-4 text-blue-600"></i> <span id="text-tra-cuu-tui">Tra cứu túi bài thi</span>
             </button>
             <button class="text-left px-5 py-3 text-sm hover:bg-gray-50 border-b border-gray-100 flex items-center gap-3 transition-colors" onclick="navigate('view-nhap-doi-chieu')">
                 <i data-lucide="file-check-2" class="w-4 h-4 text-yellow-600"></i> <span id="text-nhap-doi-chieu">Nhập đối chiếu mã phách</span>
@@ -31,5 +31,4 @@
             </button>
         </div>
     </div>
-    <button class="px-6 py-3 text-sm font-semibold hover:bg-red-800 border-r border-red-800 transition-colors">Quy định Khảo thí</button>
 </nav>

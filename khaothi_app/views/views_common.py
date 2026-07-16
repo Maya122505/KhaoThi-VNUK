@@ -100,16 +100,34 @@ for i in range(1, 53):
     room_id = f"LHP-{i:03d}"
     
     scores_dict = {}
-    status = "Đã khóa phách"
+    grader1 = f"GV{(i % 50) + 1:03d}"
+    grader2 = f"GV{((i + 5) % 50) + 1:03d}"
+    
     if i <= 10:
         status = "Đã đối chiếu hợp lệ"
-    elif i <= 25:
+        # Chưa phân công giám khảo để hiển thị trong "Túi bài chưa phân công chấm" ở Giáo vụ Khoa (DVCM)
+        grader1 = ""
+        grader2 = ""
+    elif i <= 20:
         status = "Đang chấm"
-    elif i <= 40:
+        # Đã phân công nhưng chưa có điểm để hiển thị trong "Bản điểm chấm dở dang"
+    elif i <= 30:
         status = "Chờ khớp điểm"
+        # Đã có điểm từ cả 2 giám khảo để hiển thị trong "Đối soát Nhập điểm lần 2 (SBD)" ở Tổ Khảo thí (TKT)
         for p in phach_list:
             scores_dict[p] = { "grader1": round(4.0 + (int(p[-2:]) * 0.15) % 6.0, 1), "grader2": round(4.0 + (int(p[-2:]) * 0.15) % 6.0, 1) }
-            
+    elif i <= 40:
+        status = "Đã khóa phách"
+    elif i <= 45:
+        status = "Đã tạo phách"
+        # Túi mới tạo phách chờ đối chiếu hiển thị trong "Túi chờ đối chiếu" ở Thư ký Chấm thi (TKCT)
+        grader1 = ""
+        grader2 = ""
+    else:
+        status = "Đã tạo phách"
+        grader1 = ""
+        grader2 = ""
+
     INITIAL_TUI_PHACH.append({
         "id": f"TP-{sub_code}-{i:03d}",
         "subjectId": sub_code,
@@ -120,8 +138,8 @@ for i in range(1, 53):
         "password": f"VNUK@{sub_code}_{i}12",
         "phachGoc": phach_list,
         "roomPhachMap": { room_id: phach_list },
-        "grader1": f"GV{(i % 50) + 1:03d}",
-        "grader2": f"GV{((i + 5) % 50) + 1:03d}",
+        "grader1": grader1,
+        "grader2": grader2,
         "scores": scores_dict
     })
 
@@ -360,6 +378,27 @@ def seed_database_relational():
     khoa_ta = Khoa.objects.create(ma_khoa="TA", ten_khoa="Tiếng Anh chuyên ngành")
     khoa_general = Khoa.objects.create(ma_khoa="ESD", ten_khoa="Đào tạo đại cương")
 
+    # Seed 0.1: Default testing user accounts for all roles
+    DEFAULT_ROLES = [
+        ('tkt', 'Tổ Khảo thí'),
+        ('tkct', 'Thư ký Chấm thi'),
+        ('dvcm', 'Đơn vị Chuyên môn'),
+        ('gv', 'Giảng viên'),
+        ('ldp', 'Lãnh đạo phòng'),
+        ('cvht', 'Cố vấn học tập'),
+    ]
+    for username, role_name in DEFAULT_ROLES:
+        user_obj, _ = User.objects.get_or_create(
+            username=username,
+            defaults={
+                "role": username,
+                "full_name": role_name,
+                "email": f"{username}@vnuk.edu.vn"
+            }
+        )
+        user_obj.set_password("123456")
+        user_obj.save()
+
     # Giữ lại các tài khoản mặc định và chỉ xóa gv_profile
     # Seed 1: KyThi
     for kt in INITIAL_KY_THI:
@@ -480,6 +519,23 @@ def seed_database_relational():
             so_luong_sv=ptg["papers"]
         )
         
+        # Tạo sẵn danh sách thí sinh thực tế trong CSDL cho phòng thi này (SBD từ 001)
+        room_num = int(ptg["id"].split("-")[-1]) if "-" in ptg["id"] else 1
+        for k in range(1, ptg["papers"] + 1):
+            sv_id = f"SV-{ptg['id']}-{k:03d}"
+            seed_val = room_num * 100 + k
+            sv_name = generate_name(seed_val)
+            sv_obj, _ = SinhVien.objects.get_or_create(
+                ma_sinh_vien=sv_id,
+                defaults={"ho_ten": sv_name, "is_eligible": True}
+            )
+            DanhSachThiSinh.objects.create(
+                lich_thi=lt,
+                sinh_vien=sv_obj,
+                sbd=f"SBD-{k:03d}",
+                trang_thai_diem_danh="CoMat"
+            )
+        
     # Seed 8: Coi thi history
     for cb in INITIAL_CAN_BO_COI_THI:
         gv_obj = GiangVien.objects.get(ma_giang_vien=cb["code"])
@@ -530,6 +586,11 @@ def seed_database_relational():
                 trang_thai="DaDocPhach"
             )
             
+        tp_index = int(tp['id'].split('-')[-1])
+        if tp_index > 45:
+            # Bỏ qua không tạo túi phách để phòng thi ở trạng thái "Chưa làm phách"
+            continue
+            
         tui_obj = TuiPhach.objects.create(
             ma_tui=tp["id"],
             ca_thi_id="CT-001",
@@ -549,20 +610,12 @@ def seed_database_relational():
             if gv2:
                 PhanCongChamThi.objects.create(tui_phach=tui_obj, giang_vien=gv2, vai_tro="Grader 2", trang_thai="ChuaCham")
 
+        # Truy vấn các thí sinh thực tế của phòng đã có sẵn trong CSDL
+        candidates = list(DanhSachThiSinh.objects.filter(lich_thi=lt_obj).order_by('sbd'))
+
         # MaPhach & Diem
         for idx, phach in enumerate(tp["phachGoc"]):
-            # Create a dummy student for each phach
-            sv_id = f"SV-P{tp['id'].split('-')[-1]}-{idx:02d}"
-            sv_obj, _ = SinhVien.objects.get_or_create(
-                ma_sinh_vien=sv_id,
-                defaults={"ho_ten": f"Sinh viên Phách {phach}", "is_eligible": True}
-            )
-            # Create DanhSachThiSinh
-            ts_obj, _ = DanhSachThiSinh.objects.get_or_create(
-                lich_thi=lt_obj,
-                sinh_vien=sv_obj,
-                defaults={"sbd": f"SBD-{idx:03d}", "trang_thai_diem_danh": "CoMat"}
-            )
+            ts_obj = candidates[idx] if idx < len(candidates) else None
             mp_obj = MaPhach.objects.create(
                 ma_phach=phach,
                 tui_phach=tui_obj,
@@ -715,10 +768,12 @@ def get_state(request):
         
     # 2. tuiPhachData
     tui_phach_data = []
-    for tp in TuiPhach.objects.select_related('tui_bai_thi__lich_thi__lop_hp__hoc_phan').prefetch_related('danh_sach_phach__doi_soat', 'phan_cong_cham__giang_vien').all():
+    for tp in TuiPhach.objects.select_related('tui_bai_thi__lich_thi__lop_hp__hoc_phan').prefetch_related('danh_sach_phach__doi_soat', 'danh_sach_phach__thi_sinh__sinh_vien', 'phan_cong_cham__giang_vien').all():
         phach_list = [mp.ma_phach for mp in tp.danh_sach_phach.all()]
         scores_dict = {}
+        phach_student_map = {}
         
+        room_phach_map = {}
         for mp in tp.danh_sach_phach.all():
             ds = getattr(mp, 'doi_soat', None)
             if ds:
@@ -726,6 +781,17 @@ def get_state(request):
                     "grader1": float(ds.diem_lan_1) if ds.diem_lan_1 is not None else None,
                     "grader2": float(ds.diem_lan_2) if ds.diem_lan_2 is not None else None
                 }
+            ts = getattr(mp, 'thi_sinh', None)
+            if ts:
+                phach_student_map[mp.ma_phach] = {
+                    "sbd": ts.sbd,
+                    "name": ts.sinh_vien.ho_ten if ts.sinh_vien else f"Sinh viên {mp.ma_phach}"
+                }
+                rid = ts.lich_thi_id
+                if rid:
+                    if rid not in room_phach_map:
+                        room_phach_map[rid] = []
+                    room_phach_map[rid].append(mp.ma_phach)
                 
         grader1 = ""
         grader2 = ""
@@ -744,7 +810,8 @@ def get_state(request):
             "status": tp.trang_thai,
             "password": tp.mat_khau_khoa or "",
             "phachGoc": phach_list,
-            "roomPhachMap": {tp.tui_bai_thi.lich_thi.ma_lich_thi: phach_list} if (tp.tui_bai_thi and tp.tui_bai_thi.lich_thi) else {},
+            "roomPhachMap": room_phach_map,
+            "phachStudentMap": phach_student_map,
             "grader1": grader1,
             "grader2": grader2,
             "scores": scores_dict
@@ -900,6 +967,26 @@ def get_state(request):
             })
         lop_thi_diem_data[lt.ma_lich_thi] = students_list
         
+    # 12. subjectsData (danh mục học phần)
+    subjects_data = []
+    for hp in HocPhan.objects.select_related('khoa').all():
+        subjects_data.append({
+            "code": hp.ma_hoc_phan,
+            "name": hp.ten_hoc_phan,
+            "credits": hp.so_tin_chi,
+            "khoa": hp.khoa.ten_khoa if hp.khoa else ""
+        })
+
+    # 13. roomsData (danh mục phòng thi)
+    rooms_data = []
+    for pt in PhongThi.objects.all():
+        rooms_data.append({
+            "code": pt.ma_phong,
+            "name": pt.ten_phong,
+            "capacity": pt.suc_chua,
+            "location": pt.vi_tri or ""
+        })
+
     # System Configs (Đọc trực tiếp từ AppState)
     system_configs_str = getattr(state_instance, 'system_configs', '{}')
     if not system_configs_str or system_configs_str == '{}':
@@ -917,7 +1004,9 @@ def get_state(request):
         "caThiData": ca_thi_data,
         "lichThiData": lich_thi_data,
         "hocPhiData": hoc_phi_data,
-        "lopThiDiemData": lop_thi_diem_data
+        "lopThiDiemData": lop_thi_diem_data,
+        "subjectsData": subjects_data,
+        "roomsData": rooms_data
     })
 
 
@@ -1047,17 +1136,29 @@ def save_state(request):
                         if gv2:
                             PhanCongChamThi.objects.update_or_create(tui_phach=tui_obj, giang_vien=gv2, vai_tro="Grader 2", defaults={"trang_thai": "DangCham" if tp["status"] == "Đang chấm" else "ChuaCham"})
                             
+                    # Lấy danh sách thí sinh thực tế đã có sẵn của các phòng trong CSDL theo thứ tự
+                    candidates = []
+                    for rid in tp["rooms"]:
+                        room_lt = LichThi.objects.filter(ma_lich_thi=rid).first()
+                        if room_lt:
+                            candidates.extend(list(DanhSachThiSinh.objects.filter(lich_thi=room_lt).order_by('sbd')))
+
                     # Mã phách & Điểm thi
+                    # Nếu phách gốc chưa được sinh hoặc trống, sinh ngẫu nhiên trên backend
+                    phach_list = tp.get("phachGoc", [])
+                    if not phach_list or len(phach_list) == 0:
+                        import random
+                        phach_list = []
+                        while len(phach_list) < tp["papers"]:
+                            code = f"PH{random.randint(1000, 9999)}"
+                            if code not in phach_list:
+                                phach_list.append(code)
+                        tp["phachGoc"] = phach_list
+
                     for idx, phach in enumerate(tp["phachGoc"]):
+                        ts_obj = candidates[idx] if idx < len(candidates) else None
                         mp_obj = MaPhach.objects.filter(ma_phach=phach).first()
                         if not mp_obj:
-                            sv_id = f"SV-P{tp['id'].split('-')[-1]}-{idx:02d}"
-                            sv_obj, _ = SinhVien.objects.get_or_create(ma_sinh_vien=sv_id, defaults={"ho_ten": f"Sinh viên {phach}"})
-                            ts_obj, _ = DanhSachThiSinh.objects.get_or_create(
-                                lich_thi=lt_obj,
-                                sinh_vien=sv_obj,
-                                defaults={"sbd": f"SBD-{idx:03d}"}
-                            )
                             mp_obj = MaPhach.objects.create(
                                 ma_phach=phach,
                                 tui_phach=tui_obj,
@@ -1066,6 +1167,8 @@ def save_state(request):
                             )
                         else:
                             mp_obj.tui_phach = tui_obj
+                            if ts_obj:
+                                mp_obj.thi_sinh = ts_obj
                             mp_obj.trang_thai = "DaRop"
                             mp_obj.save()
                         
@@ -1259,3 +1362,21 @@ def export_pdf_view(request):
         "recipient_name": recipient_name
     }
     return render(request, 'khaothi_app/export_pdf.html', context)
+
+
+@csrf_exempt
+def log_client_error(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            print("=== CLIENT ERROR ===")
+            print("Message:", data.get("message"))
+            print("Source:", data.get("source"))
+            print("Line:", data.get("line"))
+            print("Col:", data.get("col"))
+            print("Stack:", data.get("stack"))
+            print("====================")
+            return JsonResponse({"status": "logged"})
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=400)
+    return JsonResponse({"status": "error", "message": "Method not allowed"}, status=405)

@@ -14,6 +14,8 @@
     let phucKhaoData = [];
     let auditLogsData = [];
     let systemConfigsData = {};
+    let subjectsData = [];
+    let roomsData = [];
 
     let isStateLoaded = false;
     let activeViewId = "view-home";
@@ -30,14 +32,14 @@
 
     async function loadStateFromServer() {
         try {
+            const res = await fetch('/api/get_state/');
+            const data = await res.json();
+
             kyThiData = data.kyThiData || [];
             caThiData = data.caThiData || [];
             lichThiData = data.lichThiData || [];
             hocPhiData = data.hocPhiData || [];
             lopThiDiemData = data.lopThiDiemData || [];
-            const res = await fetch('/api/get_state/');
-            const data = await res.json();
-
             phongThiGocData = data.phongThiGocData;
             tuiPhachData = data.tuiPhachData;
             phieuGiaoNhanData = data.phieuGiaoNhanData;
@@ -45,6 +47,8 @@
             phucKhaoData = data.phucKhaoData;
             auditLogsData = data.auditLogsData || [];
             systemConfigsData = data.systemConfigsData || {};
+            subjectsData = data.subjectsData || [];
+            roomsData = data.roomsData || [];
             isStateLoaded = true;
         } catch(e) {
             console.error("Lỗi đồng bộ dữ liệu:", e);
@@ -90,8 +94,10 @@
             renderLogs();
         } else if(viewId === 'view-danh-muc') {
             document.getElementById('nav-btn-danh-muc').className += " bg-red-800";
+            renderDanhMuc();
         } else if(viewId === 'view-cau-hinh') {
             document.getElementById('nav-btn-cau-hinh').className += " bg-red-800";
+            populateConfigSubjects();
             document.getElementById('config-type-selector').value = "nhap_diem_hp";
             switchConfigType("nhap_diem_hp");
         }
@@ -286,6 +292,54 @@
             } catch(e) {
                 console.error(e);
             }
+        }
+    }
+
+    function renderDanhMuc() {
+        const subList = document.getElementById('danh-muc-subjects-list');
+        const roomList = document.getElementById('danh-muc-rooms-list');
+        if (subList) {
+            subList.innerHTML = '';
+            if (subjectsData.length === 0) {
+                subList.innerHTML = '<div class="p-2.5 bg-gray-50 border rounded text-center italic text-gray-400">Không có dữ liệu học phần.</div>';
+            } else {
+                subjectsData.forEach(sub => {
+                    subList.innerHTML += `
+                        <div class="p-2.5 bg-gray-50 border rounded flex justify-between">
+                            <span>${sub.name}</span><span class="text-[#9e1c22] font-bold">${sub.code}</span>
+                        </div>`;
+                });
+            }
+        }
+        if (roomList) {
+            roomList.innerHTML = '';
+            if (roomsData.length === 0) {
+                roomList.innerHTML = '<div class="p-2.5 bg-gray-50 border rounded text-center italic text-gray-400">Không có dữ liệu phòng thi.</div>';
+            } else {
+                roomsData.forEach(room => {
+                    roomList.innerHTML += `
+                        <div class="p-2.5 bg-gray-50 border rounded flex justify-between">
+                            <span>${room.name}</span><span class="text-gray-500 font-sans">Sức chứa: ${room.capacity} SV</span>
+                        </div>`;
+                });
+            }
+        }
+    }
+
+    function populateConfigSubjects() {
+        const ndSelect = document.getElementById('config-nd-subject');
+        const pkSelect = document.getElementById('config-pk-subject');
+        if (ndSelect && pkSelect) {
+            const valNd = ndSelect.value;
+            const valPk = pkSelect.value;
+            ndSelect.innerHTML = '';
+            pkSelect.innerHTML = '';
+            subjectsData.forEach(sub => {
+                ndSelect.innerHTML += `<option value="${sub.code}">${sub.name} (${sub.code})</option>`;
+                pkSelect.innerHTML += `<option value="${sub.code}">${sub.name} (${sub.code})</option>`;
+            });
+            if (valNd && subjectsData.some(s => s.code === valNd)) ndSelect.value = valNd;
+            if (valPk && subjectsData.some(s => s.code === valPk)) pkSelect.value = valPk;
         }
     }
 

@@ -9,30 +9,11 @@
     // ==========================================================
     // DỮ LIỆU GIẢ LẬP (STATE MANAGEMENT)
     // ==========================================================
-    let phongThiData = [
-        { id: "P.101-ENG101", subjectId: "ENG101", subjectName: "Tiếng Anh GTQT 3", papers: 25, status: "Chưa làm phách" },
-        { id: "P.102-ENG101", subjectId: "ENG101", subjectName: "Tiếng Anh GTQT 3", papers: 20, status: "Chưa làm phách" },
-        { id: "P.103-ENG101", subjectId: "ENG101", subjectName: "Tiếng Anh GTQT 3", papers: 22, status: "Chưa làm phách" },
-        { id: "P.104-ENG101", subjectId: "ENG101", subjectName: "Tiếng Anh GTQT 3", papers: 30, status: "Đã vào túi" },
-        { id: "P.201-BUS201", subjectId: "BUS201", subjectName: "Quản trị dự án", papers: 35, status: "Chưa làm phách" },
-        { id: "P.202-BUS201", subjectId: "BUS201", subjectName: "Quản trị dự án", papers: 15, status: "Chưa làm phách" },
-        { id: "P.203-BUS201", subjectId: "BUS201", subjectName: "Quản trị dự án", papers: 40, status: "Đã vào túi" },
-        { id: "P.301-CS101", subjectId: "CS101", subjectName: "Nhập môn Lập trình", papers: 28, status: "Chưa làm phách" },
-        { id: "P.302-CS101", subjectId: "CS101", subjectName: "Nhập môn Lập trình", papers: 32, status: "Đã vào túi" },
-        { id: "P.401-MKT205", subjectId: "MKT205", subjectName: "Marketing căn bản", papers: 45, status: "Đã vào túi" },
-        { id: "P.402-MKT205", subjectId: "MKT205", subjectName: "Marketing căn bản", papers: 25, status: "Chưa làm phách" }
-    ];
-
-    let tuiBaiData = [
-        { id: "TP-BUS201-001", subjectId: "BUS201", subjectName: "Quản trị dự án", papers: 40, rooms: ["P.203-BUS201"], status: "Đã tạo phách", password: "VNUK@BUS_991", phachGoc: Array.from({length: 40}, (_, i) => `PH${1000+i}`), roomPhachMap: { "P.203-BUS201": Array.from({length: 40}, (_, i) => `PH${1000+i}`) } },
-        { id: "TP-ENG101-001", subjectId: "ENG101", subjectName: "Tiếng Anh GTQT 3", papers: 30, rooms: ["P.104-ENG101"], status: "Đã tạo phách", password: "VNUK@ENG_123", phachGoc: Array.from({length: 30}, (_, i) => `PH${2000+i}`), roomPhachMap: { "P.104-ENG101": Array.from({length: 30}, (_, i) => `PH${2000+i}`) } },
-        { id: "TP-CS101-001", subjectId: "CS101", subjectName: "Nhập môn Lập trình", papers: 32, rooms: ["P.302-CS101"], status: "Đã đối chiếu hợp lệ", password: "VNUK@CS_456", phachGoc: Array.from({length: 32}, (_, i) => `PH${3000+i}`), roomPhachMap: { "P.302-CS101": Array.from({length: 32}, (_, i) => `PH${3000+i}`) } },
-        { id: "TP-MKT205-001", subjectId: "MKT205", subjectName: "Marketing căn bản", papers: 45, rooms: ["P.401-MKT205"], status: "Đã khóa phách", password: "VNUK@MKT_789", phachGoc: Array.from({length: 45}, (_, i) => `PH${4000+i}`), roomPhachMap: { "P.401-MKT205": Array.from({length: 45}, (_, i) => `PH${4000+i}`) } }
-    ];
-
-    let phieuGiaoNhanData = [
-        { id: "PBG-2026-001", type: "Khảo thí giao bài gốc (Loại 1)", flow: "TKT_01 → Bạn", qty: "2 phòng", status: "Chờ bạn xác nhận" }
-    ];
+    let phongThiData = [];
+    let tuiBaiData = [];
+    let phieuGiaoNhanData = [];
+    let dashTuiCurrentPage = 1;
+    const dashTuiPageSize = 5;
 
     let activeViewId = "view-home";
     let currentOpenDropdown = null;
@@ -57,21 +38,21 @@
 
     async function loadStateFromServer() {
         try {
+            const res = await fetch('/api/get_state/');
+            const data = await res.json();
+
             kyThiData = data.kyThiData || [];
             caThiData = data.caThiData || [];
             lichThiData = data.lichThiData || [];
             hocPhiData = data.hocPhiData || [];
             lopThiDiemData = data.lopThiDiemData || [];
-            const res = await fetch('/api/get_state/');
-            const data = await res.json();
-
             phongThiData = data.phongThiGocData;
             tuiBaiData = data.tuiPhachData;
             phieuGiaoNhanData = data.phieuGiaoNhanData;
             canBoCoiThiData = data.canBoCoiThiData;
             phucKhaoData = data.phucKhaoData;
             isStateLoaded = true;
-        } catch(e) {
+        } catch (e) {
             console.error("Lỗi đồng bộ dữ liệu từ server:", e);
         }
     }
@@ -84,11 +65,11 @@
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                        kyThiData,
-                        caThiData,
-                        lichThiData,
-                        hocPhiData,
-                        lopThiDiemData,
+                    kyThiData,
+                    caThiData,
+                    lichThiData,
+                    hocPhiData,
+                    lopThiDiemData,
                     phongThiGocData: phongThiData,
                     tuiPhachData: tuiBaiData,
                     phieuGiaoNhanData,
@@ -96,12 +77,12 @@
                     phucKhaoData
                 })
             });
-        } catch(e) {
+        } catch (e) {
             console.error("Lỗi lưu dữ liệu lên server:", e);
         }
     }
 
-    window.onload = async function() {
+    window.onload = async function () {
         initIcons();
         await loadStateFromServer();
         const savedViewId = sessionStorage.getItem('tkct_activeViewId');
@@ -115,23 +96,23 @@
     function navigate(viewId) {
         document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden-view'));
         const targetView = document.getElementById(viewId);
-        if(targetView) targetView.classList.remove('hidden-view');
+        if (targetView) targetView.classList.remove('hidden-view');
         sessionStorage.setItem('tkct_activeViewId', viewId);
 
         document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('bg-red-800'));
         closeAllDropdowns();
 
         activeViewId = viewId;
-        if(viewId === 'view-home') document.getElementById('nav-btn-home').classList.add('bg-red-800');
+        if (viewId === 'view-home') document.getElementById('nav-btn-home').classList.add('bg-red-800');
         else if (viewId.includes('tui') || viewId.includes('phach') || viewId.includes('doi-chieu')) document.getElementById('nav-btn-tui-bai').classList.add('bg-red-800');
         else if (viewId.includes('giao-nhan')) document.getElementById('nav-btn-giao-nhan').classList.add('bg-red-800');
 
-        if(viewId === 'view-home') renderDashboard();
-        else if(viewId === 'view-tao-tui-bai') renderViewTaoTui();
-        else if(viewId === 'view-tra-cuu-tui') { switchTraCuuSubView('list'); renderViewTraCuuTui(); }
-        else if(viewId === 'view-nhap-doi-chieu') resetViewDoiChieu();
-        else if(viewId === 'view-khoa-phach') renderViewKhoaPhach();
-        else if(viewId === 'view-giao-nhan') { switchGiaoNhanTab('nhan'); renderViewGiaoNhan(); }
+        if (viewId === 'view-home') renderDashboard();
+        else if (viewId === 'view-tao-tui-bai') renderViewTaoTui();
+        else if (viewId === 'view-tra-cuu-tui') { switchTraCuuSubView('list'); renderViewTraCuuTui(); }
+        else if (viewId === 'view-nhap-doi-chieu') resetViewDoiChieu();
+        else if (viewId === 'view-khoa-phach') renderViewKhoaPhach();
+        else if (viewId === 'view-giao-nhan') { switchGiaoNhanTab('nhan'); renderViewGiaoNhan(); }
 
         initIcons();
     }
@@ -149,7 +130,7 @@
             closeAllDropdowns();
             dropdown.classList.remove('hidden-view');
             overlay.classList.remove('hidden-view');
-            if(icon) icon.setAttribute('data-lucide', 'chevron-up');
+            if (icon) icon.setAttribute('data-lucide', 'chevron-up');
             currentOpenDropdown = dropdownId;
             initIcons();
         }
@@ -159,7 +140,7 @@
         document.querySelectorAll('.dropdown-menu').forEach(el => el.classList.add('hidden-view'));
         document.getElementById('overlay').classList.add('hidden-view');
         document.querySelectorAll('[id^="icon-"]').forEach(icon => {
-            if(icon.parentElement.classList.contains('nav-btn')) icon.setAttribute('data-lucide', 'chevron-down');
+            if (icon.parentElement.classList.contains('nav-btn')) icon.setAttribute('data-lucide', 'chevron-down');
         });
         currentOpenDropdown = null;
         initIcons();
@@ -180,19 +161,93 @@
         document.getElementById('dash-tui-da-khoa').innerText = countTuiDaKhoa;
         document.getElementById('dash-phieu-moi').innerText = countPhieuMoi;
 
+        // Render danh sách thông báo nghiệp vụ khẩn động dựa trên dữ liệu thực tế
+        const notifList = document.getElementById('dash-notifications-list');
+        if (notifList) {
+            let html = '';
+
+            // 1. Thông báo phiếu bàn giao mới
+            if (countPhieuMoi > 0) {
+                html += `
+                <div class="p-3 bg-red-50 border border-red-100 rounded-lg flex gap-3 items-start cursor-pointer hover:bg-red-100 transition-colors animate-pulse" onclick="navigate('view-giao-nhan')">
+                    <div class="bg-white p-1.5 rounded-full shadow-sm text-red-600 shrink-0"><i data-lucide="file-signature" class="w-4 h-4"></i></div>
+                    <div>
+                        <h4 class="text-sm font-bold text-gray-800">Yêu cầu nhận bàn giao bài gốc</h4>
+                        <p class="text-xs text-gray-600 mt-1">Tổ Khảo thí vừa gửi <strong>${countPhieuMoi}</strong> phiếu bàn giao bài thi gốc. Vui lòng đếm bài vật lý và ký điện tử nhận trách nhiệm.</p>
+                    </div>
+                </div>`;
+            }
+
+            // 2. Thông báo phòng chờ làm phách
+            if (countPhongCho > 0) {
+                html += `
+                <div class="p-3 bg-orange-50 border border-orange-100 rounded-lg flex gap-3 items-start cursor-pointer hover:bg-orange-100 transition-colors" onclick="navigate('view-tao-tui')">
+                    <div class="bg-white p-1.5 rounded-full shadow-sm text-orange-600 shrink-0"><i data-lucide="layers" class="w-4 h-4"></i></div>
+                    <div>
+                        <h4 class="text-sm font-bold text-gray-800">Yêu cầu gom bài & làm phách</h4>
+                        <p class="text-xs text-gray-600 mt-1">Có <strong>${countPhongCho}</strong> phòng thi đã nộp bài thi gốc đang chờ cắt phách & gom túi phách ẩn danh.</p>
+                    </div>
+                </div>`;
+            }
+
+            // 3. Thông báo túi chờ đối chiếu đầu phách
+            if (countTuiDoiChieu > 0) {
+                html += `
+                <div class="p-3 bg-blue-50 border border-blue-100 rounded-lg flex gap-3 items-start cursor-pointer hover:bg-blue-100 transition-colors animate-pulse" onclick="navigate('view-doi-chieu')">
+                    <div class="bg-white p-1.5 rounded-full shadow-sm text-blue-600 shrink-0"><i data-lucide="file-search" class="w-4 h-4"></i></div>
+                    <div>
+                        <h4 class="text-sm font-bold text-gray-800">Yêu cầu đối chiếu đầu phách</h4>
+                        <p class="text-xs text-gray-600 mt-1">Có <strong>${countTuiDoiChieu}</strong> túi bài đã đánh phách cần đối chiếu kiểm dò đầu phách vật lý trước khi chuyển giao.</p>
+                    </div>
+                </div>`;
+            }
+
+            // 4. Các thông tin quy định cố định
+            html += `
+            <div class="p-3 bg-yellow-50 border border-yellow-100 rounded-lg flex gap-3 items-start">
+                <div class="bg-white p-1.5 rounded-full shadow-sm text-yellow-600 shrink-0"><i data-lucide="shield-check" class="w-4 h-4"></i></div>
+                <div>
+                    <h4 class="text-sm font-bold text-gray-800">Nguyên tắc ẩn danh tuyệt đối</h4>
+                    <p class="text-xs text-gray-600 mt-1">Mã phách sinh ra bắt buộc là chuỗi ngẫu nhiên không có quy luật để chống can thiệp hoặc đoán điểm bài thi.</p>
+                </div>
+            </div>
+            
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg flex gap-3 items-start">
+                <div class="bg-white p-1.5 rounded-full shadow-sm text-slate-600 shrink-0"><i data-lucide="shield-alert" class="w-4 h-4"></i></div>
+                <div>
+                    <h4 class="text-sm font-bold text-gray-800">Nội quy bảo mật phòng phách</h4>
+                    <p class="text-xs text-gray-600 mt-1">Khu vực làm phách cách ly hoàn toàn, không mang thiết bị di động, camera giám sát hoạt động 24/7.</p>
+                </div>
+            </div>`;
+
+            notifList.innerHTML = html;
+        }
+
         const tbody = document.getElementById('dash-tui-tbody');
         tbody.innerHTML = '';
-        if(tuiBaiData.length === 0) {
+        if (tuiBaiData.length === 0) {
             tbody.innerHTML = `<tr><td colspan="4" class="text-center text-gray-400 py-4 italic">Chưa có túi phách nào được lập.</td></tr>`;
+            document.getElementById('dash-tui-pagination').innerHTML = '';
             return;
         }
-        tuiBaiData.forEach(t => {
+
+        // Thực hiện phân trang
+        const totalItems = tuiBaiData.length;
+        const totalPages = Math.ceil(totalItems / dashTuiPageSize);
+        if (dashTuiCurrentPage > totalPages) dashTuiCurrentPage = totalPages;
+        if (dashTuiCurrentPage < 1) dashTuiCurrentPage = 1;
+
+        const startIdx = (dashTuiCurrentPage - 1) * dashTuiPageSize;
+        const endIdx = startIdx + dashTuiPageSize;
+        const paginatedData = tuiBaiData.slice(startIdx, endIdx);
+
+        paginatedData.forEach(t => {
             let statusBadge = `<span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs font-semibold">${t.status}</span>`;
-            if(t.status === 'Đã đối chiếu hợp lệ') statusBadge = `<span class="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-xs font-semibold">${t.status}</span>`;
-            if(t.status === 'Đã khóa phách') statusBadge = `<span class="bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-semibold"><i class="w-3 h-3 inline pb-0.5" data-lucide="lock"></i> ${t.status}</span>`;
+            if (t.status === 'Đã đối chiếu hợp lệ') statusBadge = `<span class="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-xs font-semibold">${t.status}</span>`;
+            if (t.status === 'Đã khóa phách') statusBadge = `<span class="bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-semibold"><i class="w-3 h-3 inline pb-0.5" data-lucide="lock"></i> ${t.status}</span>`;
 
             tbody.innerHTML += `
-                <tr class="hover:bg-gray-50">
+                <tr class="hover:bg-gray-50 border-b border-gray-100 text-xs">
                     <td class="px-4 py-2.5 font-mono font-bold text-blue-900">${t.id}</td>
                     <td class="px-4 py-2.5 text-gray-700">${t.subjectName}</td>
                     <td class="px-4 py-2.5 text-center font-medium">${t.papers} bài / ${t.rooms.length} phòng</td>
@@ -200,8 +255,31 @@
                 </tr>
             `;
         });
+
+        // Vẽ các nút điều hướng phân trang
+        const paginationDiv = document.getElementById('dash-tui-pagination');
+        if (paginationDiv) {
+            paginationDiv.innerHTML = `
+                <div>Hiển thị ${startIdx + 1} - ${Math.min(endIdx, totalItems)} / ${totalItems} túi</div>
+                <div class="flex items-center gap-1">
+                    <button onclick="changeDashTuiPage(1)" ${dashTuiCurrentPage === 1 ? 'disabled' : ''} class="px-2 py-1 border rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">&lt;&lt;</button>
+                    <button onclick="changeDashTuiPage(${dashTuiCurrentPage - 1})" ${dashTuiCurrentPage === 1 ? 'disabled' : ''} class="px-2 py-1 border rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">&lt;</button>
+                    <span class="px-2 font-semibold text-gray-700">Trang ${dashTuiCurrentPage}/${totalPages}</span>
+                    <button onclick="changeDashTuiPage(${dashTuiCurrentPage + 1})" ${dashTuiCurrentPage === totalPages ? 'disabled' : ''} class="px-2 py-1 border rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">&gt;</button>
+                    <button onclick="changeDashTuiPage(${totalPages})" ${dashTuiCurrentPage === totalPages ? 'disabled' : ''} class="px-2 py-1 border rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">&gt;&gt;</button>
+                </div>
+            `;
+        }
+
+        initIcons();
         if (typeof isStateLoaded !== 'undefined' && isStateLoaded) saveStateToServer();
     }
+
+    function changeDashTuiPage(page) {
+        dashTuiCurrentPage = page;
+        renderDashboard();
+    }
+    window.changeDashTuiPage = changeDashTuiPage;
 
     // ==========================================================
     // UC 7.1: TẠO TÚI
@@ -213,7 +291,7 @@
 
         const listKhaDung = phongThiData.filter(p => p.status === "Chưa làm phách" && (filterMon === "" || p.subjectId === filterMon));
 
-        if(listKhaDung.length === 0) {
+        if (listKhaDung.length === 0) {
             tbody.innerHTML = `<tr><td colspan="4" class="text-center text-gray-400 py-8 italic">Không có phòng thi nào.</td></tr>`;
             updateTaoTuiPreview();
             return;
@@ -235,8 +313,8 @@
     }
 
     function handlePhongTaoTuiCheckbox(cb) {
-        if(cb.checked) {
-            if(!selectedPhongTaoTui.includes(cb.value)) selectedPhongTaoTui.push(cb.value);
+        if (cb.checked) {
+            if (!selectedPhongTaoTui.includes(cb.value)) selectedPhongTaoTui.push(cb.value);
         } else {
             selectedPhongTaoTui = selectedPhongTaoTui.filter(id => id !== cb.value);
         }
@@ -247,8 +325,8 @@
         const filterMon = document.getElementById('tao-tui-hoc-phan').value;
         const listKhaDung = phongThiData.filter(p => p.status === "Chưa làm phách" && (filterMon === "" || p.subjectId === filterMon));
 
-        if(checked) {
-            listKhaDung.forEach(p => { if(!selectedPhongTaoTui.includes(p.id)) selectedPhongTaoTui.push(p.id); });
+        if (checked) {
+            listKhaDung.forEach(p => { if (!selectedPhongTaoTui.includes(p.id)) selectedPhongTaoTui.push(p.id); });
         } else {
             listKhaDung.forEach(p => { selectedPhongTaoTui = selectedPhongTaoTui.filter(id => id !== p.id); });
         }
@@ -257,7 +335,7 @@
 
     function handleAlternativeFlow3a() {
         const filterMon = document.getElementById('tao-tui-hoc-phan').value;
-        if(!filterMon) {
+        if (!filterMon) {
             alert("Vui lòng chọn cụ thể một Học phần ở bộ lọc để thực hiện chọn tất cả!");
             return;
         }
@@ -272,14 +350,14 @@
         let totalPapers = 0;
         selectedPhongTaoTui.forEach(id => {
             const p = phongThiData.find(x => x.id === id);
-            if(p) totalPapers += p.papers;
+            if (p) totalPapers += p.papers;
         });
         document.getElementById('preview-tong-bai').innerText = `${totalPapers} bài`;
 
         const previewBagsDiv = document.getElementById('preview-danh-sach-tui');
         previewBagsDiv.innerHTML = '';
 
-        if(selectedPhongTaoTui.length === 0) {
+        if (selectedPhongTaoTui.length === 0) {
             previewBagsDiv.innerHTML = `<div class="text-xs text-gray-400 italic">Chọn phòng thi ở bảng trái để xem phân bổ cắt túi...</div>`;
             return;
         }
@@ -289,11 +367,11 @@
         let currentBagRooms = [];
         let bagDistribution = [];
 
-        for(let i=0; i<selectedPhongTaoTui.length; i++) {
+        for (let i = 0; i < selectedPhongTaoTui.length; i++) {
             const p = phongThiData.find(x => x.id === selectedPhongTaoTui[i]);
-            if(!p) continue;
+            if (!p) continue;
 
-            if(currentBagSize + p.papers > 60 && currentBagSize > 0) {
+            if (currentBagSize + p.papers > 60 && currentBagSize > 0) {
                 bagDistribution.push({ index: bagCount, qty: currentBagSize, rooms: [...currentBagRooms] });
                 bagCount++;
                 currentBagSize = p.papers;
@@ -303,7 +381,7 @@
                 currentBagRooms.push(p.id);
             }
         }
-        if(currentBagSize > 0) {
+        if (currentBagSize > 0) {
             bagDistribution.push({ index: bagCount, qty: currentBagSize, rooms: [...currentBagRooms] });
         }
 
@@ -317,7 +395,7 @@
     }
 
     function handleGhepPhongSubmit() {
-        if(selectedPhongTaoTui.length === 0) {
+        if (selectedPhongTaoTui.length === 0) {
             showGlobalToast("Lỗi ghép phòng", "Vui lòng chọn ít nhất 1 phòng thi để ghép", "error");
             return;
         }
@@ -328,7 +406,7 @@
             return r.subjectId !== targetSubjectId;
         });
 
-        if(diffSubject) {
+        if (diffSubject) {
             showGlobalToast("Lỗi ghép phòng", "Các phòng thi được ghép bắt buộc phải thuộc cùng một học phần", "error");
             return;
         }
@@ -340,7 +418,7 @@
 
     function hideGhepPhongModal() { document.getElementById('modal-ghep-phong').classList.add('hidden-view'); }
 
-    function confirmGhepPhongExecute() {
+    async function confirmGhepPhongExecute() {
         hideGhepPhongModal();
         const firstRoom = phongThiData.find(x => x.id === selectedPhongTaoTui[0]);
         const subId = firstRoom.subjectId;
@@ -349,56 +427,56 @@
         let currentBagSize = 0;
         let currentBagRooms = [];
         let tempRooms = [...selectedPhongTaoTui];
+        let createdBagIds = [];
 
         const saveNewBag = (size, rooms) => {
             const nextNum = tuiBaiData.filter(t => t.subjectId === subId).length + 1;
             const newBagId = `TP-${subId}-00${nextNum}`;
-            let mockPhach = [];
-            let roomMap = {};
-            rooms.forEach(rid => {
-                const roomObj = phongThiData.find(x => x.id === rid);
-                if(roomObj) {
-                    let roomCodes = [];
-                    for(let k=1; k<=roomObj.papers; k++) {
-                        roomCodes.push(`PH${Math.floor(1000 + Math.random() * 9000)}`);
-                    }
-                    roomMap[rid] = roomCodes;
-                    mockPhach.push(...roomCodes);
-                }
-            });
+            createdBagIds.push(newBagId);
 
             tuiBaiData.push({
                 id: newBagId, subjectId: subId, subjectName: subName,
                 papers: size, rooms: rooms, status: "Đã tạo phách",
                 password: `VNUK@${subId}_${Math.floor(100 + Math.random() * 899)}`,
-                phachGoc: mockPhach,
-                roomPhachMap: roomMap
+                phachGoc: [],
+                roomPhachMap: {}
             });
 
             rooms.forEach(rid => {
                 const roomObj = phongThiData.find(x => x.id === rid);
-                if(roomObj) roomObj.status = `Đã nằm trong túi ${newBagId}`;
+                if (roomObj) roomObj.status = `Đã nằm trong túi ${newBagId}`;
             });
         };
 
-        for(let i=0; i<tempRooms.length; i++) {
+        for (let i = 0; i < tempRooms.length; i++) {
             const p = phongThiData.find(x => x.id === tempRooms[i]);
-            if(!p) continue;
+            if (!p) continue;
 
-            if(currentBagSize + p.papers > 60 && currentBagSize > 0) {
+            if (currentBagSize + p.papers > 60 && currentBagSize > 0) {
                 saveNewBag(currentBagSize, [...currentBagRooms]);
                 currentBagSize = p.papers; currentBagRooms = [p.id];
             } else {
                 currentBagSize += p.papers; currentBagRooms.push(p.id);
             }
         }
-        if(currentBagSize > 0) saveNewBag(currentBagSize, [...currentBagRooms]);
+        if (currentBagSize > 0) saveNewBag(currentBagSize, [...currentBagRooms]);
+
+        // Gửi dữ liệu tạo túi phách lên server để ghi nhận CSDL
+        await saveStateToServer();
+        // Đồng bộ nạp lại toàn bộ dữ liệu mới nhất trực tiếp từ CSDL
+        await loadStateFromServer();
 
         selectedPhongTaoTui = [];
         document.getElementById('tao-tui-check-all').checked = false;
         showGlobalToast("Thành công", "Tạo túi và sinh mã phách thành công!");
         renderViewTaoTui();
         renderDashboard();
+
+        if (createdBagIds.length > 0) {
+            const lastBagId = createdBagIds[createdBagIds.length - 1];
+            document.getElementById('filter-tui-id').value = lastBagId;
+            navigate('view-tra-cuu-tui');
+        }
     }
 
     // ==========================================================
@@ -406,7 +484,7 @@
     // ==========================================================
     function switchTraCuuSubView(mode) {
         traCuuSubView = mode;
-        if(mode === 'list') {
+        if (mode === 'list') {
             document.getElementById('tui-subview-list').classList.remove('hidden-view');
             document.getElementById('tui-subview-detail').classList.add('hidden-view');
             document.getElementById('btn-back-to-list-tui').classList.add('hidden-view');
@@ -457,7 +535,7 @@
         tbody.innerHTML = '';
 
         const list = tuiBaiData.filter(t => (filterId === "" || t.id.includes(filterId)) && (filterMon === "" || t.subjectId === filterMon));
-        if(list.length === 0) {
+        if (list.length === 0) {
             tbody.innerHTML = `<tr><td colspan="5" class="text-center text-gray-400 py-6 italic">Không tìm thấy túi bài thi phù hợp.</td></tr>`;
             document.getElementById('tui-pagination-info').innerText = "Hiển thị 0-0 của 0 túi";
             document.getElementById('tui-prev-page').disabled = true;
@@ -467,8 +545,8 @@
 
         const totalItems = list.length;
         const totalPages = Math.ceil(totalItems / traCuuPageSize) || 1;
-        if(traCuuCurrentPage > totalPages) traCuuCurrentPage = totalPages;
-        if(traCuuCurrentPage < 1) traCuuCurrentPage = 1;
+        if (traCuuCurrentPage > totalPages) traCuuCurrentPage = totalPages;
+        if (traCuuCurrentPage < 1) traCuuCurrentPage = 1;
 
         const paginatedList = list.slice((traCuuCurrentPage - 1) * traCuuPageSize, traCuuCurrentPage * traCuuPageSize);
 
@@ -518,7 +596,7 @@
         const btnSave = document.getElementById('btn-save-adjust-tui');
         const btnEditTab = document.getElementById('btn-detail-tab-edit');
 
-        if(isLocked) {
+        if (isLocked) {
             btnHuy.disabled = true;
             btnHuy.className = "w-full bg-gray-100 border border-gray-200 text-gray-400 font-bold py-3 px-4 rounded cursor-not-allowed flex justify-center items-center gap-2";
             btnSave.classList.add('hidden-view');
@@ -538,14 +616,21 @@
         const roomsTbody = document.getElementById('detail-rooms-tbody');
         roomsTbody.innerHTML = '';
         tui.rooms.forEach(rid => {
-            const p = phongThiData.find(x => x.id === rid) || {id: rid, papers: 0};
+            const p = phongThiData.find(x => x.id === rid) || { id: rid, papers: 0 };
             roomsTbody.innerHTML += `<tr class="border-b border-gray-100 hover:bg-gray-50"><td class="py-2 font-mono font-semibold">${rid}</td><td class="py-2 text-right font-bold text-blue-900">${p.papers} bài</td></tr>`;
         });
 
         const phachTbody = document.getElementById('detail-phach-tbody');
         phachTbody.innerHTML = '';
         tui.phachGoc.forEach((ph, idx) => {
-            phachTbody.innerHTML += `<tr class="border-b border-gray-100 hover:bg-gray-50"><td class="py-1.5 text-gray-400">${idx+1}</td><td class="py-1.5 font-mono font-bold text-gray-700">${ph}</td></tr>`;
+            const student = tui.phachStudentMap && tui.phachStudentMap[ph] ? tui.phachStudentMap[ph] : { sbd: `SBD-${String(idx + 1).padStart(3, '0')}`, name: `Sinh viên ${ph}` };
+            phachTbody.innerHTML += `
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                    <td class="py-1.5 text-gray-400">${idx + 1}</td>
+                    <td class="py-1.5 font-mono text-gray-600">${student.sbd}</td>
+                    <td class="py-1.5 text-gray-700 font-semibold">${student.name}</td>
+                    <td class="py-1.5 font-mono font-bold text-[#9e1c22]">${ph}</td>
+                </tr>`;
         });
 
         tempRoomsTableA = [...tui.rooms];
@@ -566,7 +651,7 @@
         const isLocked = tui.status === "Đã khóa phách" || tui.status === "Đã trả bài";
 
         tempRoomsTableA.forEach(rid => {
-            const p = phongThiData.find(x => x.id === rid) || {id: rid, papers: 0};
+            const p = phongThiData.find(x => x.id === rid) || { id: rid, papers: 0 };
             currentTotal += p.papers;
             const btn = !isLocked ? `<button onclick="moveRoomAdjust('A', '${rid}')" class="text-red-500 hover:bg-red-50 p-1.5 rounded bg-white shadow-sm border border-gray-200 font-bold"><i data-lucide="arrow-right" class="w-4 h-4"></i></button>` : '';
             panelA.innerHTML += `<div class="p-2 border border-gray-200 rounded flex justify-between items-center bg-white text-xs shadow-sm font-mono font-bold text-gray-700"><div>${rid}<br><span class="text-[10px] text-gray-500 font-sans font-normal">${p.papers} bài</span></div>${btn}</div>`;
@@ -584,7 +669,7 @@
 
         indicator.innerText = `Tổng tính toán: ${currentTotal} bài`;
 
-        if(currentTotal > 60) {
+        if (currentTotal > 60) {
             indicator.className = "text-sm font-semibold px-3 py-1 rounded-full border bg-red-100 text-red-800 border-red-200";
             errBanner.classList.remove('hidden-view');
             btnSave.disabled = true;
@@ -601,13 +686,13 @@
     }
 
     function moveRoomAdjust(from, rid) {
-        if(from === 'A') { tempRoomsTableA = tempRoomsTableA.filter(id => id !== rid); tempRoomsTableB.push(rid); }
+        if (from === 'A') { tempRoomsTableA = tempRoomsTableA.filter(id => id !== rid); tempRoomsTableB.push(rid); }
         else { tempRoomsTableB = tempRoomsTableB.filter(id => id !== rid); tempRoomsTableA.push(rid); }
         renderAdjustTwoTables();
     }
 
     function handleSaveAdjustTui() {
-        if(tempRoomsTableA.length === 0) {
+        if (tempRoomsTableA.length === 0) {
             showGlobalToast("Lỗi điều chỉnh", "Không được để trống túi phách!", "error");
             return;
         }
@@ -625,8 +710,8 @@
         const removedRooms = tui.rooms.filter(rid => !tempRoomsTableA.includes(rid));
         const addedRooms = tempRoomsTableA.filter(rid => !tui.rooms.includes(rid));
 
-        tui.rooms.forEach(rid => { if(!tempRoomsTableA.includes(rid)) phongThiData.find(x=>x.id===rid).status = "Chưa làm phách"; });
-        tempRoomsTableA.forEach(rid => { phongThiData.find(x=>x.id===rid).status = "Đã vào túi"; });
+        tui.rooms.forEach(rid => { if (!tempRoomsTableA.includes(rid)) phongThiData.find(x => x.id === rid).status = "Chưa làm phách"; });
+        tempRoomsTableA.forEach(rid => { phongThiData.find(x => x.id === rid).status = "Đã vào túi"; });
 
         if (!tui.roomPhachMap) tui.roomPhachMap = {};
 
@@ -666,7 +751,7 @@
     function confirmHuyTuiExecute() {
         hideHuyTuiModal();
         const tui = tuiBaiData.find(x => x.id === activeTuiDetailId);
-        tui.rooms.forEach(rid => { phongThiData.find(x=>x.id===rid).status = "Chưa làm phách"; });
+        tui.rooms.forEach(rid => { phongThiData.find(x => x.id === rid).status = "Chưa làm phách"; });
         tuiBaiData = tuiBaiData.filter(x => x.id !== tui.id);
         showGlobalToast("Đã hủy", "Xóa thành công túi bài thi và thu hồi toàn bộ mã phách.");
         switchTraCuuSubView('list');
@@ -675,7 +760,7 @@
     }
 
     function handleTriggerViewPassword() {
-        if(isDecryptedPassword) {
+        if (isDecryptedPassword) {
             document.getElementById('detail-tui-pw').innerText = "••••••••";
             isDecryptedPassword = false;
         } else {
@@ -686,7 +771,7 @@
     }
     function hidePwTraCuuModal() { document.getElementById('modal-pw-tracuu').classList.add('hidden-view'); }
     function confirmPwTraCuuExecute() {
-        if(document.getElementById('pw-tracuu-input').value === "123456") {
+        if (document.getElementById('pw-tracuu-input').value === "123456") {
             hidePwTraCuuModal();
             document.getElementById('detail-tui-pw').innerText = tuiBaiData.find(x => x.id === activeTuiDetailId).password;
             isDecryptedPassword = true;
@@ -721,7 +806,7 @@
     function handleSearchDoiChieuTui() {
         const searchId = document.getElementById('ndc-search-id').value.trim().toUpperCase();
         const tui = tuiBaiData.find(x => x.id.toUpperCase() === searchId);
-        if(!tui) {
+        if (!tui) {
             showGlobalToast("Lỗi tìm kiếm", "Không tìm thấy mã túi bài thi này trên hệ thống!", "error");
             return;
         }
@@ -733,7 +818,7 @@
         const grid = document.getElementById('ndc-inputs-grid');
         grid.innerHTML = '';
         const limit = Math.min(tui.papers, 15);
-        for(let i=1; i<=limit; i++) {
+        for (let i = 1; i <= limit; i++) {
             grid.innerHTML += `
             <div class="flex items-center gap-1.5">
                 <span class="text-gray-400 text-xs font-mono w-5 text-right">${i}.</span>
@@ -759,11 +844,11 @@
         let firstErrorIdx = -1;
         const limit = Math.min(tui.papers, 15);
 
-        for(let i=1; i<=limit; i++) {
+        for (let i = 1; i <= limit; i++) {
             const el = document.getElementById(`ndc-input-${i}`);
             if (el.disabled) continue;
 
-            if(el.value.trim().toUpperCase() !== tui.phachGoc[i-1]) {
+            if (el.value.trim().toUpperCase() !== tui.phachGoc[i - 1]) {
                 hasError = true;
                 errorCount++;
                 if (firstErrorIdx === -1) firstErrorIdx = i;
@@ -777,7 +862,7 @@
             }
         }
 
-        if(hasError) {
+        if (hasError) {
             document.getElementById('ndc-error-text').innerText = `Phát hiện ${errorCount} mã phách không hợp lệ. Vui lòng kiểm tra lại các ô màu đỏ.`;
             document.getElementById('ndc-error').classList.remove('hidden-view');
             document.getElementById('ndc-success').classList.add('hidden-view');
@@ -802,7 +887,7 @@
         tbody.innerHTML = '';
         const list = tuiBaiData.filter(t => t.status === "Đã đối chiếu hợp lệ");
 
-        if(list.length === 0) {
+        if (list.length === 0) {
             tbody.innerHTML = `<tr><td colspan="4" class="text-center text-gray-400 py-6 italic">Hiện không có túi phách nào đang chờ niêm phong.</td></tr>`;
             return;
         }
@@ -842,7 +927,7 @@
     function hideKhoaModal() { document.getElementById('modal-khoa').classList.add('hidden-view'); }
 
     function confirmKhoaExecute() {
-        if(document.getElementById('modal-khoa-pw-input').value === "123456") {
+        if (document.getElementById('modal-khoa-pw-input').value === "123456") {
             tuiBaiData.find(x => x.id === activeTuiKhoaId).status = "Đã khóa phách";
             hideKhoaModal();
             showGlobalToast("Thành công", "Khóa niêm phong túi phách thành công.");
@@ -864,20 +949,20 @@
         tabs.forEach(t => {
             const btn = document.getElementById(`tab-btn-${t}`);
             const content = document.getElementById(`tab-content-${t}`);
-            if(!btn || !content) return;
+            if (!btn || !content) return;
 
             btn.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 text-gray-600 hover:bg-gray-100 shadow-none";
             content.classList.add('hidden-view');
 
             if (t === tab) {
-                if(t === 'nhan') btn.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 bg-green-100 text-green-800 shadow-sm";
+                if (t === 'nhan') btn.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 bg-green-100 text-green-800 shadow-sm";
                 else if (t === 'tao') btn.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 bg-blue-100 text-blue-800 shadow-sm";
                 else btn.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 bg-gray-200 text-gray-800 shadow-sm";
                 content.classList.remove('hidden-view');
             }
         });
 
-        if(tab === 'nhan') hideGnDetailNhan();
+        if (tab === 'nhan') hideGnDetailNhan();
         renderGiaoNhan();
     }
 
@@ -897,7 +982,7 @@
         if (searchInput) searchInput.value = '';
     }
 
-    window.changeGiaoNhanPage = function(delta) {
+    window.changeGiaoNhanPage = function (delta) {
         giaoNhanCurrentPage += delta;
         const totalPages = Math.ceil(giaoNhanFilteredItems.length / giaoNhanPageSize) || 1;
         if (giaoNhanCurrentPage < 1) giaoNhanCurrentPage = 1;
@@ -905,7 +990,7 @@
         renderGiaoNhanPage();
     }
 
-    window.handleGiaoNhanCheckboxChange = function(el) {
+    window.handleGiaoNhanCheckboxChange = function (el) {
         if (el.checked) {
             giaoNhanSelectedIds.add(el.value);
         } else {
@@ -913,15 +998,15 @@
         }
     }
 
-    window.filterGiaoNhanList = function() {
+    window.filterGiaoNhanList = function () {
         const searchVal = document.getElementById('gn-filter-search').value.toLowerCase().trim();
         const subjectVal = document.getElementById('gn-filter-subject').value;
         const tuiKhaDung = tuiBaiData.filter(t => t.status === "Đã khóa phách" || t.status === "Đã đối chiếu hợp lệ");
 
         giaoNhanFilteredItems = tuiKhaDung.filter(t => {
             const sName = (t.subjectName || '').split(' (')[0];
-            const matchesSearch = !searchVal || 
-                (t.id || '').toLowerCase().includes(searchVal) || 
+            const matchesSearch = !searchVal ||
+                (t.id || '').toLowerCase().includes(searchVal) ||
                 (t.subjectName || '').toLowerCase().includes(searchVal);
             const matchesSubject = !subjectVal || sName === subjectVal;
             return matchesSearch && matchesSubject;
@@ -949,9 +1034,9 @@
             pageItems.forEach(t => {
                 const isChecked = giaoNhanSelectedIds.has(t.id);
                 const bgBadge = 'bg-amber-50 text-amber-700 border-amber-100';
-                
-                const checkedClasses = isChecked 
-                    ? 'bg-blue-50/50 border-blue-500 ring-1 ring-blue-500/20' 
+
+                const checkedClasses = isChecked
+                    ? 'bg-blue-50/50 border-blue-500 ring-1 ring-blue-500/20'
                     : 'bg-white border-slate-200 hover:border-blue-400 hover:bg-slate-50/30';
 
                 listTuiDiv.innerHTML += `
@@ -988,7 +1073,7 @@
         const pendingNhan = phieuGiaoNhanData.filter(p => p.recipient === "tkct" && p.status === "Chờ bạn xác nhận");
         const badge = document.getElementById('badge-cho-nhan');
 
-        if(pendingNhan.length === 0) {
+        if (pendingNhan.length === 0) {
             listNhanDiv.innerHTML = `<div class="text-center text-gray-400 py-12 italic text-sm">Không có phiếu bàn giao bài gốc nào đang chờ bạn kiểm nhận.</div>`;
             badge.classList.add('hidden-view');
         } else {
@@ -1023,8 +1108,8 @@
         const tkctHandovers = phieuGiaoNhanData.filter(p => p.sender === "tkct" || p.recipient === "tkct");
         tkctHandovers.forEach(p => {
             let stBadge = `<span class="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-xs font-bold">${p.status}</span>`;
-            if(p.status === "Đã hoàn tất") stBadge = `<span class="bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-bold">✓ Đã tiếp nhận</span>`;
-            if(p.status === "Bị từ chối") stBadge = `<span class="bg-red-100 text-red-800 px-2 py-0.5 rounded text-xs font-bold">✗ Hủy phiếu</span>`;
+            if (p.status === "Đã hoàn tất") stBadge = `<span class="bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-bold">✓ Đã tiếp nhận</span>`;
+            if (p.status === "Bị từ chối") stBadge = `<span class="bg-red-100 text-red-800 px-2 py-0.5 rounded text-xs font-bold">✗ Hủy phiếu</span>`;
 
             histTbody.innerHTML += `
                 <tr class="hover:bg-gray-50 text-xs">
@@ -1047,7 +1132,7 @@
         const phieu = phieuGiaoNhanData.find(x => x.id === phieuId);
         if (!phieu) return;
 
-        
+
         const actorNames = {
             "tkt": "Tổ Khảo thí",
             "tkct": "Thư ký Chấm thi",
@@ -1101,9 +1186,9 @@
     function hideGnDetailNhan() { document.getElementById('gn-detail-nhan').classList.add('hidden-view'); }
 
     function handleTuChoiNhanPhieuGoc() {
-        if(confirm("Xác nhận TỪ CHỐI nhận bàn giao bài thi này do phát hiện sai sót dữ liệu kiểm đếm thực tế? Phiếu này sẽ bị hủy vĩnh viễn.")) {
+        if (confirm("Xác nhận TỪ CHỐI nhận bàn giao bài thi này do phát hiện sai sót dữ liệu kiểm đếm thực tế? Phiếu này sẽ bị hủy vĩnh viễn.")) {
             const phieu = phieuGiaoNhanData.find(x => x.id === activeNhanPhieuId);
-            if(phieu) phieu.status = "Bị từ chối";
+            if (phieu) phieu.status = "Bị từ chối";
             hideGnDetailNhan();
             showGlobalToast("Đã từ chối", "Hệ thống đã hủy phiếu và thông báo cho bên giao lập lại phiếu mới.");
             saveStateToServer();
@@ -1122,18 +1207,18 @@
 
     function confirmKyNhanPhieuExecute() {
         const val = document.getElementById('gn-ky-nhan-pw').value;
-        if(val === "123456") {
+        if (val === "123456") {
             hideGnKyNhanModal();
             const phieu = phieuGiaoNhanData.find(x => x.id === activeNhanPhieuId);
-            if(phieu) {
+            if (phieu) {
                 phieu.status = "Đã hoàn tất";
                 const timestamp = new Date().toLocaleString('vi-VN');
                 phieu.log = `Đã đóng con dấu điện tử bởi Thư ký Chấm thi vào ${timestamp}`;
 
-                if(phieu.rooms) {
+                if (phieu.rooms) {
                     phieu.rooms.forEach(rid => {
                         const p = phongThiData.find(x => x.id === rid);
-                        if(p) p.status = "Chưa làm phách";
+                        if (p) p.status = "Chưa làm phách";
                     });
                 }
             }
@@ -1148,7 +1233,7 @@
 
     function handleExecuteTaoPhieuChuyenDi() {
         const listIds = Array.from(giaoNhanSelectedIds);
-        if(listIds.length === 0) {
+        if (listIds.length === 0) {
             showGlobalToast("Lỗi giao nhận", "Vui lòng chọn ít nhất 1 túi phách hợp lệ để tiến hành bàn giao đi!", "error");
             return;
         }
@@ -1201,6 +1286,6 @@
         initIcons();
 
         setTimeout(() => toast.classList.add('hidden-view'), 4000);
-        if(activeViewId === 'view-home') renderDashboard();
+        if (activeViewId === 'view-home') renderDashboard();
     }
 </script>
