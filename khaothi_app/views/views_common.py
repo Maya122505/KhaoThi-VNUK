@@ -852,6 +852,7 @@ def get_state(request):
         pc_list = list(lt.phan_cong_coi_thi.all())
         teacher = pc_list[0].can_bo.ho_ten if pc_list else ""
         lich_thi_data.append({
+            "id": lt.ma_lich_thi,
             "subjectName": lt.lop_hp.hoc_phan.ten_hoc_phan if (lt.lop_hp and lt.lop_hp.hoc_phan) else "",
             "date": str(lt.ngay_thi),
             "shiftName": lt.ca_thi.ten_ca,
@@ -899,6 +900,64 @@ def get_state(request):
                 "originalPt1": pt1
             })
         lop_thi_diem_data[lt.ma_lich_thi] = students_list
+
+    # 12. phongThiData
+    phong_thi_data = []
+    for pt in PhongThi.objects.all():
+        phong_thi_data.append({
+            "id": pt.ma_phong,
+            "ma": pt.ma_phong,
+            "ten": pt.ten_phong,
+            "sucChua": pt.suc_chua,
+            "viTri": pt.vi_tri,
+            "loai": pt.loai_phong,
+            "trangThai": pt.trang_thai
+        })
+
+    # 13. inSaoData
+    in_sao_data = []
+    for dis in DotInSao.objects.select_related('ky_thi', 'ca_thi', 'phong_thi', 'hoc_phan', 'can_bo_giam_sat').prefetch_related('nhat_ky').all():
+        nk = getattr(dis, 'nhat_ky', None)
+        lt_obj = LichThi.objects.filter(ca_thi=dis.ca_thi, phong_thi=dis.phong_thi, lop_hp__hoc_phan=dis.hoc_phan).first()
+        lt_id = lt_obj.ma_lich_thi if lt_obj else ""
+        subject_name = dis.hoc_phan.ten_hoc_phan if dis.hoc_phan else ""
+        
+        is_item = {
+            "id": dis.ma_dot_in_sao,
+            "ltId": lt_id,
+            "subjectName": subject_name,
+            "soLuong": dis.so_luong_ban_in,
+            "ngay": dis.thoi_gian_in_sao.strftime('%Y-%m-%d') if dis.thoi_gian_in_sao else "",
+            "noiIn": dis.noi_in_sao or "",
+            "giamSat": dis.can_bo_giam_sat.username if dis.can_bo_giam_sat else "",
+            "ghiChu": dis.ghi_chu or "",
+            "trangThai": dis.trang_thai
+        }
+        if nk:
+            is_item.update({
+                "nkThoiGian": nk.thoi_gian_thuc_hien.strftime('%Y-%m-%dT%H:%M') if nk.thoi_gian_thuc_hien else "",
+                "nkSoLuong": nk.so_luong_in_thuc_te,
+                "nkNiemPhong": nk.so_luong_niem_phong,
+                "nkNguoiIn": nk.nguoi_thuc_hien.username if nk.nguoi_thuc_hien else "",
+                "nkGhiChu": nk.ghi_chu or ""
+            })
+        in_sao_data.append(is_item)
+
+    # 14. deThiData
+    de_thi_data = []
+    for dt in DeThi.objects.select_related('hoc_phan').prefetch_related('nop_de_thi__nguoi_nop', 'ra_soat_de_thi__nguoi_rao_soat').all():
+        nop = dt.nop_de_thi.first()
+        rs = dt.ra_soat_de_thi.first()
+        de_thi_data.append({
+            "id": dt.ma_de_thi,
+            "hocPhan": dt.hoc_phan.ten_hoc_phan if dt.hoc_phan else "",
+            "nguoiNop": nop.nguoi_nop.full_name if (nop and nop.nguoi_nop) else "",
+            "thoiGian": nop.thoi_gian_nop.strftime('%H:%M %d/%m/%Y') if nop else "",
+            "fileName": nop.tep_dinh_kem if nop else "",
+            "ghiChu": rs.ghi_chu if rs else "",
+            "trangThai": dt.trang_thai,
+            "nhanXet": rs.ket_qua if rs else ""
+        })
         
     # System Configs (Đọc trực tiếp từ AppState)
     system_configs_str = getattr(state_instance, 'system_configs', '{}')
@@ -917,7 +976,10 @@ def get_state(request):
         "caThiData": ca_thi_data,
         "lichThiData": lich_thi_data,
         "hocPhiData": hoc_phi_data,
-        "lopThiDiemData": lop_thi_diem_data
+        "lopThiDiemData": lop_thi_diem_data,
+        "phongThiData": phong_thi_data,
+        "inSaoData": in_sao_data,
+        "deThiData": de_thi_data
     })
 
 
@@ -1198,6 +1260,154 @@ def save_state(request):
                         )
                         AuditLog.objects.filter(id=al.id).update(timestamp=dt_val)
                         
+            # 8. Đồng bộ kyThiData -> KyThi
+            if "kyThiData" in data:
+                payload_ids = [kt["id"] for kt in data["kyThiData"]]
+                KyThi.objects.exclude(ma_ky_thi__in=payload_ids).delete()
+                
+                for kt in data["kyThiData"]:
+                    dates = kt.get("duration", "").split(" - ")
+                    start_d = datetime.strptime(dates[0], "%d/%m/%Y").date() if len(dates) == 2 and dates[0] else None
+                    end_d = datetime.strptime(dates[1], "%d/%m/%Y").date() if len(dates) == 2 and dates[1] else None
+                    KyThi.objects.update_or_create(
+                        ma_ky_thi=kt["id"],
+                        defaults={
+                            "ten_ky_thi": kt.get("name", ""),
+                            "nam_hoc": kt.get("year", ""),
+                            "hoc_ky": kt.get("semester", ""),
+                            "dot_thi": kt.get("dot", ""),
+                            "mo_ta": kt.get("mota", ""),
+                            "ngay_bat_dau": start_d,
+                            "ngay_ket_thuc": end_d
+                        }
+                    )
+            
+            # 9. Đồng bộ caThiData -> CaThi
+            if "caThiData" in data:
+                payload_ids = [ct["id"] for ct in data["caThiData"]]
+                CaThi.objects.exclude(ma_ca_thi__in=payload_ids).delete()
+                
+                for ct in data["caThiData"]:
+                    CaThi.objects.update_or_create(
+                        ma_ca_thi=ct["id"],
+                        defaults={
+                            "ky_thi_id": ct.get("kyThiId") or None,
+                            "ten_ca": ct.get("name", ""),
+                            "ngay_thi": parse_date(ct.get("date")) if ct.get("date") else None,
+                            "gio_bat_dau": parse_time(ct.get("start")) if ct.get("start") else "00:00",
+                            "gio_ket_thuc": parse_time(ct.get("end")) if ct.get("end") else "00:00",
+                            "note": ct.get("note", "")
+                        }
+                    )
+            
+            # 10. Đồng bộ phongThiData -> PhongThi
+            if "phongThiData" in data:
+                payload_ids = [pt["id"] for pt in data["phongThiData"]]
+                PhongThi.objects.exclude(ma_phong__in=payload_ids).delete()
+                
+                for pt in data["phongThiData"]:
+                    PhongThi.objects.update_or_create(
+                        ma_phong=pt["id"],
+                        defaults={
+                            "ten_phong": pt.get("ten", ""),
+                            "suc_chua": pt.get("sucChua", 0),
+                            "vi_tri": pt.get("viTri", ""),
+                            "loai_phong": pt.get("loai", "Phòng thường"),
+                            "trang_thai": pt.get("trangThai", "Khả dụng"),
+                            "ghi_chu": ""
+                        }
+                    )
+            
+            # 11. Đồng bộ inSaoData -> DotInSao, NhatKyInSao
+            if "inSaoData" in data:
+                payload_ids = [isd["id"] for isd in data["inSaoData"]]
+                DotInSao.objects.exclude(ma_dot_in_sao__in=payload_ids).delete()
+                
+                for isd in data["inSaoData"]:
+                    user_sys, _ = User.objects.get_or_create(username="system", defaults={"role": "cvht", "full_name": "Hệ thống"})
+                    lt_obj = LichThi.objects.filter(ma_lich_thi=isd.get("ltId")).first()
+                    
+                    dis_obj, _ = DotInSao.objects.update_or_create(
+                        ma_dot_in_sao=isd["id"],
+                        defaults={
+                            "ky_thi": lt_obj.ky_thi if lt_obj else KyThi.objects.first(),
+                            "ca_thi": lt_obj.ca_thi if lt_obj else None,
+                            "phong_thi": lt_obj.phong_thi if lt_obj else None,
+                            "hoc_phan": lt_obj.lop_hp.hoc_phan if (lt_obj and lt_obj.lop_hp) else None,
+                            "nguoi_tao": user_sys,
+                            "so_luong_ban_in": int(isd.get("soLuong", 0) or 0),
+                            "thoi_gian_in_sao": parse_datetime(isd.get("ngay") + "T00:00:00") if isd.get("ngay") else None,
+                            "noi_in_sao": isd.get("noiIn", ""),
+                            "can_bo_giam_sat": User.objects.filter(username=isd.get("giamSat")).first(),
+                            "ghi_chu": isd.get("ghiChu", ""),
+                            "trang_thai": isd.get("trangThai", "ChoCapNhat")
+                        }
+                    )
+                    
+                    if isd.get("nkThoiGian"):
+                        NhatKyInSao.objects.update_or_create(
+                            dot_in_sao=dis_obj,
+                            defaults={
+                                "thoi_gian_thuc_hien": parse_datetime(isd["nkThoiGian"]),
+                                "nguoi_thuc_hien": User.objects.filter(username=isd.get("nkNguoiIn")).first() or user_sys,
+                                "nguoi_giam_sat": user_sys,
+                                "so_luong_in_thuc_te": int(isd.get("nkSoLuong", 0) or 0),
+                                "so_luong_niem_phong": int(isd.get("nkNiemPhong", 0) or 0),
+                                "ghi_chu": isd.get("nkGhiChu", "")
+                            }
+                        )
+            
+            # 12. Đồng bộ deThiData -> DeThi, NopDeThi, RaSoatDeThi
+            if "deThiData" in data:
+                payload_ids = [dt["id"] for dt in data["deThiData"]]
+                DeThi.objects.exclude(ma_de_thi__in=payload_ids).delete()
+                
+                for dt in data["deThiData"]:
+                    hp_name = dt.get("hocPhan", "")
+                    import re
+                    match = re.search(r'\(([^)]+)\)', hp_name)
+                    if match:
+                        hp_code = match.group(1)
+                    else:
+                        hp_code = hp_name
+                        
+                    hp_obj, _ = HocPhan.objects.get_or_create(ma_hoc_phan=hp_code, defaults={"ten_hoc_phan": hp_name})
+                    
+                    dethi_obj, _ = DeThi.objects.update_or_create(
+                        ma_de_thi=dt["id"],
+                        defaults={
+                            "hoc_phan": hp_obj,
+                            "trang_thai": dt.get("trangThai", "ChoRaSoat")
+                        }
+                    )
+                    
+                    if dt.get("nguoiNop") or dt.get("fileName"):
+                        gv_user = User.objects.filter(full_name=dt.get("nguoiNop")).first()
+                        if not gv_user:
+                            gv_user, _ = User.objects.get_or_create(username="gv_default", defaults={"role": "gv", "full_name": dt.get("nguoiNop") or "Giảng viên"})
+                            
+                        NopDeThi.objects.update_or_create(
+                            de_thi=dethi_obj,
+                            defaults={
+                                "nguoi_nop": gv_user,
+                                "tep_dinh_kem": dt.get("fileName", "")
+                            }
+                        )
+                        
+                    if dt.get("nhanXet") or dt.get("ghiChu"):
+                        rs_user = User.objects.filter(role="dvcm").first()
+                        if not rs_user:
+                            rs_user, _ = User.objects.get_or_create(username="dvcm_default", defaults={"role": "dvcm", "full_name": "Giáo vụ Khoa"})
+                            
+                        RaSoatDeThi.objects.update_or_create(
+                            de_thi=dethi_obj,
+                            defaults={
+                                "nguoi_rao_soat": rs_user,
+                                "ket_qua": dt.get("nhanXet", ""),
+                                "ghi_chu": dt.get("ghiChu", "")
+                            }
+                        )
+
             # 7. Lưu cấu hình hệ thống trực tiếp vào AppState (chữ ký số và thời gian)
             if "systemConfigsData" in data:
                 state.system_configs = json.dumps(data["systemConfigsData"])

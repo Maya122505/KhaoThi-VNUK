@@ -22,14 +22,8 @@
     <!-- Header Navbar -->
     <header class="bg-white px-8 py-4 flex justify-between items-center border-b-4 border-orange-500 shadow-sm z-10 relative">
         <div class="flex items-center gap-4">
-            <div class="flex flex-col border-r-2 border-gray-300 pr-4 cursor-pointer" onclick="navigate('view-home')">
-                <h1 class="text-4xl font-bold text-[#4a1414] tracking-tight">VN<span class="text-blue-900">UK</span></h1>
-                <p class="text-[10px] uppercase text-gray-600 font-semibold mt-1">Institute for Research</p>
-                <p class="text-[10px] uppercase text-gray-600 font-semibold">& Executive Education</p>
-            </div>
-            <div class="pl-2">
-                <h2 class="text-2xl font-bold text-[#9e1c22]">ĐẠI HỌC ĐÀ NẴNG</h2>
-                <h2 class="text-2xl font-bold text-[#9e1c22] mt-1">VIỆN NGHIÊN CỨU VÀ ĐÀO TẠO VIỆT - ANH</h2>
+            <div class="cursor-pointer" onclick="navigate('view-home')">
+                <img src="/static/khaothi_app/images/logo.png" alt="VNUK Logo" class="h-16 w-auto object-contain" />
             </div>
         </div>
         <div class="flex flex-col gap-2 text-xs">
@@ -86,7 +80,7 @@
                         </tr>
                     </thead>
                     <tbody id="phong-tbody" class="divide-y divide-gray-100 font-sans">
-                        <!-- Filled by JS -->
+                        <!-- Được điền tự động bằng JavaScript -->
                     </tbody>
                 </table>
             </div>
@@ -101,7 +95,7 @@
                     <h3 class="font-bold text-slate-800 text-sm pb-2 border-b">Khai báo vắng mặt / Đi muộn</h3>
                     
                     <div>
-                        <label class="block font-bold text-gray-700 mb-1">Giảng viên gặp sự cố:</label>
+                        <label class="block font-bold text-gray-700 mb-1">Giảng viên gặp sự cố</label>
                         <select id="tt-gv-code" class="w-full p-2.5 border rounded outline-none bg-white">
                             <option value="GV001">Nguyễn Văn A (IT)</option>
                             <option value="GV002">Trần Thị B (QTKD)</option>
@@ -112,7 +106,7 @@
                     </div>
 
                     <div>
-                        <label class="block font-bold text-gray-700 mb-1">Chọn Ca thi bị ảnh hưởng:</label>
+                        <label class="block font-bold text-gray-700 mb-1">Chọn Ca thi bị ảnh hưởng</label>
                         <select id="tt-shift-desc" class="w-full p-2.5 border rounded outline-none font-mono bg-white">
                             <option value="Ca 3 - 2026-07-18 - Tiếng Anh GTQT 3">Ca 3 (18/07) - Tiếng Anh - P.201</option>
                             <option value="Ca 1 - 2026-07-16 - Nhập môn Lập trình">Ca 1 (16/07) - Lập trình - P.101</option>
@@ -121,7 +115,7 @@
                     </div>
 
                     <div>
-                        <label class="block font-bold text-gray-700 mb-1">Lý do thay thế khẩn cấp:</label>
+                        <label class="block font-bold text-gray-700 mb-1">Lý do thay thế khẩn cấp</label>
                         <textarea id="tt-reason" placeholder="Ví dụ: Bị ốm đột xuất, xe hỏng dọc đường..." class="w-full p-2.5 border rounded h-20 outline-none"></textarea>
                     </div>
 
@@ -158,7 +152,7 @@
                 <h3 class="font-bold text-sm text-indigo-950 pb-2 border-b flex items-center gap-1.5"><i data-lucide="file-warning"></i> Biên bản ghi nhận sự cố bất thường</h3>
                 
                 <div>
-                    <label class="block font-bold text-gray-700 mb-1">Loại sự cố / Biên bản:</label>
+                    <label class="block font-bold text-gray-700 mb-1">Loại sự cố / Biên bản</label>
                     <select id="sc-type" class="w-full p-2.5 border rounded outline-none bg-white">
                         <option value="vi_pham">Lập Biên bản vi phạm quy chế (Sinh viên gian lận)</option>
                         <option value="mat_dien">Sự cố mất điện / Mất kết nối internet đột ngột</option>
@@ -169,17 +163,17 @@
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block font-bold text-gray-700 mb-1">Lớp / Phòng thi xảy ra:</label>
+                        <label class="block font-bold text-gray-700 mb-1">Lớp / Phòng thi xảy ra</label>
                         <input type="text" id="sc-room" placeholder="Ví dụ: P.101 - LHP-001" class="w-full p-2.5 border rounded outline-none bg-white" />
                     </div>
                     <div>
-                        <label class="block font-bold text-gray-700 mb-1">Họ tên sinh viên (nếu vi phạm):</label>
+                        <label class="block font-bold text-gray-700 mb-1">Họ tên sinh viên (nếu vi phạm)</label>
                         <input type="text" id="sc-sv" placeholder="Họ tên & MSV..." class="w-full p-2.5 border rounded outline-none bg-white" />
                     </div>
                 </div>
 
                 <div>
-                    <label class="block font-bold text-gray-700 mb-1">Nội dung chi tiết diễn biến sự cố:</label>
+                    <label class="block font-bold text-gray-700 mb-1">Nội dung chi tiết diễn biến sự cố</label>
                     <textarea id="sc-detail" placeholder="Ghi nhận cụ thể thời gian xảy ra, hình thức vi phạm quy chế hoặc tác động sự cố, phương án xử lý tại chỗ của giám thị..." class="w-full p-2.5 border rounded h-28 outline-none"></textarea>
                 </div>
 
@@ -222,13 +216,14 @@
 
         async function loadStateFromServer() {
             try {
+            const res = await fetch('/api/get_state/');
+                const data = await res.json();
+
             kyThiData = data.kyThiData || [];
             caThiData = data.caThiData || [];
             lichThiData = data.lichThiData || [];
             hocPhiData = data.hocPhiData || [];
             lopThiDiemData = data.lopThiDiemData || [];
-                const res = await fetch('/api/get_state/');
-                const data = await res.json();
                 
                 phongThiGocData = data.phongThiGocData;
                 tuiPhachData = data.tuiPhachData;

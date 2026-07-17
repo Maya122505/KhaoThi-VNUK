@@ -14,6 +14,12 @@
     let tuiPhachChiTietData = {};
     let canBoCoiThiData = [];
     
+    // New States
+    let phongThiData = [];
+    let phanCongPhongData = [];
+    let inSaoData = [];
+    let deThiData = [];
+    
     let activeViewId = "view-home";
     let activeDslTab = "ds";
     let activeNhapDiemClassId = null;
@@ -44,9 +50,12 @@
             lichThiData = data.lichThiData || [];
             hocPhiData = data.hocPhiData || [];
             lopThiDiemData = data.lopThiDiemData || {};
+            phongThiData = data.phongThiData || [];
+            inSaoData = data.inSaoData || [];
+            deThiData = data.deThiData || [];
             isStateLoaded = true;
 
-            // Build tuiPhachChiTietData dynamically from tuiPhachData
+            // Xây dựng dữ liệu chi tiết túi phách (tuiPhachChiTietData) động từ tuiPhachData
             tuiPhachChiTietData = {};
             tuiPhachData.forEach(bag => {
                 tuiPhachChiTietData[bag.id] = {
@@ -74,7 +83,7 @@
 
     async function saveStateToServer() {
         try {
-            // Sync details from tuiPhachChiTietData back to tuiPhachData
+            // Đồng bộ chi tiết từ tuiPhachChiTietData ngược lại tuiPhachData
             tuiPhachData.forEach(bag => {
                 const detail = tuiPhachChiTietData[bag.id];
                 if (detail && detail.papers) {
@@ -105,7 +114,10 @@
                     caThiData,
                     lichThiData,
                     hocPhiData,
-                    lopThiDiemData
+                    lopThiDiemData,
+                    phongThiData,
+                    inSaoData,
+                    deThiData
                 })
             });
         } catch(e) {
@@ -127,24 +139,34 @@
         if(targetView) targetView.classList.remove('hidden-view');
         sessionStorage.setItem('tkt_activeViewId', viewId);
 
-        document.querySelectorAll('.nav-btn').forEach(btn => btn.className = "nav-btn px-6 py-3 text-sm font-semibold border-r border-red-800 transition-colors hover:bg-red-800");
+        document.querySelectorAll('.nav-btn').forEach(btn => btn.className = "nav-btn px-5 py-3 text-sm font-semibold border-r border-red-800 transition-colors hover:bg-red-800 whitespace-nowrap");
+        const lastBtn = document.querySelector('.nav-btn:last-of-type');
+        if (lastBtn) lastBtn.className = "nav-btn px-5 py-3 text-sm font-semibold transition-colors hover:bg-red-800 whitespace-nowrap";
 
         activeViewId = viewId;
         if(viewId === 'view-home') document.getElementById('nav-btn-home').className += " bg-red-800";
         else if(viewId === 'view-ky-thi') document.getElementById('nav-btn-ky-thi').className += " bg-red-800";
+        else if(viewId === 'view-ca-thi') document.getElementById('nav-btn-ca-thi').className += " bg-red-800";
         else if(viewId === 'view-danh-sach-lich') document.getElementById('nav-btn-danh-sach-lich').className += " bg-red-800";
         else if(viewId === 'view-nhap-diem') document.getElementById('nav-btn-nhap-diem').className += " bg-red-800";
         else if(viewId === 'view-phuc-khao') document.getElementById('nav-btn-phuc-khao').className += " bg-red-800";
         else if(viewId === 'view-giao-nhan') document.getElementById('nav-btn-giao-nhan').className += " bg-red-800";
         else if(viewId === 'view-gio-coi') document.getElementById('nav-btn-gio-coi').className += " bg-red-800";
+        else if(viewId === 'view-phong-thi') document.getElementById('nav-btn-phong-thi').className += " bg-red-800";
+        else if(viewId === 'view-in-sao') document.getElementById('nav-btn-in-sao').className += " bg-red-800";
+        else if(viewId === 'view-rasoat-de') document.getElementById('nav-btn-rasoat-de').className += " bg-red-800";
 
         if(viewId === 'view-home') renderDashboard();
-        else if(viewId === 'view-ky-thi') { populateCaThiSelectOptions(); renderCaThiList(); }
+        else if(viewId === 'view-ky-thi') { renderKyThiList(); }
+        else if(viewId === 'view-ca-thi') { populateCaThiSelectOptions(); renderCaThiList(); }
         else if(viewId === 'view-danh-sach-lich') { switchDslTab('ds'); }
         else if(viewId === 'view-nhap-diem') { resetViewNhapDiem(); }
         else if(viewId === 'view-phuc-khao') { renderPhucKhaoList(); }
         else if(viewId === 'view-giao-nhan') { switchGiaoNhanTab('tao'); renderGiaoNhan(); }
         else if(viewId === 'view-gio-coi') { renderGioCoiThongKe(); }
+        else if(viewId === 'view-phong-thi') { switchTabPhongThi('danh-sach'); }
+        else if(viewId === 'view-in-sao') { switchTabInSao('nhat-ky'); }
+        else if(viewId === 'view-rasoat-de') { if(typeof renderRasoatDeList === 'function') renderRasoatDeList(); }
 
         initIcons();
     }
@@ -167,7 +189,7 @@
         tbody.innerHTML = '';
         kyThiData.forEach(kt => {
             tbody.innerHTML += `
-                <tr class="hover:bg-gray-50">
+                <tr class="hover:bg-gray-50 cursor-pointer" onclick="showKyThiDetailModal('${kt.id}')">
                     <td class="px-4 py-2.5 font-semibold text-[#9e1c22]">${kt.name}</td>
                     <td class="px-4 py-2.5 text-gray-700">${kt.year}</td>
                     <td class="px-4 py-2.5 text-center font-medium">${kt.semester}</td>
@@ -186,7 +208,14 @@
         const nam = document.getElementById('kt-nam').value.trim();
         const hocky = document.getElementById('kt-hocky').value;
         const dot = document.getElementById('kt-dot').value.trim();
-        const thoigian = document.getElementById('kt-thoigian').value.trim();
+        const thoigianBd = document.getElementById('kt-thoigian-bd').value;
+        const thoigianKt = document.getElementById('kt-thoigian-kt').value;
+        let thoigian = "";
+        if (thoigianBd && thoigianKt) {
+            const bdParts = thoigianBd.split('-');
+            const ktParts = thoigianKt.split('-');
+            thoigian = `${bdParts[2]}/${bdParts[1]}/${bdParts[0]} - ${ktParts[2]}/${ktParts[1]}/${ktParts[0]}`;
+        }
         const mota = document.getElementById('kt-mota').value.trim();
 
         if(!ten || !nam || !dot || !thoigian) {
@@ -199,11 +228,20 @@
 
         showGlobalToast("Thành công", "Tạo kỳ thi mới thành công!");
         populateCaThiSelectOptions();
-        document.getElementById('kt-ten').value = '';
-        document.getElementById('kt-nam').value = '';
-        document.getElementById('kt-dot').value = '';
-        document.getElementById('kt-thoigian').value = '';
+        renderKyThiList();
+        
+        // Khôi phục các menu thả xuống (select) về giá trị mặc định
+        document.getElementById('kt-ten').selectedIndex = 0;
+        const currentYear = new Date().getFullYear();
+        document.getElementById('kt-nam').value = `${currentYear}-${currentYear + 1}`;
+        document.getElementById('kt-hocky').value = 'Học kỳ III';
+        document.getElementById('kt-dot').selectedIndex = 0;
+        
+        document.getElementById('kt-thoigian-bd').value = '';
+        document.getElementById('kt-thoigian-kt').value = '';
         document.getElementById('kt-mota').value = '';
+    
+        if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
     }
 
     function populateCaThiSelectOptions() {
@@ -249,16 +287,19 @@
         if(kt) kt.shiftsCount++;
 
         showGlobalToast("Thành công", "Tạo ca thi mới thành công!");
-        document.getElementById('ct-ten').value = '';
+        document.getElementById('ct-ten').selectedIndex = 0;
         document.getElementById('ct-ngay').value = '';
         document.getElementById('ct-gio-bd').value = '';
         document.getElementById('ct-gio-kt').value = '';
         document.getElementById('ct-ghichu').value = '';
         renderCaThiList();
+    
+        if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
     }
 
     function renderCaThiList() {
         const div = document.getElementById('ca-thi-list-div');
+        if (!div) return;
         div.innerHTML = '';
         if (caThiData.length === 0) {
             div.innerHTML = `<div class="text-center text-gray-400 py-6 italic">Chưa có ca thi nào được tạo.</div>`;
@@ -267,16 +308,103 @@
         caThiData.forEach(c => {
             const kt = kyThiData.find(x => x.id === c.kyThiId);
             div.innerHTML += `
-                <div class="border border-gray-200 rounded p-3 text-xs bg-gray-50 flex justify-between items-center shadow-sm">
+                <div class="border border-gray-200 rounded p-3 text-xs bg-gray-50 flex justify-between items-center shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:bg-gray-100" onclick="showCaThiDetailModal('${c.id}')">
                     <div>
                         <p class="font-bold text-blue-900">${c.name} - Ngày thi: ${c.date}</p>
                         <p class="text-gray-500 mt-1 font-semibold">Khung giờ: ${c.start} - ${c.end}</p>
                         <p class="text-gray-400 mt-0.5">${kt ? kt.name : ''} (${c.note || 'Không ghi chú'})</p>
                     </div>
-                    <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">Hoạt động</span>
+                    <div class="flex items-center gap-2" onclick="event.stopPropagation();">
+                        <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">Hoạt động</span>
+                        <button onclick="handleDeleteCaThi('${c.id}')" class="text-red-600 hover:text-red-800 font-semibold p-1 hover:bg-red-50 rounded transition-all" title="Xóa ca thi">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
                 </div>
             `;
         });
+        if (typeof initIcons !== "undefined") initIcons();
+    }
+
+    function renderKyThiList() {
+        const div = document.getElementById('ky-thi-list-div');
+        if (!div) return;
+        div.innerHTML = '';
+        if (kyThiData.length === 0) {
+            div.innerHTML = `<div class="text-center text-gray-400 py-6 italic">Chưa có kỳ thi nào được tạo.</div>`;
+            return;
+        }
+        kyThiData.forEach(kt => {
+            div.innerHTML += `
+                <div class="border border-gray-200 rounded p-3 text-xs bg-gray-50 flex justify-between items-center shadow-sm hover:shadow-md transition-shadow cursor-pointer hover:bg-gray-100" onclick="showKyThiDetailModal('${kt.id}')">
+                    <div>
+                        <p class="font-bold text-[#9e1c22]">${kt.name}</p>
+                        <p class="text-gray-500 mt-1 font-semibold">Năm học: ${kt.year} | Học kỳ: ${kt.semester}</p>
+                        <p class="text-gray-400 mt-0.5">${kt.duration ? `Thời gian: ${kt.duration}` : ''}</p>
+                    </div>
+                    <button onclick="event.stopPropagation(); handleDeleteKyThi('${kt.id}')" class="text-red-600 hover:text-red-800 font-semibold p-1 hover:bg-red-50 rounded transition-all" title="Xóa kỳ thi">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            `;
+        });
+        if (typeof initIcons !== "undefined") initIcons();
+    }
+
+    // Hàm tiện ích: Hiển thị modal xác nhận xoá
+    let deleteConfirmCallback = null;
+    function showDeleteConfirmModal(message, onConfirm) {
+        document.getElementById('delete-confirm-message').textContent = message;
+        deleteConfirmCallback = onConfirm;
+        document.getElementById('delete-confirm-btn').onclick = function() {
+            hideDeleteConfirmModal();
+            if (deleteConfirmCallback) deleteConfirmCallback();
+        };
+        document.getElementById('modal-delete-confirm').classList.remove('hidden-view');
+        if (typeof initIcons !== "undefined") initIcons();
+    }
+    function hideDeleteConfirmModal() {
+        document.getElementById('modal-delete-confirm').classList.add('hidden-view');
+        deleteConfirmCallback = null;
+    }
+
+    function handleDeleteKyThi(id) {
+        const kt = kyThiData.find(x => x.id === id);
+        const tenKyThi = kt ? kt.name : 'kỳ thi này';
+        showDeleteConfirmModal(
+            `Bạn có chắc chắn muốn xoá "${tenKyThi}"? Việc này sẽ xoá toàn bộ ca thi liên quan và không thể hoàn tác.`,
+            function() {
+                kyThiData = kyThiData.filter(kt => kt.id !== id);
+                caThiData = caThiData.filter(ct => ct.kyThiId !== id);
+                
+                showGlobalToast("Thành công", "Đã xóa kỳ thi thành công!");
+                renderDashboard();
+                populateCaThiSelectOptions();
+                renderCaThiList();
+                renderKyThiList();
+                
+                if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
+            }
+        );
+    }
+
+    function handleDeleteCaThi(id) {
+        const ct = caThiData.find(x => x.id === id);
+        const tenCaThi = ct ? ct.name : 'ca thi này';
+        showDeleteConfirmModal(
+            `Bạn có chắc chắn muốn xoá "${tenCaThi}"? Hành động này không thể hoàn tác.`,
+            function() {
+                caThiData = caThiData.filter(c => c.id !== id);
+                
+                showGlobalToast("Thành công", "Đã xóa ca thi thành công!");
+                renderCaThiList();
+                populateCaThiSelectOptions();
+                renderKyThiList();
+                renderDashboard();
+                
+                if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
+            }
+        );
     }
 
     // ==========================================================
@@ -328,10 +456,14 @@
             `;
         });
         showGlobalToast("Hoàn tất đối chiếu", "Đã đồng bộ học phí và cập nhật tình trạng cấm thi thành công!");
+    
+        if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
     }
 
     function handleSaveDanhSachThi() {
         showGlobalToast("Thành công", "Đã lưu và gửi phê duyệt danh sách thi chờ Trưởng phòng duyệt.");
+    
+        if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
     }
 
     function populateCaThiDropdown() {
@@ -400,7 +532,7 @@
     // UC 4.1: ĐỐI SOÁT NHẬP ĐIỂM LẦN 2
     // ==========================================================
     function resetViewNhapDiem() {
-        // Reset SBD Mode
+        // Reset chế độ Số báo danh
         document.getElementById('nd-search-class').disabled = false;
         document.getElementById('nd-search-class').value = '';
         document.getElementById('nd-step2').classList.add('hidden-view');
@@ -416,7 +548,7 @@
         btnCompare.className = "flex-1 bg-blue-900 text-white font-bold py-3 rounded shadow hover:bg-blue-800 flex justify-center items-center gap-2 text-xs";
         isNhapDiemCompared = false;
 
-        // Reset Phach Mode
+        // Reset chế độ Phách
         document.getElementById('nd-phach-bag-id').disabled = false;
         document.getElementById('nd-phach-bag-id').value = '';
         document.getElementById('nd-phach-bag-pw').disabled = false;
@@ -498,6 +630,8 @@
         });
 
         document.getElementById('nd-phach-step2').classList.remove('hidden-view');
+    
+        if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
     }
 
     function handleComparePhachPoints() {
@@ -569,6 +703,8 @@
         btnSave.disabled = false;
         btnSave.className = "flex-1 bg-[#9e1c22] text-white font-bold py-3 rounded shadow hover:bg-red-800 flex justify-center items-center gap-2 text-xs";
         isNhapDiemPhachCompared = true;
+    
+        if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
     }
 
     function handleSavePhachFinalPoints() {
@@ -621,6 +757,8 @@
         const btnSave = document.getElementById('nd-phach-btn-save');
         btnSave.disabled = true;
         btnSave.className = "flex-1 bg-gray-400 text-white font-bold py-3 rounded cursor-not-allowed flex justify-center items-center gap-2 text-xs";
+    
+        if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
     }
 
     // --- HANDLERS: NHẬP ĐIỂM THEO SBD (UC 4.1) ---
@@ -655,6 +793,8 @@
         });
 
         document.getElementById('nd-step2').classList.remove('hidden-view');
+    
+        if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
     }
 
     function handleCompareAndValidatePoints() {
@@ -732,6 +872,8 @@
         btnSave.disabled = false;
         btnSave.className = "flex-1 bg-[#9e1c22] text-white font-bold py-3 rounded shadow hover:bg-red-800 flex justify-center items-center gap-2 text-xs";
         isNhapDiemCompared = true;
+    
+        if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
     }
 
     function handleSaveFinalPoints() {
@@ -766,6 +908,8 @@
 
         showGlobalToast("Thành công", "Đối soát và lưu bảng điểm thi chốt lên CSDL thành công!");
         resetViewNhapDiem();
+    
+        if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
     }
 
     // ==========================================================
@@ -901,13 +1045,15 @@
         }
 
         pk.status = "Đã hoàn thành";
-        pk.oldPt = targetInputVal; // Update final point with the new remark point
+        pk.oldPt = targetInputVal; // Cập nhật điểm thi cuối cùng bằng điểm chấm phúc khảo mới
 
         showGlobalToast("Thành công", "Đã lưu điểm phúc khảo và chốt điều chỉnh điểm số học sinh!");
         document.getElementById('pk-empty-view').classList.remove('hidden-view');
         document.getElementById('pk-process-view').classList.add('hidden-view');
         renderPhucKhaoList();
         renderDashboard();
+    
+        if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
     }
 
     function switchGiaoNhanTab(tab) {
@@ -1072,7 +1218,7 @@
             });
         }
 
-        // Update pagination info
+        // Cập nhật thông tin phân trang
         document.getElementById('gn-pagination-info').innerText = `Trang ${giaoNhanCurrentPage} / ${totalPages}`;
         document.getElementById('gn-btn-prev').disabled = giaoNhanCurrentPage === 1;
         document.getElementById('gn-btn-next').disabled = giaoNhanCurrentPage === totalPages;
@@ -1102,6 +1248,8 @@
 
         filterGiaoNhanList();
         initIcons();
+    
+        if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
     }
 
     function renderGiaoNhan() {
@@ -1524,7 +1672,7 @@
 
         // Thêm ca thi sang giảng viên mới
         const newGv = canBoCoiThiData.find(x => x.code === newCode);
-        targetShift.confirmed = false; // Reset confirmed status on replacement
+        targetShift.confirmed = false; // Reset trạng thái xác nhận khi thay thế giám thị
         newGv.history.push(targetShift);
 
         hideCbctEmergencyModal();
@@ -1672,6 +1820,560 @@
             showGlobalToast("Không thể xuất báo cáo", "Có ca coi thi chưa được Giảng viên xác nhận lịch! Vui lòng hoàn tất xác nhận lịch.", "error");
             return;
         }
-        alert("Hệ thống đang chuẩn bị dữ liệu và xuất file báo cáo 'Bao_Cao_Thanh_Toan_Gio_Coi_Thi.pdf'...");
+    }
+    
+    // ==========================================================
+    // UC: QUẢN LÝ PHÒNG THI
+    // ==========================================================
+    function switchTabPhongThi(tab) {
+        document.getElementById('phong-thi-danh-sach-tab').classList.add('hidden-view');
+        document.getElementById('phong-thi-phan-cong-tab').classList.add('hidden-view');
+        
+        const btnDs = document.getElementById('btn-pt-tab-ds');
+        const btnPc = document.getElementById('btn-pt-tab-pc');
+        if(btnDs && btnPc) {
+            btnDs.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 text-gray-600 hover:bg-gray-100 font-sans shadow-none";
+            btnPc.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 text-gray-600 hover:bg-gray-100 font-sans shadow-none";
+        }
+
+        if (tab === 'danh-sach') {
+            document.getElementById('phong-thi-danh-sach-tab').classList.remove('hidden-view');
+            if(btnDs) btnDs.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 bg-blue-100 text-blue-800 shadow-sm font-sans";
+            renderPhongThiTable();
+        } else {
+            document.getElementById('phong-thi-phan-cong-tab').classList.remove('hidden-view');
+            if(btnPc) btnPc.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 bg-blue-100 text-blue-800 shadow-sm font-sans";
+            renderPCLichThi();
+            renderPhanCongTable();
+        }
+    }
+
+    function renderPhongThiTable() {
+        const tbody = document.getElementById('phong-thi-tbody');
+        if (!tbody) return;
+        const search = (document.getElementById('pt-search')?.value || '').toLowerCase();
+        
+        tbody.innerHTML = phongThiData.filter(pt => pt.ten.toLowerCase().includes(search) || pt.ma.toLowerCase().includes(search)).map((pt, i) => `
+            <tr class="bg-white border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer" onclick="showPhongThiDetailModal('${pt.ma}')">
+                <td class="px-4 py-3 font-bold">${pt.ma}</td>
+                <td class="px-4 py-3 font-semibold text-indigo-900">${pt.ten}</td>
+                <td class="px-4 py-3 text-center">${pt.sucChua}</td>
+                <td class="px-4 py-3">${pt.viTri}</td>
+                <td class="px-4 py-3">
+                    <span class="px-2 py-1 rounded-full text-[10px] font-bold ${pt.trangThai === 'Khả dụng' ? 'bg-green-100 text-green-700' : (pt.trangThai === 'Đang bảo trì' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700')}">${pt.trangThai}</span>
+                </td>
+                <td class="px-4 py-3 text-center" onclick="event.stopPropagation();">
+                    <button class="text-blue-600 hover:text-blue-800" onclick="alert('Chỉnh sửa ${pt.ma}')"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                </td>
+            </tr>
+        `).join('') || `<tr><td colspan="6" class="text-center py-4 text-gray-500 text-xs italic">Không tìm thấy phòng thi nào.</td></tr>`;
+        initIcons();
+    }
+
+    function handleCreatePhongThi() {
+        const ten = document.getElementById('pt-ten').value.trim();
+        const sucChua = parseInt(document.getElementById('pt-suc-chua').value);
+        const viTri = document.getElementById('pt-vi-tri').value;
+        const loai = document.getElementById('pt-loai').value;
+        const trangThai = document.getElementById('pt-trang-thai').value;
+
+        if (!ten || !sucChua || sucChua <= 0) {
+            showGlobalToast("Thêm thất bại", "Vui lòng nhập tên phòng và sức chứa hợp lệ.", "error");
+            return;
+        }
+        if (phongThiData.some(p => p.ten.toLowerCase() === ten.toLowerCase())) {
+            showGlobalToast("Thêm thất bại", "Tên phòng thi này đã tồn tại trong hệ thống.", "error");
+            return;
+        }
+
+        const ma = "PT" + Date.now().toString().slice(-4);
+        phongThiData.push({ id: ma, ma, ten, sucChua, viTri, loai, trangThai });
+        
+        document.getElementById('pt-ten').value = '';
+        document.getElementById('pt-suc-chua').value = '';
+        renderPhongThiTable();
+        showGlobalToast("Thành công", `Đã thêm phòng thi ${ten} (${ma}) thành công.`, "success");
+    
+        if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
+    }
+
+    function renderPCLichThi() {
+        const sel = document.getElementById('pc-lich-thi');
+        if (!sel) return;
+        sel.innerHTML = '<option value="">-- Chọn lịch thi / ca thi --</option>' + 
+            lichThiData.map(lt => `<option value="${lt.id}">${lt.subjectName} (${lt.id})</option>`).join('');
+    }
+
+    function updatePCInfo() {
+        const selId = document.getElementById('pc-lich-thi').value;
+        const lt = lichThiData.find(l => l.id === selId);
+        
+        document.getElementById('pc-so-luong').innerText = lt ? lt.soLuong : '0';
+        document.getElementById('pc-ngay-thi').innerText = lt ? lt.date : '-';
+        document.getElementById('pc-ca-thi').innerText = lt ? lt.time : '-';
+
+        const pSel = document.getElementById('pc-phong-thi');
+        if (!pSel) return;
+        pSel.innerHTML = phongThiData.filter(p => p.trangThai === 'Khả dụng').map(p => 
+            `<option value="${p.id}" data-cap="${p.sucChua}">${p.ten} (Chứa: ${p.sucChua} SV) - ${p.viTri}</option>`
+        ).join('');
+        document.getElementById('pc-tong-suc-chua').innerText = '0';
+    }
+
+    function updatePCCapacity() {
+        const pSel = document.getElementById('pc-phong-thi');
+        let total = 0;
+        Array.from(pSel.selectedOptions).forEach(opt => total += parseInt(opt.getAttribute('data-cap') || 0));
+        const lbl = document.getElementById('pc-tong-suc-chua');
+        lbl.innerText = total;
+        const required = parseInt(document.getElementById('pc-so-luong').innerText) || 0;
+        
+        if (total >= required && required > 0) lbl.classList.replace('text-blue-700', 'text-green-600');
+        else lbl.classList.replace('text-green-600', 'text-blue-700');
+    }
+
+    function handlePhanCongPhong() {
+        const ltId = document.getElementById('pc-lich-thi').value;
+        const pSel = document.getElementById('pc-phong-thi');
+        const selectedRooms = Array.from(pSel.selectedOptions).map(opt => opt.value);
+        
+        if (!ltId) return showGlobalToast("Lỗi", "Vui lòng chọn lịch thi cần phân công.", "error");
+        if (selectedRooms.length === 0) return showGlobalToast("Lỗi", "Vui lòng chọn ít nhất một phòng thi.", "error");
+
+        const required = parseInt(document.getElementById('pc-so-luong').innerText);
+        const totalCap = parseInt(document.getElementById('pc-tong-suc-chua').innerText);
+
+        if (totalCap < required) {
+            showGlobalToast("Sức chứa không đủ", "Tổng sức chứa các phòng đã chọn không đáp ứng đủ số lượng sinh viên dự thi.", "error");
+            return;
+        }
+
+        const lt = lichThiData.find(l => l.id === ltId);
+        
+        // Cảnh báo nếu đã được phân công trước đó (override)
+        let existIndex = phanCongPhongData.findIndex(pc => pc.ltId === ltId);
+        let phanCongObj = {
+            id: 'PC' + Date.now().toString().slice(-4),
+            ltId: ltId,
+            subjectName: lt.subjectName,
+            date: lt.date,
+            caThi: lt.time,
+            soLuong: lt.soLuong,
+            roomIds: selectedRooms,
+            roomNames: selectedRooms.map(rid => phongThiData.find(p => p.id === rid)?.ten).join(', ')
+        };
+
+        if (existIndex > -1) {
+            phanCongPhongData[existIndex] = phanCongObj;
+        } else {
+            phanCongPhongData.push(phanCongObj);
+        }
+
+        renderPhanCongTable();
+        showGlobalToast("Thành công", `Đã phân công ${selectedRooms.length} phòng cho lịch thi ${lt.subjectName}.`, "success");
+    
+        if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
+    }
+
+    function renderPhanCongTable() {
+        const tbody = document.getElementById('phan-cong-tbody');
+        if (!tbody) return;
+        
+        tbody.innerHTML = phanCongPhongData.map(pc => `
+            <tr class="bg-white border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                <td class="px-4 py-3 font-bold">${pc.subjectName}</td>
+                <td class="px-4 py-3">${pc.date}</td>
+                <td class="px-4 py-3">${pc.caThi}</td>
+                <td class="px-4 py-3 text-center">${pc.soLuong}</td>
+                <td class="px-4 py-3 text-blue-700 font-bold">${pc.roomNames}</td>
+                <td class="px-4 py-3 text-center">
+                    <button class="text-blue-600 hover:text-blue-800" onclick="alert('Chức năng điều chỉnh chi tiết sẽ sớm ra mắt')"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                </td>
+            </tr>
+        `).join('') || `<tr><td colspan="6" class="text-center py-4 text-gray-500 text-xs italic">Chưa có phân bổ phòng nào.</td></tr>`;
+    }
+    
+    // ==========================================================
+    // UC: IN SAO ĐỀ THI
+    // ==========================================================
+    function switchTabInSao(tab) {
+        document.getElementById('in-sao-lap-dot-tab').classList.add('hidden-view');
+        document.getElementById('in-sao-nhat-ky-tab').classList.add('hidden-view');
+        document.getElementById('in-sao-xac-nhan-tab').classList.add('hidden-view');
+        
+        const btnLd = document.getElementById('btn-is-tab-ld');
+        const btnNk = document.getElementById('btn-is-tab-nk');
+        const btnXn = document.getElementById('btn-is-tab-xn');
+
+        if(btnLd && btnNk && btnXn) {
+            btnLd.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 text-gray-600 hover:bg-gray-100 font-sans shadow-none";
+            btnNk.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 text-gray-600 hover:bg-gray-100 font-sans shadow-none";
+            btnXn.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 text-gray-600 hover:bg-gray-100 font-sans shadow-none";
+        }
+
+        if (tab === 'lap-dot') {
+            document.getElementById('in-sao-lap-dot-tab').classList.remove('hidden-view');
+            if(btnLd) btnLd.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 bg-blue-100 text-blue-800 shadow-sm font-sans";
+            
+            // Populate Lịch thi
+            const sel = document.getElementById('is-lich-thi');
+            sel.innerHTML = '<option value="">-- Chọn lịch thi / ca thi --</option>' + 
+                lichThiData.map(lt => `<option value="${lt.id}">${lt.subjectName} (${lt.id})</option>`).join('');
+        } else if (tab === 'nhat-ky') {
+            document.getElementById('in-sao-nhat-ky-tab').classList.remove('hidden-view');
+            if(btnNk) btnNk.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 bg-blue-100 text-blue-800 shadow-sm font-sans";
+            renderInSaoNKList();
+        } else if (tab === 'xac-nhan') {
+            document.getElementById('in-sao-xac-nhan-tab').classList.remove('hidden-view');
+            if(btnXn) btnXn.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 bg-blue-100 text-blue-800 shadow-sm font-sans";
+            renderInSaoBBList();
+        }
+    }
+
+    function handleCreateInSao() {
+        const ltId = document.getElementById('is-lich-thi').value;
+        const soLuong = parseInt(document.getElementById('is-so-luong').value);
+        const ngay = document.getElementById('is-ngay').value;
+        const noiIn = document.getElementById('is-noi-in').value.trim();
+        const giamSat = document.getElementById('is-giam-sat').value.trim();
+        const ghiChu = document.getElementById('is-ghi-chu').value.trim();
+
+        if (!ltId || !soLuong || soLuong <= 0 || !ngay || !noiIn || !giamSat) {
+            showGlobalToast("Lỗi nhập liệu", "Vui lòng nhập đầy đủ các trường bắt buộc.", "error");
+            return;
+        }
+
+        const lt = lichThiData.find(l => l.id === ltId);
+        const ma = "IS" + Date.now().toString().slice(-4);
+        
+        inSaoData.push({
+            id: ma,
+            ltId: ltId,
+            subjectName: lt.subjectName,
+            soLuong: soLuong,
+            ngay: ngay,
+            noiIn: noiIn,
+            giamSat: giamSat,
+            ghiChu: ghiChu,
+            trangThai: "Chờ cập nhật" // Chờ cập nhật -> Chờ xác nhận -> Đã xác nhận
+        });
+
+        document.getElementById('is-so-luong').value = '';
+        document.getElementById('is-ngay').value = '';
+        document.getElementById('is-noi-in').value = '';
+        document.getElementById('is-giam-sat').value = '';
+        document.getElementById('is-ghi-chu').value = '';
+        
+        switchTabInSao('nhat-ky');
+        showGlobalToast("Thành công", `Đã lập đợt in sao ${ma} thành công. Vui lòng cập nhật nhật ký khi thực hiện.`, "success");
+    
+        if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
+    }
+
+    function renderInSaoNKList() {
+        const tbody = document.getElementById('in-sao-nk-tbody');
+        if (!tbody) return;
+        
+        const validList = inSaoData.filter(is => is.trangThai === "Chờ cập nhật" || is.trangThai === "Chờ xác nhận" || is.trangThai === "Hoàn tất");
+        
+        tbody.innerHTML = validList.map(is => {
+            let statusClass = "bg-gray-100 text-gray-700";
+            if (is.trangThai === "Chờ cập nhật") statusClass = "bg-yellow-100 text-yellow-700";
+            else if (is.trangThai === "Chờ xác nhận") statusClass = "bg-blue-100 text-blue-700";
+            else if (is.trangThai === "Hoàn tất") statusClass = "bg-green-100 text-green-700";
+
+            let actionBtn = "";
+            if (is.trangThai === "Chờ cập nhật") {
+                actionBtn = `<button class="text-blue-600 hover:text-blue-800 font-bold" onclick="openModalNhatKy('${is.id}')">Cập nhật NK</button>`;
+            } else {
+                actionBtn = `<span class="text-green-600 font-bold"><i data-lucide="check" class="w-4 h-4 inline"></i> Đã cập nhật</span>`;
+            }
+
+            return `
+                <tr class="bg-white border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    <td class="px-4 py-3 font-bold">${is.id}</td>
+                    <td class="px-4 py-3">${is.subjectName}</td>
+                    <td class="px-4 py-3 text-center">${is.soLuong}</td>
+                    <td class="px-4 py-3">${is.ngay}</td>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-1 rounded-full text-[10px] font-bold ${statusClass}">${is.trangThai}</span>
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        ${actionBtn}
+                    </td>
+                </tr>
+            `;
+        }).join('') || `<tr><td colspan="6" class="text-center py-4 text-gray-500 text-xs italic">Không có đợt in sao nào.</td></tr>`;
+        initIcons();
+    }
+
+    function renderInSaoBBList() {
+        const tbody = document.getElementById('in-sao-bb-tbody');
+        if (!tbody) return;
+        
+        const validList = inSaoData.filter(is => is.trangThai === "Chờ xác nhận" || is.trangThai === "Hoàn tất");
+        
+        tbody.innerHTML = validList.map(is => {
+            let statusClass = "bg-gray-100 text-gray-700";
+            if (is.trangThai === "Chờ xác nhận") statusClass = "bg-yellow-100 text-yellow-700";
+            else if (is.trangThai === "Hoàn tất") statusClass = "bg-green-100 text-green-700";
+
+            let actionBtn = "";
+            if (is.trangThai === "Chờ xác nhận") {
+                actionBtn = `<button class="text-blue-600 hover:text-blue-800 font-bold" onclick="handleXacNhanInSao('${is.id}')">Ký xác nhận</button>`;
+            } else {
+                actionBtn = `<span class="text-green-600 font-bold"><i data-lucide="check" class="w-4 h-4 inline"></i> Đã xác nhận</span>`;
+            }
+
+            return `
+                <tr class="bg-white border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    <td class="px-4 py-3 font-bold">${is.id}</td>
+                    <td class="px-4 py-3">${is.subjectName}</td>
+                    <td class="px-4 py-3 text-center">${is.nkSoLuong || 0}</td>
+                    <td class="px-4 py-3">${is.giamSat}</td>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-1 rounded-full text-[10px] font-bold ${statusClass}">${is.trangThai}</span>
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        ${actionBtn}
+                    </td>
+                </tr>
+            `;
+        }).join('') || `<tr><td colspan="6" class="text-center py-4 text-gray-500 text-xs italic">Không có biên bản nào chờ xác nhận.</td></tr>`;
+        initIcons();
+    }
+
+    function openModalNhatKy(id) {
+        document.getElementById('nk-is-id').value = id;
+        document.getElementById('nk-thoi-gian').value = '';
+        document.getElementById('nk-so-luong').value = '';
+        document.getElementById('nk-niem-phong').value = '';
+        document.getElementById('nk-nguoi-in').value = '';
+        document.getElementById('nk-ghi-chu').value = '';
+        document.getElementById('modal-nhat-ky-in-sao').classList.remove('hidden-view');
+    }
+
+    function closeModalNhatKy() {
+        document.getElementById('modal-nhat-ky-in-sao').classList.add('hidden-view');
+    }
+
+    function handleSaveNhatKy() {
+        const id = document.getElementById('nk-is-id').value;
+        const is = inSaoData.find(x => x.id === id);
+        if (!is) return;
+        
+        is.nkThoiGian = document.getElementById('nk-thoi-gian').value;
+        is.nkSoLuong = document.getElementById('nk-so-luong').value;
+        is.nkNiemPhong = document.getElementById('nk-niem-phong').value;
+        is.nkNguoiIn = document.getElementById('nk-nguoi-in').value;
+        is.nkGhiChu = document.getElementById('nk-ghi-chu').value;
+        
+        if (!is.nkThoiGian || !is.nkSoLuong || !is.nkNiemPhong || !is.nkNguoiIn) {
+            showGlobalToast("Lỗi nhập liệu", "Vui lòng nhập đầy đủ các trường bắt buộc.", "error");
+            return;
+        }
+
+        is.trangThai = "Chờ xác nhận";
+        closeModalNhatKy();
+        renderInSaoNKList();
+        showGlobalToast("Thành công", "Đã lưu nhật ký in sao. Đang chờ Giám sát xác nhận biên bản.", "success");
+    
+        if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
+    }
+
+    function handleXacNhanInSao(id) {
+        if (!confirm("Bạn có chắc chắn xác nhận biên bản giám sát cho đợt in sao này bằng Chữ ký số?")) return;
+        const is = inSaoData.find(x => x.id === id);
+        if (!is) return;
+        
+        is.trangThai = "Hoàn tất";
+        renderInSaoBBList();
+        showGlobalToast("Thành công", "Đã xác nhận Biên bản in sao.", "success");
+    
+        if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
+    }
+    
+    // ==========================================================
+    // UC: RÀ SOÁT ĐỀ THI (TKT)
+    // ==========================================================
+    function renderRasoatDeList() {
+        const tbody = document.getElementById('rasoat-de-tbody');
+        if (!tbody) return;
+        
+        tbody.innerHTML = deThiData.map(dt => {
+            let statusClass = "bg-gray-100 text-gray-700";
+            if (dt.trangThai === "Chờ rà soát") statusClass = "bg-yellow-100 text-yellow-700";
+            else if (dt.trangThai === "Đạt") statusClass = "bg-green-100 text-green-700";
+            else if (dt.trangThai === "Chờ chỉnh sửa") statusClass = "bg-red-100 text-red-700";
+
+            let actionBtn = "";
+            if (dt.trangThai === "Chờ rà soát" || dt.trangThai === "Chờ chỉnh sửa") {
+                actionBtn = `<button class="text-blue-600 hover:text-blue-800 font-bold" onclick="openModalRasoat('${dt.id}', '${dt.hocPhan}')">Rà soát</button>`;
+            } else {
+                actionBtn = `<span class="text-green-600 font-bold"><i data-lucide="check" class="w-4 h-4 inline"></i></span>`;
+            }
+
+            return `
+                <tr class="bg-white border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    <td class="px-4 py-3 font-bold">${dt.id}</td>
+                    <td class="px-4 py-3">${dt.hocPhan}</td>
+                    <td class="px-4 py-3">${dt.nguoiNop}</td>
+                    <td class="px-4 py-3 text-blue-600 font-medium cursor-pointer hover:underline"><i data-lucide="file-text" class="w-4 h-4 inline mr-1"></i>${dt.fileName}</td>
+                    <td class="px-4 py-3 text-xs text-gray-600 max-w-[200px] truncate" title="${dt.ghiChu || '-'}">${dt.ghiChu || '-'}</td>
+                    <td class="px-4 py-3 text-center">
+                        <span class="px-2 py-1 rounded-full text-[10px] font-bold ${statusClass}">${dt.trangThai}</span>
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        ${actionBtn}
+                    </td>
+                </tr>
+            `;
+        }).join('') || `<tr><td colspan="7" class="text-center py-4 text-gray-500 text-xs italic">Không có đề thi nào đang chờ rà soát.</td></tr>`;
+        initIcons();
+    }
+
+    function openModalRasoat(id, tenMon) {
+        document.getElementById('rs-ma-de').value = id;
+        document.getElementById('rs-ten-mon').innerText = tenMon;
+        document.getElementById('rs-trang-thai').value = 'Đạt';
+        document.getElementById('rs-nhan-xet').value = '';
+        document.getElementById('modal-rasoat-de').classList.remove('hidden-view');
+    }
+
+    function closeModalRasoat() {
+        document.getElementById('modal-rasoat-de').classList.add('hidden-view');
+    }
+
+    function handleSaveRasoat() {
+        const id = document.getElementById('rs-ma-de').value;
+        const trangThai = document.getElementById('rs-trang-thai').value;
+        const nhanXet = document.getElementById('rs-nhan-xet').value.trim();
+        
+        const dt = deThiData.find(x => x.id === id);
+        if (!dt) return;
+
+        dt.trangThai = trangThai;
+        dt.nhanXet = nhanXet;
+
+        closeModalRasoat();
+        renderRasoatDeList();
+        
+        if (trangThai === 'Đạt') {
+            showGlobalToast("Đã duyệt", `Đề thi môn ${dt.hocPhan} đã đạt yêu cầu rà soát.`, "success");
+        } else {
+            showGlobalToast("Yêu cầu chỉnh sửa", `Đã gửi yêu cầu chỉnh sửa đề thi môn ${dt.hocPhan}.`, "warning");
+        }
+    
+        if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
+    }
+
+    // ==========================================================
+    // CHI TIẾT MODAL VIEWERS (Kỳ thi, Ca thi, Phòng thi)
+    // ==========================================================
+    function showKyThiDetailModal(id) {
+        const kt = kyThiData.find(x => x.id === id);
+        if (!kt) return;
+
+        document.getElementById('mkt-name').innerText = kt.name;
+        document.getElementById('mkt-id').innerText = kt.id;
+        document.getElementById('mkt-year-semester').innerText = `${kt.year} | ${kt.semester}`;
+        document.getElementById('mkt-dot').innerText = kt.dot || 'Không có';
+        document.getElementById('mkt-duration').innerText = kt.duration || 'Không rõ';
+        document.getElementById('mkt-mota').innerText = kt.mota || 'Không có mô tả';
+
+        // Render ca thi trực thuộc
+        const tbody = document.getElementById('mkt-shifts-tbody');
+        tbody.innerHTML = '';
+        const shifts = caThiData.filter(c => c.kyThiId === id);
+        if (shifts.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-gray-500 italic">Kỳ thi này chưa có ca thi nào.</td></tr>`;
+        } else {
+            shifts.forEach(c => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50 text-gray-700">
+                        <td class="px-4 py-2 font-semibold text-blue-900 border-b">${c.name}</td>
+                        <td class="px-4 py-2 font-mono border-b">${c.date}</td>
+                        <td class="px-4 py-2 font-medium border-b">${c.start} - ${c.end}</td>
+                        <td class="px-4 py-2 border-b">${c.note || 'Không'}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        document.getElementById('modal-ky-thi-detail').classList.remove('hidden-view');
+        if (typeof initIcons !== "undefined") initIcons();
+    }
+
+    function hideKyThiDetailModal() {
+        document.getElementById('modal-ky-thi-detail').classList.add('hidden-view');
+    }
+
+    function showCaThiDetailModal(id) {
+        const c = caThiData.find(x => x.id === id);
+        if (!c) return;
+
+        document.getElementById('mct-name').innerText = c.name;
+        document.getElementById('mct-id').innerText = c.id;
+        document.getElementById('mct-date').innerText = c.date;
+        document.getElementById('mct-time').innerText = `${c.start} - ${c.end}`;
+        
+        const kt = kyThiData.find(x => x.id === c.kyThiId);
+        document.getElementById('mct-parent-exam').innerText = kt ? `${kt.name} (${kt.semester})` : 'Không xác định';
+        document.getElementById('mct-note').innerText = c.note || 'Không có ghi chú';
+
+        // Render môn thi trong ca này
+        const tbody = document.getElementById('mct-classes-tbody');
+        tbody.innerHTML = '';
+        const classes = lichThiData.filter(l => l.date === c.date && l.shiftName === c.name);
+        if (classes.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-gray-500 italic">Không có môn thi/học phần nào diễn ra trong ca này.</td></tr>`;
+        } else {
+            classes.forEach(l => {
+                const svCount = (lopThiDiemData[l.id] || []).length;
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50 text-gray-700">
+                        <td class="px-4 py-2 font-semibold text-gray-800 border-b">${l.subjectName}</td>
+                        <td class="px-4 py-2 font-mono text-gray-500 border-b">${l.id || 'N/A'}</td>
+                        <td class="px-4 py-2 font-bold text-center text-blue-900 border-b">${svCount > 0 ? svCount : '--'}</td>
+                        <td class="px-4 py-2 font-mono text-center font-bold text-gray-700 border-b">${l.room}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        document.getElementById('modal-ca-thi-detail').classList.remove('hidden-view');
+        if (typeof initIcons !== "undefined") initIcons();
+    }
+
+    function hideCaThiDetailModal() {
+        document.getElementById('modal-ca-thi-detail').classList.add('hidden-view');
+    }
+
+    function showPhongThiDetailModal(ma) {
+        const pt = phongThiData.find(x => x.ma === ma || x.id === ma);
+        if (!pt) return;
+
+        document.getElementById('mpt-name').innerText = pt.ten;
+        document.getElementById('mpt-id').innerText = pt.ma;
+        document.getElementById('mpt-capacity').innerText = pt.sucChua;
+        document.getElementById('mpt-location').innerText = pt.viTri || 'Chưa xếp tòa';
+        document.getElementById('mpt-type').innerText = pt.loai || 'Phòng thường';
+
+        const statusEl = document.getElementById('mpt-status');
+        statusEl.innerText = pt.trangThai;
+        if (pt.trangThai === 'Khả dụng') {
+            statusEl.className = "px-2 py-0.5 rounded text-xs font-bold bg-green-100 text-green-700";
+        } else if (pt.trangThai === 'Đang bảo trì') {
+            statusEl.className = "px-2 py-0.5 rounded text-xs font-bold bg-yellow-100 text-yellow-700";
+        } else {
+            statusEl.className = "px-2 py-0.5 rounded text-xs font-bold bg-red-100 text-red-700";
+        }
+
+        document.getElementById('modal-phong-thi-detail').classList.remove('hidden-view');
+        if (typeof initIcons !== "undefined") initIcons();
+    }
+
+    function hidePhongThiDetailModal() {
+        document.getElementById('modal-phong-thi-detail').classList.add('hidden-view');
     }
 </script>

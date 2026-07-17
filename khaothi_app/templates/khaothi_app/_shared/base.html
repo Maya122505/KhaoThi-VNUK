@@ -21,7 +21,7 @@
 <body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
     {% block content %}{% endblock %}
     
-    <!-- Profile Modal (Shared for all actors) -->
+    <!-- Modal Hồ sơ cá nhân (Dùng chung cho tất cả các vai trò) -->
     {% if request.user.is_authenticated %}
     <div id="profile-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300">
@@ -102,6 +102,12 @@
     {% endif %}
 
     <script>
+        // Ngăn chặn quay lại trang trước và tải lại trang hiện tại
+        window.history.pushState(null, "", window.location.href);
+        window.onpopstate = function() {
+            window.location.reload();
+        };
+
         function showProfileModal() {
             const modal = document.getElementById('profile-modal');
             modal.classList.remove('hidden');

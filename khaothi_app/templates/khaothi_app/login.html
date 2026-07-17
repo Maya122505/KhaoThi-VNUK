@@ -18,18 +18,12 @@
     <!-- Header Navbar -->
     <header class="bg-white px-8 py-4 flex justify-between items-center border-b-4 border-orange-500 shadow-sm relative">
         <div class="flex items-center gap-4">
-            <div class="flex flex-col border-r-2 border-gray-300 pr-4">
-                <h1 class="text-4xl font-bold text-[#4a1414] tracking-tight">VN<span class="text-blue-900">UK</span></h1>
-                <p class="text-[10px] uppercase text-gray-600 font-semibold mt-1">Institute for Research</p>
-                <p class="text-[10px] uppercase text-gray-600 font-semibold">& Executive Education</p>
-            </div>
-            <div class="pl-2">
-                <h2 class="text-2xl font-bold text-[#9e1c22]">ĐẠI HỌC ĐÀ NẴNG</h2>
-                <h2 class="text-2xl font-bold text-[#9e1c22] mt-0.5">VIỆN NGHIÊN CỨU VÀ ĐÀO TẠO VIỆT - ANH</h2>
-            </div>
+            <a href="/">
+                <img src="/static/khaothi_app/images/logo.png" alt="VNUK Logo" class="h-16 w-auto object-contain" />
+            </a>
         </div>
         <a href="/" class="text-xs text-gray-500 hover:text-[#9e1c22] flex items-center gap-1.5 transition-colors font-semibold">
-            <i data-lucide="arrow-left" class="w-4 h-4"></i> Quay lại Cổng chuyển giao
+            <i data-lucide="arrow-left" class="w-4 h-4"></i> Quay lại Cổng chuyển giao  
         </a>
     </header>
 
@@ -50,7 +44,7 @@
             <!-- Input Form -->
             <form onsubmit="handleFormSubmit(event)" class="flex flex-col gap-6 text-sm">
                 <div>
-                    <label class="block font-bold text-gray-700 mb-1.5">Tài khoản truy cập:</label>
+                    <label class="block font-bold text-gray-700 mb-1.5">Tài khoản truy cập</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400">
                             <i data-lucide="user" class="w-5 h-5"></i>
@@ -60,7 +54,7 @@
                 </div>
 
                 <div>
-                    <label class="block font-bold text-gray-700 mb-1.5">Mật khẩu:</label>
+                    <label class="block font-bold text-gray-700 mb-1.5">Mật khẩu</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400">
                             <i data-lucide="lock" class="w-5 h-5"></i>
@@ -78,11 +72,11 @@
 
     <!-- Footer -->
     <footer class="max-w-[1200px] mx-auto w-full px-6 py-6 text-center text-slate-400 text-xs border-t border-gray-200">
-        &copy; 2026 Viện Nghiên cứu và Đào tạo Việt - Anh (VNUK), Đại học Đà Nẵng. Bảo lưu mọi quyền.
+        &copy; 2026 Viện Nghiên cứu và Đào tạo Việt - Anh (VNUK), Đại học Đà Nẵng.
     </footer>
 
     <script>
-        // Mapping of role query strings to human-readable names
+        // Bản đồ ánh xạ vai trò (role query strings) sang tên thân thiện với người dùng
         const roleNames = {
             "tkt": "Cổng Tổ Khảo thí (VNUK)",
             "tkct": "Cổng Thư ký Chấm thi",
@@ -97,7 +91,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const role = urlParams.get('role') || 'tkt';
 
-        // Update fields based on role
+        // Cập nhật các trường dựa trên vai trò (role)
         document.getElementById('role-title').innerText = `Đăng nhập ${roleNames[role] || 'Cổng thành viên'}`;
         document.getElementById('username-display').value = role;
 
@@ -110,28 +104,28 @@
 
             errBox.classList.add('hidden');
 
-            // VNUK system-wide default testing password is '123456'
+            // Mật khẩu kiểm thử mặc định của hệ thống VNUK là '123456'
             if (pass !== "123456") {
                 errBox.classList.remove('hidden');
                 return;
             }
 
             if (role === "tkt") {
-                window.location.href = "/tkt/";
+                window.location.replace("/tkt/");
             } else if (role === "tkct") {
-                window.location.href = "/tkct/";
+                window.location.replace("/tkct/");
             } else if (role === "tkcoithi") {
-                window.location.href = "/tkcoithi/";
+                window.location.replace("/tkcoithi/");
             } else if (role === "gv") {
-                window.location.href = "/gv/";
+                window.location.replace("/gv/");
             } else if (role === "ldp") {
-                window.location.href = "/ldp/";
+                window.location.replace("/ldp/");
             } else if (role === "dvcm") {
-                window.location.href = "/dvcm/";
+                window.location.replace("/dvcm/");
             } else if (role === "cvht") {
-                window.location.href = "/cvht/";
+                window.location.replace("/cvht/");
             } else {
-                window.location.href = "/";
+                window.location.replace("/");
             }
         }
     </script>

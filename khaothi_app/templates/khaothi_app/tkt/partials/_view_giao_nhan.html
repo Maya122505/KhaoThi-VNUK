@@ -2,7 +2,7 @@
     <div class="flex justify-between items-end mb-6 border-b border-gray-200 pb-4">
         <div>
             <h2 class="text-2xl font-bold text-blue-900 mb-1 flex items-center gap-2"><i data-lucide="arrow-right-left" class="w-6 h-6 text-blue-600"></i> Quản lý Giao nhận bài thi</h2>
-            <p class="text-sm text-gray-600">Bàn giao túi bài thi gốc cho Thư ký [UC 16.1] và nhận bàn giao túi phách từ Thư ký [UC 16.2].</p>
+            <p class="text-sm text-gray-600">Bàn giao túi bài thi gốc cho Thư ký và nhận bàn giao túi phách từ Thư ký.</p>
         </div>
     </div>
 
@@ -23,12 +23,12 @@
         <div class="flex-1 p-6 overflow-y-auto bg-white relative">
             <!-- Tab: Tạo phiếu bàn giao -->
             <div id="tab-content-tao" class="animate-fade-in flex flex-col h-full">
-                <h3 class="font-bold text-lg text-gray-800 mb-4 border-b border-gray-100 pb-2">Khởi tạo phiếu bàn giao bài thi gốc [UC 16.1]</h3>
+                <h3 class="font-bold text-lg text-gray-800 mb-4 border-b border-gray-100 pb-2">Khởi tạo phiếu bàn giao bài thi gốc</h3>
                 <div class="flex flex-col lg:flex-row gap-8 flex-1">
-                    <!-- Left Column: Form Fields and Submit Button -->
+                    <!-- Cột bên trái: Các trường nhập liệu của biểu mẫu và nút Gửi -->
                     <div class="w-full lg:w-[420px] flex flex-col gap-4 flex-shrink-0 border-r border-gray-100 lg:pr-6">
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">1. Loại quy trình bàn giao:</label>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">1. Loại quy trình bàn giao</label>
                             <select id="select-pbg-loai" onchange="handleGiaoNhanLoaiChange()" class="w-full p-2.5 border border-gray-300 rounded text-sm bg-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
                                 <option value="1">Loại 1: Tổ Khảo thí bàn giao bài gốc cho Thư ký làm phách</option>
                                 <option value="2">Loại 2: Tổ Khảo thí bàn giao túi bài (đã rọc phách) cho Giáo vụ Khoa</option>
@@ -36,14 +36,14 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">2. Người tiếp nhận bàn giao:</label>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">2. Người tiếp nhận bàn giao</label>
                             <select id="select-pbg-user" class="w-full p-2.5 border border-gray-300 rounded text-sm bg-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
                                 <option value="TK_KhaoThi01">Thư ký Chấm thi (TK_KhaoThi01)</option>
                                 <option value="GV_Khoa01">Giáo vụ Khoa (GV_Khoa01)</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">3. Đính kèm biên bản sự cố từ phòng thi (nếu có):</label>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">3. Đính kèm biên bản sự cố từ phòng thi (nếu có)</label>
                             <div class="border-2 border-dashed border-gray-300 rounded-lg p-5 flex flex-col items-center justify-center bg-gray-50 text-gray-400 text-center hover:bg-gray-100 hover:border-blue-400 transition-colors cursor-pointer">
                                 <i data-lucide="upload-cloud" class="w-7 h-7 mb-1.5 text-blue-500"></i>
                                 <span class="text-xs font-bold text-gray-700">Tải biên bản, sự cố (.pdf, .jpg)</span>
@@ -60,7 +60,7 @@
 
                     <!-- Right Column: Checkbox Selection List -->
                     <div class="flex-1 flex flex-col gap-3">
-                        <label class="block text-xs font-bold text-gray-600 uppercase">4. Chọn các phòng thi gốc cần bàn giao:</label>
+                        <label class="block text-xs font-bold text-gray-600 uppercase">4. Chọn các phòng thi gốc cần bàn giao</label>
                         <!-- Search & Filter Controls -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                             <div class="relative">
@@ -90,7 +90,7 @@
 
             <!-- Tab: Phiếu chờ nhận -->
             <div id="tab-content-nhan" class="hidden-view animate-fade-in flex flex-col h-full">
-                <h3 class="font-bold text-lg text-gray-800 mb-4 border-b border-gray-100 pb-2">Phiếu nhận bàn giao túi phách/đầu phách từ Thư ký [UC 16.2]</h3>
+                <h3 class="font-bold text-lg text-gray-800 mb-4 border-b border-gray-100 pb-2">Phiếu nhận bàn giao túi phách/đầu phách từ Thư ký</h3>
                 <div id="gn-list-cho-nhan" class="space-y-4"></div>
 
                 <div id="gn-detail-nhan" class="hidden-view bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col absolute inset-6 z-10 animate-fade-in-up">

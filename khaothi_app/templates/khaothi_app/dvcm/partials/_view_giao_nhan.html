@@ -24,7 +24,7 @@
         <div class="flex-1 p-6 overflow-y-auto bg-white relative">
             <!-- Tab: Phiếu chờ nhận -->
             <div id="dvcm-tab-content-nhan" class="animate-fade-in flex flex-col h-full">
-                <h3 class="font-bold text-lg text-gray-800 mb-4 border-b border-gray-100 pb-2">Phiếu nhận bàn giao từ Giảng viên [UC 16.2]</h3>
+                <h3 class="font-bold text-lg text-gray-800 mb-4 border-b border-gray-100 pb-2">Phiếu nhận bàn giao từ Giảng viên</h3>
                 <div id="dvcm-gn-list-cho-nhan" class="space-y-4"></div>
 
                 <div id="dvcm-gn-detail-nhan" class="hidden-view bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col absolute inset-6 z-10 animate-fade-in-up">
@@ -67,22 +67,22 @@
             <div id="dvcm-tab-content-tao" class="hidden-view animate-fade-in h-full flex flex-col">
                 <h3 class="font-bold text-lg text-gray-800 mb-4 border-b border-gray-100 pb-2">Khởi tạo phiếu Giao/Trả bài thi</h3>
                 <div class="flex flex-col lg:flex-row gap-8 flex-1">
-                    <!-- Left Column: Form Fields and Submit Button -->
+                    <!-- Cột bên trái: Các trường nhập liệu của biểu mẫu và nút Gửi -->
                     <div class="w-full lg:w-[420px] flex flex-col gap-4 flex-shrink-0 border-r border-gray-100 lg:pr-6">
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">1. Loại quy trình:</label>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">1. Loại quy trình</label>
                             <select id="dvcm-select-pbg-loai" onchange="handleDvcmGiaoNhanLoaiChange()" class="w-full p-2.5 border border-gray-300 rounded text-sm bg-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
                                 <option value="1">Loại 2: Giáo vụ bàn giao túi phách cho Giảng viên chấm thi (Giao bài)</option>
                                 <option value="2">Loại 2 (trả): Giáo vụ trả bài đã chấm về Tổ khảo thí để lưu trữ (Trả bài)</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">2. Người tiếp nhận bàn giao:</label>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">2. Người tiếp nhận bàn giao</label>
                             <select id="dvcm-select-pbg-user" class="w-full p-2.5 border border-gray-300 rounded text-sm bg-white outline-none font-semibold text-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">3. Đính kèm biên bản (nếu có):</label>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">3. Đính kèm biên bản (nếu có)</label>
                             <div class="border-2 border-dashed border-gray-300 rounded-lg p-5 flex flex-col items-center justify-center bg-gray-50 text-gray-400 text-center hover:bg-gray-100 hover:border-blue-400 transition-colors cursor-pointer">
                                 <i data-lucide="upload-cloud" class="w-7 h-7 mb-1.5 text-blue-500"></i>
                                 <span class="text-xs font-bold text-gray-700">Tải biên bản bàn giao (.pdf, .jpg)</span>
@@ -95,7 +95,7 @@
 
                     <!-- Right Column: Checkbox Selection List -->
                     <div class="flex-1 flex flex-col gap-3">
-                        <label class="block text-xs font-bold text-gray-600 uppercase">4. Chọn các túi phách chuyển đi:</label>
+                        <label class="block text-xs font-bold text-gray-600 uppercase">4. Chọn các túi phách chuyển đi</label>
                         <!-- Search & Filter Controls -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                             <div class="relative">

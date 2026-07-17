@@ -25,6 +25,9 @@
     // Simulated grades entry object storage on client
     let tempGradesData = {}; // key: phachId -> {pt1: num, pt2: num}
 
+    // Trạng thái mới cho Nhiệm vụ 3
+    let deThiData = [];
+
     window.onload = async function() {
         initIcons();
         await loadStateFromServer();
@@ -36,13 +39,15 @@
 
     async function loadStateFromServer() {
         try {
+            const res = await fetch('/api/get_state/');
+            const data = await res.json();
+
             kyThiData = data.kyThiData || [];
             caThiData = data.caThiData || [];
             lichThiData = data.lichThiData || [];
             hocPhiData = data.hocPhiData || [];
-            lopThiDiemData = data.lopThiDiemData || [];
-            const res = await fetch('/api/get_state/');
-            const data = await res.json();
+            lopThiDiemData = data.lopThiDiemData || {};
+            deThiData = data.deThiData || [];
 
             phongThiGocData = data.phongThiGocData;
             tuiPhachData = data.tuiPhachData;
@@ -70,7 +75,8 @@
                     tuiPhachData,
                     phieuGiaoNhanData,
                     canBoCoiThiData,
-                    phucKhaoData
+                    phucKhaoData,
+                    deThiData
                 })
             });
         } catch(e) {
@@ -99,6 +105,9 @@
         } else if(viewId === 'view-nhap-tra-diem') {
             document.getElementById('nav-btn-nhap-tra-diem').className += " bg-red-800";
             renderNhapTraDiem();
+        } else if(viewId === 'view-de-thi') {
+            document.getElementById('nav-btn-de-thi').className += " bg-red-800";
+            switchTabDeThi('danh-sach');
         }
         initIcons();
     }
@@ -348,6 +357,8 @@
         populateGiaoNhanFilterSubjects(source, b => b.subjectName);
         giaoNhanSelectedIds.clear();
         filterGiaoNhanList();
+    
+        if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
     }
 
     let activeNhanPhieuId = null;
@@ -709,5 +720,101 @@
         initIcons();
 
         setTimeout(() => toast.classList.add('hidden-view'), 4000);
+    }
+    
+    // ==========================================================
+    // UC: QUẢN LÝ ĐỀ THI (DVCM)
+    // ==========================================================
+    function switchTabDeThi(tab) {
+        document.getElementById('de-thi-danh-sach-tab').classList.add('hidden-view');
+        document.getElementById('de-thi-nop-de-tab').classList.add('hidden-view');
+        
+        const btnDs = document.getElementById('btn-dt-tab-ds');
+        const btnNd = document.getElementById('btn-dt-tab-nd');
+        if(btnDs && btnNd) {
+            btnDs.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 text-gray-600 hover:bg-gray-100 font-sans shadow-none";
+            btnNd.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 text-gray-600 hover:bg-gray-100 font-sans shadow-none";
+        }
+
+        if (tab === 'danh-sach') {
+            document.getElementById('de-thi-danh-sach-tab').classList.remove('hidden-view');
+            if(btnDs) btnDs.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 bg-blue-100 text-blue-800 shadow-sm font-sans";
+            renderDeThiList();
+        } else {
+            document.getElementById('de-thi-nop-de-tab').classList.remove('hidden-view');
+            if(btnNd) btnNd.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 bg-blue-100 text-blue-800 shadow-sm font-sans";
+        }
+    }
+
+    function handleNopDeThi() {
+        const hocPhan = document.getElementById('dt-hoc-phan').value.trim();
+        const fileInput = document.getElementById('dt-file');
+        const ghiChu = document.getElementById('dt-ghi-chu').value.trim();
+
+        if (!hocPhan || !fileInput.files.length) {
+            showGlobalToast("Lỗi nộp đề", "Vui lòng nhập tên học phần và tải tệp đề thi lên.", "error");
+            return;
+        }
+
+        const fileName = fileInput.files[0].name;
+        const extension = fileName.split('.').pop().toLowerCase();
+        if (!['pdf', 'docx', 'doc', 'zip'].includes(extension)) {
+            showGlobalToast("Tệp không hợp lệ", "Chỉ chấp nhận tệp định dạng PDF, DOCX, DOC, ZIP.", "error");
+            return;
+        }
+
+        const ma = "DT" + Date.now().toString().slice(-4);
+        const now = new Date();
+        const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} ${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()}`;
+        
+        deThiData.push({
+            id: ma,
+            hocPhan: hocPhan,
+            nguoiNop: "GV. Nguyễn Văn A", // Giả lập người nộp
+            thoiGian: timeStr,
+            fileName: fileName,
+            ghiChu: ghiChu,
+            trangThai: "Chờ rà soát",
+            nhanXet: ""
+        });
+
+        document.getElementById('dt-hoc-phan').value = '';
+        document.getElementById('dt-file').value = '';
+        document.getElementById('dt-file-name').innerText = 'Click để chọn tệp hoặc kéo thả tệp vào đây';
+        document.getElementById('dt-ghi-chu').value = '';
+
+        switchTabDeThi('danh-sach');
+        showGlobalToast("Thành công", `Đề thi môn ${hocPhan} đã được nộp lên hệ thống.`, "success");
+    
+        if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
+    }
+
+    function renderDeThiList() {
+        const tbody = document.getElementById('de-thi-tbody');
+        if (!tbody) return;
+        
+        tbody.innerHTML = deThiData.map(dt => {
+            let statusClass = "bg-gray-100 text-gray-700";
+            if (dt.trangThai === "Chờ rà soát") statusClass = "bg-yellow-100 text-yellow-700";
+            else if (dt.trangThai === "Đạt") statusClass = "bg-green-100 text-green-700";
+            else if (dt.trangThai === "Chờ chỉnh sửa") statusClass = "bg-red-100 text-red-700";
+
+            return `
+                <tr class="bg-white border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    <td class="px-4 py-3 font-bold">${dt.id}</td>
+                    <td class="px-4 py-3">${dt.hocPhan}</td>
+                    <td class="px-4 py-3">${dt.nguoiNop}</td>
+                    <td class="px-4 py-3 text-xs">${dt.thoiGian}</td>
+                    <td class="px-4 py-3 text-blue-600 font-medium cursor-pointer hover:underline"><i data-lucide="file-text" class="w-4 h-4 inline mr-1"></i>${dt.fileName}</td>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-1 rounded-full text-[10px] font-bold ${statusClass}">${dt.trangThai}</span>
+                    </td>
+                    <td class="px-4 py-3 text-xs text-gray-600 max-w-[200px] truncate" title="${dt.nhanXet || '-'}">
+                        ${dt.nhanXet || '-'}
+                    </td>
+                </tr>
+            `;
+        }).join('') || `<tr><td colspan="7" class="text-center py-4 text-gray-500 text-xs italic">Bạn chưa nộp đề thi nào.</td></tr>`;
+        initIcons();
     }
 </script>

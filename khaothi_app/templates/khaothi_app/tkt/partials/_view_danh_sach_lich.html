@@ -2,7 +2,7 @@
     <div class="mb-6 border-b border-gray-200 pb-4 flex justify-between items-end">
         <div>
             <h2 class="text-2xl font-bold text-blue-900 mb-1 flex items-center gap-2"><i data-lucide="calendar-plus" class="text-blue-600"></i> Lập Danh sách & Lịch thi</h2>
-            <p class="text-sm text-gray-600">Lọc nợ học phí để chốt danh sách sinh viên đủ điều kiện thi [UC 15.1] và lập lịch thi phòng/giám thị [UC 14.1].</p>
+            <p class="text-sm text-gray-600">Lọc nợ học phí để chốt danh sách sinh viên đủ điều kiện thi và lập lịch thi phòng/giám thị.</p>
         </div>
         <div class="flex gap-2">
             <button id="btn-dsl-tab-ds" onclick="switchDslTab('ds')" class="bg-blue-900 text-white px-4 py-2 rounded text-sm font-semibold shadow">1. Lập Danh sách thi</button>
@@ -13,9 +13,9 @@
     <!-- Tab Content 1: Danh sách thi -->
     <div id="dsl-tab-ds" class="grid grid-cols-3 gap-6 flex-1">
         <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5 space-y-4">
-            <h3 class="font-bold text-[#9e1c22] border-b pb-2 text-sm uppercase">Cấu hình lập danh sách [UC 15.1]</h3>
+            <h3 class="font-bold text-[#9e1c22] border-b pb-2 text-sm uppercase">Cấu hình lập danh sách</h3>
             <div>
-                <label class="block text-xs font-bold text-gray-600 mb-1">CHỌN HỌC PHẦN CẦN LẬP:</label>
+                <label class="block text-xs font-bold text-gray-600 mb-1">CHỌN HỌC PHẦN CẦN LẬP</label>
                 <select id="dsl-subject-select" class="w-full p-2 border border-gray-300 rounded text-sm bg-white outline-none">
                     <option value="ENG101">Tiếng Anh GTQT 3</option>
                     <option value="BUS201">Quản trị dự án</option>
@@ -59,17 +59,17 @@
     <!-- Tab Content 2: Lập lịch thi -->
     <div id="dsl-tab-lich" class="hidden-view grid grid-cols-3 gap-6 flex-1">
         <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5 space-y-4">
-            <h3 class="font-bold text-blue-900 border-b pb-2 text-sm uppercase">Lập lịch ca thi & phòng [UC 14.1]</h3>
+            <h3 class="font-bold text-blue-900 border-b pb-2 text-sm uppercase">Lập lịch ca thi & phòng</h3>
             <div>
-                <label class="block text-xs font-bold text-gray-600 mb-1">CHỌN KỲ THI:</label>
+                <label class="block text-xs font-bold text-gray-600 mb-1">CHỌN KỲ THI</label>
                 <select id="dsl-lich-kythi" class="w-full p-2 border border-gray-300 rounded text-sm bg-white outline-none" onchange="populateCaThiDropdown()"></select>
             </div>
             <div>
-                <label class="block text-xs font-bold text-gray-600 mb-1">CHỌN CA THI:</label>
+                <label class="block text-xs font-bold text-gray-600 mb-1">CHỌN CA THI</label>
                 <select id="dsl-lich-cathi" class="w-full p-2 border border-gray-300 rounded text-sm bg-white outline-none"></select>
             </div>
             <div>
-                <label class="block text-xs font-bold text-gray-600 mb-1">CHỌN HỌC PHẦN:</label>
+                <label class="block text-xs font-bold text-gray-600 mb-1">CHỌN HỌC PHẦN</label>
                 <select id="dsl-lich-subject" class="w-full p-2 border border-gray-300 rounded text-sm bg-white outline-none">
                     <option value="ENG101">Tiếng Anh GTQT 3</option>
                     <option value="BUS201">Quản trị dự án</option>
@@ -78,7 +78,7 @@
             </div>
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">PHÒNG THI:</label>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">PHÒNG THI</label>
                     <select id="dsl-lich-phong" class="w-full p-2 border border-gray-300 rounded text-sm bg-white outline-none">
                         <option value="P.101">Phòng 101</option>
                         <option value="P.102">Phòng 102</option>
@@ -87,7 +87,7 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-gray-600 mb-1">GIÁM THỊ:</label>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">GIÁM THỊ</label>
                     <select id="dsl-lich-giám-thị" class="w-full p-2 border border-gray-300 rounded text-sm bg-white outline-none">
                         <option value="GV001">Nguyễn Văn A (GV001)</option>
                         <option value="GV002">Trần Thị B (GV002)</option>
@@ -102,7 +102,7 @@
 
         <div class="col-span-2 bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col">
             <div class="p-4 bg-gray-50 border-b border-gray-200 font-bold text-gray-700 text-sm">
-                Danh sách lịch thi đã phân công trên hệ thống [UC 14.2]
+                Danh sách lịch thi đã phân công trên hệ thống
             </div>
             <div class="flex-1 overflow-y-auto max-h-[350px]">
                 <table class="w-full text-left text-xs border-collapse">

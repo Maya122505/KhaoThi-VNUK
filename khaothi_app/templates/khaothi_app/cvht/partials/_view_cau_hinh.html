@@ -8,9 +8,9 @@
             <p class="text-xs text-gray-500 mt-1">Thiết lập các mốc thời gian, giới hạn và quy định vận hành khảo thí VNUK.</p>
         </div>
 
-        <!-- Config Selector Dropdown from Use Case diagram -->
+        <!-- Menu thả xuống chọn cấu hình từ sơ đồ Use Case -->
         <div class="flex items-center gap-2 text-xs">
-            <label class="font-bold text-gray-700">Loại Cấu hình:</label>
+            <label class="font-bold text-gray-700">Loại Cấu hình</label>
             <select id="config-type-selector" onchange="switchConfigType(this.value)" class="bg-gray-100 border border-gray-300 text-gray-800 font-bold text-xs p-2 rounded outline-none shadow-sm cursor-pointer focus:border-[#9e1c22] bg-white">
                 <option value="nhap_diem_hp">1. Cấu hình thời gian nhập & công bố điểm thi kết thúc học phần (UC 10.7)</option>
                 <option value="phuc_khao">2. Cấu hình thời gian phúc khảo (UC 10.4)</option>
@@ -29,7 +29,7 @@
             </h3>
 
             <div>
-                <label class="block font-bold text-gray-700 mb-1">Chọn Học phần cấu hình:</label>
+                <label class="block font-bold text-gray-700 mb-1">Chọn Học phần cấu hình</label>
                 <select id="config-nd-subject" onchange="loadSubjectConfigNhapDiem(this.value)" class="w-full p-2.5 border rounded outline-none bg-white font-semibold">
                     <option value="ECO101">Kinh tế vi mô (ECO101)</option>
                     <option value="PHI101">Triết học Mác-Lênin (PHI101)</option>
@@ -40,21 +40,21 @@
 
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block font-bold text-gray-700 mb-1">Thời gian bắt đầu nhập điểm:</label>
+                    <label class="block font-bold text-gray-700 mb-1">Thời gian bắt đầu nhập điểm</label>
                     <input type="datetime-local" id="config-nd-start" onchange="validateNhapDiemDates()" class="w-full p-2.5 border rounded outline-none" />
                 </div>
                 <div>
-                    <label class="block font-bold text-gray-700 mb-1">Thời hạn khóa cổng nhập điểm:</label>
+                    <label class="block font-bold text-gray-700 mb-1">Thời hạn khóa cổng nhập điểm</label>
                     <input type="datetime-local" id="config-nd-end" onchange="validateNhapDiemDates()" class="w-full p-2.5 border rounded outline-none" />
                 </div>
             </div>
 
             <div>
-                <label class="block font-bold text-gray-700 mb-1">Thời gian tự động công bố điểm:</label>
+                <label class="block font-bold text-gray-700 mb-1">Thời gian tự động công bố điểm</label>
                 <input type="datetime-local" id="config-nd-publish" onchange="validateNhapDiemDates()" class="w-full p-2.5 border rounded outline-none" />
             </div>
 
-            <!-- Red Alert Box for Error -->
+            <!-- Hộp cảnh báo màu đỏ cho các lỗi -->
             <div id="config-nd-error" class="hidden-view border border-red-200 bg-red-50 text-red-700 p-3 rounded font-bold flex items-center gap-1.5">
                 <i data-lucide="alert-circle" class="w-4 h-4"></i>
                 <span>Thời hạn khóa cổng phải lớn hơn thời gian bắt đầu, thời gian công bố phải lớn hơn thời hạn khóa cổng!</span>
@@ -74,7 +74,7 @@
             </h3>
 
             <div>
-                <label class="block font-bold text-gray-700 mb-1">Chọn Học phần cấu hình:</label>
+                <label class="block font-bold text-gray-700 mb-1">Chọn Học phần cấu hình</label>
                 <select id="config-pk-subject" onchange="loadSubjectConfigPhucKhao(this.value)" class="w-full p-2.5 border rounded outline-none bg-white font-semibold">
                     <option value="ECO101">Kinh tế vi mô (ECO101)</option>
                     <option value="PHI101">Triết học Mác-Lênin (PHI101)</option>
@@ -85,27 +85,27 @@
 
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block font-bold text-gray-700 mb-1">Thời gian mở cổng nhận đơn:</label>
+                    <label class="block font-bold text-gray-700 mb-1">Thời gian mở cổng nhận đơn</label>
                     <input type="datetime-local" id="config-pk-start" onchange="validatePhucKhaoDates()" class="w-full p-2.5 border rounded outline-none" />
                 </div>
                 <div>
-                    <label class="block font-bold text-gray-700 mb-1">Thời hạn khóa cổng nhận đơn:</label>
+                    <label class="block font-bold text-gray-700 mb-1">Thời hạn khóa cổng nhận đơn</label>
                     <input type="datetime-local" id="config-pk-end" onchange="validatePhucKhaoDates()" class="w-full p-2.5 border rounded outline-none" />
                 </div>
             </div>
 
             <div>
-                <label class="block font-bold text-gray-700 mb-1">Thời hạn hoàn thành chấm phúc khảo:</label>
+                <label class="block font-bold text-gray-700 mb-1">Thời hạn hoàn thành chấm phúc khảo</label>
                 <input type="datetime-local" id="config-pk-deadline" onchange="validatePhucKhaoDates()" class="w-full p-2.5 border rounded outline-none" />
             </div>
 
-            <!-- Red Alert Box for Error -->
+            <!-- Hộp cảnh báo màu đỏ cho các lỗi -->
             <div id="config-pk-error" class="hidden-view border border-red-200 bg-red-50 text-red-700 p-3 rounded font-bold flex items-center gap-1.5">
                 <i data-lucide="alert-circle" class="w-4 h-4"></i>
                 <span>Thời gian kết thúc phải lớn hơn thời gian bắt đầu.</span>
             </div>
 
-            <!-- Yellow Alert Box for Warning -->
+            <!-- Hộp cảnh báo màu vàng cho các cảnh báo -->
             <div id="config-pk-warning" class="hidden-view border border-yellow-200 bg-yellow-50 text-yellow-800 p-3 rounded font-bold flex items-center gap-1.5 animate-pulse">
                 <i data-lucide="alert-triangle" class="w-4 h-4 text-yellow-600"></i>
                 <span>Cảnh báo: Thời hạn chấm xử lý đang vượt quá 7 ngày làm việc!</span>

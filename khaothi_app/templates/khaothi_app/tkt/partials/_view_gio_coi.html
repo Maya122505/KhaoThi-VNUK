@@ -21,7 +21,7 @@
         <div class="flex-1 p-6 overflow-y-auto bg-white relative">
             <!-- Tab: Phân công & Xác nhận -->
             <div id="tab-content-cbct-phan-cong" class="animate-fade-in flex flex-col h-full">
-                <h3 class="font-bold text-lg text-gray-800 mb-4 border-b border-gray-100 pb-2">Lịch phân công coi thi & Trạng thái xác nhận [UC 6.4]</h3>
+                <h3 class="font-bold text-lg text-gray-800 mb-4 border-b border-gray-100 pb-2">Lịch phân công coi thi & Trạng thái xác nhận</h3>
                 <div class="overflow-x-auto flex-1 mb-4">
                     <table class="w-full text-left text-xs">
                         <thead class="bg-gray-100 text-gray-700 font-bold border-b">
@@ -37,7 +37,7 @@
                             </tr>
                         </thead>
                         <tbody id="cbct-phan-cong-tbody" class="divide-y divide-gray-100 font-sans">
-                            <!-- Filled by JS -->
+                            <!-- Được điền tự động bằng JavaScript -->
                         </tbody>
                     </table>
                 </div>
@@ -46,7 +46,7 @@
             <!-- Tab: Tổng hợp Giờ coi thi -->
             <div id="tab-content-cbct-tong-hop" class="hidden-view animate-fade-in flex flex-col h-full">
                 <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
-                    <h3 class="font-bold text-lg text-gray-800">Bảng thanh toán & Tổng hợp giờ coi thi [UC 6.5]</h3>
+                    <h3 class="font-bold text-lg text-gray-800">Bảng thanh toán & Tổng hợp giờ coi thi</h3>
                     <div class="flex gap-2">
                         <button id="btn-export-excel" onclick="exportGioCoiExcel()" class="bg-green-600 text-white font-bold px-3 py-1.5 rounded text-xs shadow hover:bg-green-700 transition flex items-center gap-1.5 font-sans">
                             <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Excel
@@ -69,7 +69,7 @@
                 <!-- Filters Panel -->
                 <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-4 grid grid-cols-4 gap-3 text-[11px] font-sans">
                     <div>
-                        <label class="block font-bold text-gray-600 uppercase mb-0.5">Chọn Học kỳ:</label>
+                        <label class="block font-bold text-gray-600 uppercase mb-0.5">Chọn Học kỳ</label>
                         <select id="gc-filter-hocky" onchange="filterGioCoiData()" class="w-full p-1.5 border border-gray-300 rounded bg-white outline-none">
                             <option value="Học kỳ III">Học kỳ III (2025-2026)</option>
                             <option value="Học kỳ II">Học kỳ II (2025-2026)</option>
@@ -77,14 +77,14 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block font-bold text-gray-600 uppercase mb-0.5">Chọn Kỳ thi:</label>
+                        <label class="block font-bold text-gray-600 uppercase mb-0.5">Chọn Kỳ thi</label>
                         <select id="gc-filter-kythi" onchange="filterGioCoiData()" class="w-full p-1.5 border border-gray-300 rounded bg-white outline-none">
                             <option value="Kỳ thi Cuối kỳ học kỳ III">Kỳ thi Cuối kỳ học kỳ III</option>
                             <option value="Kỳ thi Giữa kỳ học kỳ III">Kỳ thi Giữa kỳ học kỳ III</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block font-bold text-gray-600 uppercase mb-0.5">Khoa / Đơn vị:</label>
+                        <label class="block font-bold text-gray-600 uppercase mb-0.5">Khoa / Đơn vị</label>
                         <select id="gc-filter-donvi" onchange="filterGioCoiData()" class="w-full p-1.5 border border-gray-300 rounded bg-white outline-none">
                             <option value="">Tất cả khoa</option>
                             <option value="Công nghệ thông tin">Khoa CNTT</option>
@@ -93,7 +93,7 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block font-bold text-gray-600 uppercase mb-0.5">Tìm kiếm Giảng viên:</label>
+                        <label class="block font-bold text-gray-600 uppercase mb-0.5">Tìm kiếm Giảng viên</label>
                         <input type="text" id="gc-search-gv" oninput="filterGioCoiData()" placeholder="Nhập tên hoặc mã..." class="w-full p-1.5 border border-gray-300 rounded outline-none" />
                     </div>
                 </div>
@@ -134,7 +134,7 @@
                             </tr>
                         </thead>
                         <tbody id="gc-table-tbody" class="divide-y divide-gray-100 font-sans">
-                            <!-- Filled by JS -->
+                            <!-- Được điền tự động bằng JavaScript -->
                         </tbody>
                     </table>
                 </div>

@@ -197,7 +197,7 @@ class LichThi(models.Model):
     ky_thi = models.ForeignKey(KyThi, on_delete=models.CASCADE, related_name='lich_thi')
     lop_hp = models.ForeignKey(LopHocPhan, on_delete=models.CASCADE, related_name='lich_thi', null=True, blank=True)
     ca_thi = models.ForeignKey(CaThi, on_delete=models.CASCADE, related_name='lich_thi')
-    phong_thi = models.ForeignKey(PhongThi, on_delete=models.CASCADE, related_name='lich_thi')
+    phong_thi = models.ForeignKey(PhongThi, on_delete=models.CASCADE, related_name='lich_thi', null=True, blank=True)
     ngay_thi = models.DateField()
     so_luong_sv = models.PositiveIntegerField(default=0)
 
@@ -292,23 +292,65 @@ class DotInSao(models.Model):
     Đợt in sao đề thi phục vụ cho các ca thi.
     """
     ma_dot_in_sao = models.CharField(max_length=50, primary_key=True)
-    de_thi = models.ForeignKey(DeThi, on_delete=models.CASCADE, related_name='dot_in_sao')
-    thoi_gian = models.DateTimeField()
+    ky_thi = models.ForeignKey(KyThi, on_delete=models.PROTECT, related_name='dot_in_sao')
+    ca_thi = models.ForeignKey(CaThi, on_delete=models.PROTECT, related_name='dot_in_sao', null=True, blank=True)
+    phong_thi = models.ForeignKey(PhongThi, on_delete=models.PROTECT, related_name='dot_in_sao', null=True, blank=True)
+    hoc_phan = models.ForeignKey(HocPhan, on_delete=models.PROTECT, related_name='dot_in_sao', null=True, blank=True)
+    nguoi_tao = models.ForeignKey(User, on_delete=models.PROTECT, related_name='dot_in_sao_da_tao')
+    ngay_tao = models.DateTimeField(auto_now_add=True)
+    thoi_gian_in_sao = models.DateTimeField(null=True, blank=True, verbose_name='Thời gian in sao dự kiến')
+    noi_in_sao = models.CharField(max_length=255, null=True, blank=True)
     so_luong_ban_in = models.PositiveIntegerField(default=0)
-    trang_thai = models.CharField(max_length=50, default='ChuaIn')
+    can_bo_giam_sat = models.ForeignKey(User, on_delete=models.PROTECT, related_name='dot_in_sao_duoc_giam_sat', null=True, blank=True)
+    ghi_chu = models.TextField(null=True, blank=True)
+    trang_thai = models.CharField(
+        max_length=50, 
+        default='ChoCapNhat',
+        choices=[
+            ('ChoCapNhat', 'Chờ cập nhật nhật ký'), 
+            ('DaCapNhat', 'Đã cập nhật nhật ký (Chờ xác nhận)'), 
+            ('HoanTat', 'Hoàn tất'), 
+            ('TuChoi', 'Từ chối xác nhận')
+        ]
+    )
+
+    def __str__(self):
+        return self.ma_dot_in_sao
 
 
 class NhatKyInSao(models.Model):
     """
     Nhật ký thực hiện in sao và giám sát.
     """
-    dot_in_sao = models.ForeignKey(DotInSao, on_delete=models.CASCADE, related_name='nhat_ky')
-    thoi_gian = models.DateTimeField(auto_now_add=True)
-    nguoi_thuc_hien = models.ForeignKey(User, on_delete=models.PROTECT, related_name='nhat_ky_in_sao_thuc_hien')
-    nguoi_giam_sat = models.ForeignKey(User, on_delete=models.PROTECT, related_name='nhat_ky_in_sao_giam_sat')
-    so_ban_in = models.PositiveIntegerField(default=0)
+    dot_in_sao = models.OneToOneField(DotInSao, on_delete=models.CASCADE, related_name='nhat_ky')
+    thoi_gian_thuc_hien = models.DateTimeField(verbose_name='Thời gian thực hiện in sao')
+    ngay_cap_nhat = models.DateTimeField(auto_now_add=True)
+    nguoi_thuc_hien = models.ForeignKey(User, on_delete=models.PROTECT, related_name='nhat_ky_in_sao_da_lam')
+    nguoi_giam_sat = models.ForeignKey(User, on_delete=models.PROTECT, related_name='nhat_ky_in_sao_da_giam_sat')
+    so_luong_in_thuc_te = models.PositiveIntegerField(default=0)
+    so_luong_niem_phong = models.PositiveIntegerField(default=0)
     ghi_chu = models.TextField(null=True, blank=True)
-    bien_ban_file = models.CharField(max_length=255, null=True, blank=True)
+
+
+class BienBanGiamSatInSao(models.Model):
+    """
+    Biên bản giám sát đợt in sao đề thi.
+    """
+    dot_in_sao = models.OneToOneField(DotInSao, on_delete=models.CASCADE, related_name='bien_ban_giam_sat')
+    trang_thai = models.CharField(
+        max_length=50,
+        default='ChoXacNhan',
+        choices=[
+            ('ChoXacNhan', 'Chờ xác nhận'),
+            ('DaXacNhan', 'Đã xác nhận'),
+            ('TuChoi', 'Từ chối xác nhận')
+        ]
+    )
+    nguoi_xac_nhan = models.ForeignKey(User, on_delete=models.PROTECT, related_name='bien_ban_giam_sat_da_ky', null=True, blank=True)
+    nhan_xet_giam_sat = models.TextField(null=True, blank=True, verbose_name='Ý kiến nhận xét giám sát')
+    chu_ky_so = models.TextField(null=True, blank=True, verbose_name='Chuỗi chữ ký số xác nhận')
+    ngay_xac_nhan = models.DateTimeField(null=True, blank=True)
+    ghi_chu = models.TextField(null=True, blank=True)
 
 
 # ===================================================================

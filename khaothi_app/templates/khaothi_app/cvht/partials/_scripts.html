@@ -30,13 +30,14 @@
 
     async function loadStateFromServer() {
         try {
+            const res = await fetch('/api/get_state/');
+            const data = await res.json();
+
             kyThiData = data.kyThiData || [];
             caThiData = data.caThiData || [];
             lichThiData = data.lichThiData || [];
             hocPhiData = data.hocPhiData || [];
             lopThiDiemData = data.lopThiDiemData || [];
-            const res = await fetch('/api/get_state/');
-            const data = await res.json();
 
             phongThiGocData = data.phongThiGocData;
             tuiPhachData = data.tuiPhachData;

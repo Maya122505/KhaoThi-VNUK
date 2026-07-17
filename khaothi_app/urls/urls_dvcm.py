@@ -1,8 +1,8 @@
 from django.urls import path
-from khaothi_app.views.views_dvcm import dvcm_view
+from khaothi_app.views import views_dvcm
 
 app_name = 'dvcm'
 
 urlpatterns = [
-    path('', dvcm_view, name='dashboard'),
+    path('', views_dvcm.dvcm_view, name='dashboard'),
 ]
