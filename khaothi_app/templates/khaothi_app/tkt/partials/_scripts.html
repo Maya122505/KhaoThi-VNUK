@@ -178,7 +178,7 @@
         const countKyThi = kyThiData.length;
         const countLopChoLich = phongThiGocData.filter(p => p.status === "Chưa nhận bài").length;
         const countPhucKhaoPending = phucKhaoData.filter(p => p.status === "Chờ xử lý").length;
-        const countPhieuChoNhan = phieuGiaoNhanData.filter(p => p.status === "Chờ nhận").length;
+        const countPhieuChoNhan = phieuGiaoNhanData.filter(p => p.recipient === "tkt" && p.status === "Chờ bạn xác nhận").length;
 
         document.getElementById('dash-so-ky-thi').innerText = countKyThi;
         document.getElementById('dash-lop-cho-lich').innerText = countLopChoLich;

@@ -67,7 +67,7 @@
                         <span id="detail-tui-status" class="px-2 py-0.5 rounded text-xs font-bold">--</span>
                     </div>
                     <div class="pt-2">
-                        <span class="text-gray-500 font-semibold block mb-2">Mật khẩu chấm điểm (UC 7.2):</span>
+                        <span class="text-gray-500 font-semibold block mb-2">Mật khẩu chấm điểm:</span>
                         <div class="flex items-center justify-between bg-gray-50 px-3 py-2 rounded border border-gray-200 font-mono">
                             <span id="detail-tui-pw" class="font-bold text-red-700 tracking-wider">••••••••</span>
                             <button onclick="handleTriggerViewPassword()" class="text-gray-400 hover:text-blue-600 transition-colors" title="Xem mật khẩu">
@@ -95,9 +95,9 @@
 
             <!-- Tab Content 1: View (Chi tiết phòng & Mã phách) -->
             <div id="detail-tab-content-view" class="p-6 flex flex-col gap-6 flex-1 overflow-y-auto min-h-[350px]">
-                <div class="grid grid-cols-2 gap-6 h-full">
+                <div class="grid grid-cols-3 gap-6 h-full">
                     <!-- Bảng danh sách phòng -->
-                    <div class="flex flex-col border border-gray-200 rounded shadow-sm bg-white">
+                    <div class="col-span-1 flex flex-col border border-gray-200 rounded shadow-sm bg-white">
                         <div class="bg-gray-50 border-b border-gray-200 p-3 text-center font-bold text-gray-700 text-xs uppercase">Danh sách phòng đã ghép</div>
                         <div class="p-3 overflow-y-auto flex-1 max-h-[250px]">
                             <table class="w-full text-left text-xs">
@@ -109,12 +109,17 @@
                         </div>
                     </div>
                     <!-- Bảng danh sách Mã phách -->
-                    <div class="flex flex-col border border-gray-200 rounded shadow-sm bg-white">
+                    <div class="col-span-2 flex flex-col border border-gray-200 rounded shadow-sm bg-white">
                         <div class="bg-gray-50 border-b border-gray-200 p-3 text-center font-bold text-gray-700 text-xs uppercase">Bảng ánh xạ Mã phách gốc</div>
                         <div class="p-3 overflow-y-auto flex-1 max-h-[250px]">
                             <table class="w-full text-left text-xs">
                                 <thead>
-                                    <tr class="border-b text-gray-500 font-semibold"><th class="pb-2 w-12">STT</th><th class="pb-2">Mã phách</th></tr>
+                                    <tr class="border-b text-gray-500 font-semibold">
+                                        <th class="pb-2 w-12">STT</th>
+                                        <th class="pb-2 w-16">SBD</th>
+                                        <th class="pb-2">Thí sinh</th>
+                                        <th class="pb-2">Mã phách</th>
+                                    </tr>
                                 </thead>
                                 <tbody id="detail-phach-tbody" class="divide-y divide-gray-100"></tbody>
                             </table>
