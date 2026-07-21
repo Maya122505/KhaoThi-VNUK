@@ -436,15 +436,20 @@ class DonPhucKhao(models.Model):
     """
     ma_don = models.CharField(max_length=50, primary_key=True)
     sinh_vien = models.ForeignKey(SinhVien, on_delete=models.CASCADE, related_name='don_phuc_khao')
+    hoc_phan = models.ForeignKey(HocPhan, on_delete=models.SET_NULL, related_name='don_phuc_khao', null=True, blank=True)
     lich_thi = models.ForeignKey(LichThi, on_delete=models.CASCADE, related_name='don_phuc_khao', null=True, blank=True)
     ma_phach = models.ForeignKey(MaPhach, on_delete=models.CASCADE, related_name='don_phuc_khao', null=True, blank=True)
     diem_goc = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
     diem_phuc_khao_1 = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
     diem_phuc_khao_2 = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
     diem_phuc_khao_cuoi = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
-    ly_do = models.TextField()
+    ly_do = models.TextField(blank=True, default='')
     file_bien_ban = models.CharField(max_length=255, null=True, blank=True)
     trang_thai = models.CharField(max_length=50, default='ChoXuLy')
+    nguoi_duyet = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='duyet_phuc_khao', null=True, blank=True)
+    ngay_tao = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    ngay_duyet = models.DateTimeField(null=True, blank=True)
+
 
 
 class CauHinhDiemHocPhan(models.Model):

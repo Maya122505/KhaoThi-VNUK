@@ -1,27 +1,20 @@
-<div id="view-gio-coi" class="view-section hidden-view max-w-6xl mx-auto h-full animate-fade-in flex flex-col">
+<div id="view-gio-coi" class="view-section hidden-view w-full h-full animate-fade-in flex flex-col">
     <div class="flex justify-between items-end mb-6 border-b border-gray-200 pb-4">
         <div>
-            <h2 class="text-2xl font-bold text-blue-900 mb-1 flex items-center gap-2"><i data-lucide="shield-check" class="w-6 h-6 text-blue-600"></i> Quản lý Cán bộ coi thi</h2>
-            <p class="text-sm text-gray-600">Phân công giám thị, theo dõi xác nhận lịch coi thi và tổng hợp giờ coi thi thanh toán thù lao [UC 6].</p>
+            <h2 class="text-2xl font-bold text-blue-900 mb-1 flex items-center gap-2"><i data-lucide="shield-check"
+                    class="w-6 h-6 text-blue-600"></i> Quản lý Cán bộ coi thi</h2>
+            <p class="text-sm text-gray-600">Phân công giám thị, theo dõi xác nhận lịch coi thi và tổng hợp giờ coi thi
+                thanh toán thù lao [UC 6].</p>
         </div>
     </div>
 
-    <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex flex-1 min-h-[500px]">
-        <!-- Sidebar -->
-        <div class="w-64 bg-gray-50 border-r border-gray-200 p-4 flex flex-col gap-2 shrink-0">
-            <button id="tab-btn-cbct-phan-cong" onclick="switchCbctTab('phan-cong')" class="text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 text-gray-600 hover:bg-gray-100 font-sans shadow-none">
-                <i data-lucide="calendar" class="w-4 h-4"></i> Phân công & Xác nhận
-            </button>
-            <button id="tab-btn-cbct-tong-hop" onclick="switchCbctTab('tong-hop')" class="text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 text-gray-600 hover:bg-gray-100 font-sans shadow-none">
-                <i data-lucide="clock" class="w-4 h-4"></i> Tổng hợp Giờ coi thi
-            </button>
-        </div>
-
+    <div class="bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col flex-1 p-6 relative min-h-[500px]">
         <!-- Main Content Area -->
-        <div class="flex-1 p-6 overflow-y-auto bg-white relative">
+        <div class="flex-1 overflow-y-auto relative flex flex-col">
             <!-- Tab: Phân công & Xác nhận -->
             <div id="tab-content-cbct-phan-cong" class="animate-fade-in flex flex-col h-full">
-                <h3 class="font-bold text-lg text-gray-800 mb-4 border-b border-gray-100 pb-2">Lịch phân công coi thi & Trạng thái xác nhận [UC 6.4]</h3>
+                <h3 class="font-bold text-lg text-gray-800 mb-4 border-b border-gray-100 pb-2">Lịch phân công coi thi
+                </h3>
                 <div class="overflow-x-auto flex-1 mb-4">
                     <table class="w-full text-left text-xs">
                         <thead class="bg-gray-100 text-gray-700 font-bold border-b">
@@ -41,36 +34,53 @@
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Pagination Controls -->
+                <div id="cbct-pagination" class="flex justify-between items-center text-xs border-t pt-3 bg-white px-1">
+                    <span id="cbct-pagination-info" class="text-gray-500 font-medium">Trang 1 / 1</span>
+                    <div class="flex gap-1.5">
+                        <button type="button" onclick="changeCbctPage(-1)" id="cbct-btn-prev"
+                            class="px-3 py-1 bg-white border border-gray-300 rounded text-gray-700 font-semibold shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">Trước</button>
+                        <button type="button" onclick="changeCbctPage(1)" id="cbct-btn-next"
+                            class="px-3 py-1 bg-white border border-gray-300 rounded text-gray-700 font-semibold shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">Sau</button>
+                    </div>
+                </div>
             </div>
 
             <!-- Tab: Tổng hợp Giờ coi thi -->
             <div id="tab-content-cbct-tong-hop" class="hidden-view animate-fade-in flex flex-col h-full">
                 <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
-                    <h3 class="font-bold text-lg text-gray-800">Bảng thanh toán & Tổng hợp giờ coi thi [UC 6.5]</h3>
+                    <h3 class="font-bold text-lg text-gray-800">Tổng hợp giờ coi thi</h3>
                     <div class="flex gap-2">
-                        <button id="btn-export-excel" onclick="exportGioCoiExcel()" class="bg-green-600 text-white font-bold px-3 py-1.5 rounded text-xs shadow hover:bg-green-700 transition flex items-center gap-1.5 font-sans">
+                        <button id="btn-export-excel" onclick="exportGioCoiExcel()"
+                            class="bg-green-600 text-white font-bold px-3 py-1.5 rounded text-xs shadow hover:bg-green-700 transition flex items-center gap-1.5 font-sans">
                             <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Excel
                         </button>
-                        <button id="btn-export-pdf" onclick="exportGioCoiPDF()" class="bg-[#9e1c22] text-white font-bold px-3 py-1.5 rounded text-xs shadow hover:bg-red-800 transition flex items-center gap-1.5 font-sans">
+                        <button id="btn-export-pdf" onclick="exportGioCoiPDF()"
+                            class="bg-[#9e1c22] text-white font-bold px-3 py-1.5 rounded text-xs shadow hover:bg-red-800 transition flex items-center gap-1.5 font-sans">
                             <i data-lucide="file-text" class="w-4 h-4"></i> Báo cáo PDF
                         </button>
                     </div>
                 </div>
 
                 <!-- Cảnh báo nếu có ca chưa xác nhận -->
-                <div id="gc-warning-unconfirmed" class="hidden-view bg-red-50 text-red-900 border border-red-100 rounded-lg p-4 text-xs mb-4 flex items-start gap-2">
+                <div id="gc-warning-unconfirmed"
+                    class="hidden-view bg-red-50 text-red-900 border border-red-100 rounded-lg p-4 text-xs mb-4 flex items-start gap-2">
                     <i data-lucide="alert-triangle" class="w-4 h-4 text-red-600 shrink-0 mt-0.5 animate-bounce"></i>
                     <div>
                         <p class="font-bold">Không thể xuất báo cáo!</p>
-                        <p class="mt-0.5">Phát hiện ca coi thi chưa được Giảng viên ký xác nhận lịch trực. Vui lòng hoàn tất xác nhận lịch để làm căn cứ thanh toán.</p>
+                        <p class="mt-0.5">Phát hiện ca coi thi chưa được Giảng viên ký xác nhận lịch trực. Vui lòng hoàn
+                            tất xác nhận lịch để làm căn cứ thanh toán.</p>
                     </div>
                 </div>
 
                 <!-- Filters Panel -->
-                <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-4 grid grid-cols-4 gap-3 text-[11px] font-sans">
+                <div
+                    class="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-4 grid grid-cols-4 gap-3 text-[11px] font-sans">
                     <div>
                         <label class="block font-bold text-gray-600 uppercase mb-0.5">Chọn Học kỳ:</label>
-                        <select id="gc-filter-hocky" onchange="filterGioCoiData()" class="w-full p-1.5 border border-gray-300 rounded bg-white outline-none">
+                        <select id="gc-filter-hocky" onchange="filterGioCoiData()"
+                            class="w-full p-1.5 border border-gray-300 rounded bg-white outline-none">
                             <option value="Học kỳ III">Học kỳ III (2025-2026)</option>
                             <option value="Học kỳ II">Học kỳ II (2025-2026)</option>
                             <option value="Học kỳ I">Học kỳ I (2025-2026)</option>
@@ -78,14 +88,16 @@
                     </div>
                     <div>
                         <label class="block font-bold text-gray-600 uppercase mb-0.5">Chọn Kỳ thi:</label>
-                        <select id="gc-filter-kythi" onchange="filterGioCoiData()" class="w-full p-1.5 border border-gray-300 rounded bg-white outline-none">
+                        <select id="gc-filter-kythi" onchange="filterGioCoiData()"
+                            class="w-full p-1.5 border border-gray-300 rounded bg-white outline-none">
                             <option value="Kỳ thi Cuối kỳ học kỳ III">Kỳ thi Cuối kỳ học kỳ III</option>
                             <option value="Kỳ thi Giữa kỳ học kỳ III">Kỳ thi Giữa kỳ học kỳ III</option>
                         </select>
                     </div>
                     <div>
                         <label class="block font-bold text-gray-600 uppercase mb-0.5">Khoa / Đơn vị:</label>
-                        <select id="gc-filter-donvi" onchange="filterGioCoiData()" class="w-full p-1.5 border border-gray-300 rounded bg-white outline-none">
+                        <select id="gc-filter-donvi" onchange="filterGioCoiData()"
+                            class="w-full p-1.5 border border-gray-300 rounded bg-white outline-none">
                             <option value="">Tất cả khoa</option>
                             <option value="Công nghệ thông tin">Khoa CNTT</option>
                             <option value="Quản trị kinh doanh">Khoa QTKD</option>
@@ -94,27 +106,28 @@
                     </div>
                     <div>
                         <label class="block font-bold text-gray-600 uppercase mb-0.5">Tìm kiếm Giảng viên:</label>
-                        <input type="text" id="gc-search-gv" oninput="filterGioCoiData()" placeholder="Nhập tên hoặc mã..." class="w-full p-1.5 border border-gray-300 rounded outline-none" />
+                        <input type="text" id="gc-search-gv" oninput="filterGioCoiData()"
+                            placeholder="Nhập tên hoặc mã..."
+                            class="w-full p-1.5 border border-gray-300 rounded outline-none" />
                     </div>
                 </div>
 
                 <!-- Stats Overview Cards -->
-                <div class="grid grid-cols-4 gap-3 mb-4">
+                <div class="grid grid-cols-3 gap-3 mb-4">
                     <div class="bg-blue-50 border border-blue-100 rounded p-3">
-                        <span class="text-[10px] font-bold text-blue-800 uppercase block mb-0.5">Giảng viên coi thi</span>
+                        <span class="text-[10px] font-bold text-blue-800 uppercase block mb-0.5">Giảng viên coi
+                            thi</span>
                         <strong class="text-lg text-blue-900 font-sans" id="gc-stat-total-gv">0 người</strong>
                     </div>
                     <div class="bg-green-50 border border-green-100 rounded p-3">
-                        <span class="text-[10px] font-bold text-green-800 uppercase block mb-0.5">Ca thi hoàn thành</span>
+                        <span class="text-[10px] font-bold text-green-800 uppercase block mb-0.5">Ca thi hoàn
+                            thành</span>
                         <strong class="text-lg text-green-900 font-sans" id="gc-stat-total-ca">0 ca</strong>
                     </div>
                     <div class="bg-indigo-50 border border-indigo-100 rounded p-3">
-                        <span class="text-[10px] font-bold text-indigo-800 uppercase block mb-0.5">Tổng số giờ thi</span>
+                        <span class="text-[10px] font-bold text-indigo-800 uppercase block mb-0.5">Tổng số giờ
+                            thi</span>
                         <strong class="text-lg text-indigo-900 font-sans" id="gc-stat-total-gio">0 giờ</strong>
-                    </div>
-                    <div class="bg-red-50 border border-red-100 rounded p-3">
-                        <span class="text-[10px] font-bold text-red-800 uppercase block mb-0.5">Tạm tính thù lao</span>
-                        <strong class="text-lg text-red-900 font-sans" id="gc-stat-total-money">0 VND</strong>
                     </div>
                 </div>
 
@@ -128,8 +141,6 @@
                                 <th class="px-4 py-2.5 font-bold">Đơn vị / Khoa</th>
                                 <th class="px-4 py-2.5 font-bold text-center">Số ca thi</th>
                                 <th class="px-4 py-2.5 font-bold text-center">Tổng giờ thi</th>
-                                <th class="px-4 py-2.5 font-bold text-right">Đơn giá / giờ</th>
-                                <th class="px-4 py-2.5 font-bold text-right">Tạm tính</th>
                                 <th class="px-4 py-2.5 font-bold text-center">Thao tác</th>
                             </tr>
                         </thead>
@@ -137,6 +148,18 @@
                             <!-- Filled by JS -->
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Pagination Controls -->
+                <div id="gc-pagination"
+                    class="flex justify-between items-center text-xs border-t pt-3 bg-white px-1 mt-3">
+                    <span id="gc-pagination-info" class="text-gray-500 font-medium">Trang 1 / 1</span>
+                    <div class="flex gap-1.5">
+                        <button type="button" onclick="changeGcPage(-1)" id="gc-btn-prev"
+                            class="px-3 py-1 bg-white border border-gray-300 rounded text-gray-700 font-semibold shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">Trước</button>
+                        <button type="button" onclick="changeGcPage(1)" id="gc-btn-next"
+                            class="px-3 py-1 bg-white border border-gray-300 rounded text-gray-700 font-semibold shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">Sau</button>
+                    </div>
                 </div>
             </div>
         </div>

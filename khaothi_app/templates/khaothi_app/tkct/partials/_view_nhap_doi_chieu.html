@@ -3,47 +3,57 @@
         <h2 class="text-3xl font-bold text-[#9e1c22] mb-1 flex justify-center items-center gap-2">
             <i data-lucide="file-check-2" class="w-7 h-7"></i> Nhập Đối chiếu mã phách
         </h2>
-        <p class="text-gray-600 text-sm max-w-xl mx-auto">Thư ký cầm bài thi vật lý gõ lại mã phách để kiểm tra so khớp với hệ thống. Bắt buộc nhập phách mù.</p>
     </div>
 
     <div class="bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
         <div id="ndc-step1" class="p-5 border-b border-gray-200 flex gap-4 bg-white items-center">
             <div class="relative flex-1">
                 <i data-lucide="key" class="absolute left-3 top-3.5 text-gray-400 w-5 h-5"></i>
-                <input type="text" id="ndc-search-id" placeholder="Nhập chính xác Mã túi phách (VD: TP-ENG101-001)" class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded text-base font-mono focus:border-red-800 outline-none" />
+                <input type="text" id="ndc-search-id" placeholder="Nhập chính xác Mã túi phách (VD: TP-ENG101-001)"
+                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded text-base font-mono focus:border-red-800 outline-none" />
             </div>
-            <button onclick="handleSearchDoiChieuTui()" class="bg-[#9e1c22] text-white px-8 py-3 rounded font-bold hover:bg-red-800 shadow">Tìm kiếm</button>
+            <button onclick="handleSearchDoiChieuTui()"
+                class="bg-[#9e1c22] text-white px-8 py-3 rounded font-bold hover:bg-red-800 shadow">Tìm kiếm</button>
         </div>
 
         <div id="ndc-step2" class="hidden-view p-6 animate-fade-in bg-white">
             <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
-                <h3 class="font-bold text-gray-800 text-sm">BẢNG NHẬP PHÁCH THỰC TẾ TRÊN TỜ GIẤY THI CỦA TÚI: <span id="ndc-active-id" class="text-blue-900 font-mono text-base font-bold">--</span></h3>
+                <h3 class="font-bold text-gray-800 text-sm">NHẬP PHÁCH THỰC TẾ TRÊN TỜ GIẤY THI CỦA TÚI: <span
+                        id="ndc-active-id" class="text-blue-900 font-mono text-base font-bold">--</span></h3>
             </div>
 
-            <div id="ndc-error" class="hidden-view bg-red-50 text-red-700 p-4 rounded border border-red-200 mb-4 flex items-start gap-3 animate-shake">
+            <div id="ndc-error"
+                class="hidden-view bg-red-50 text-red-700 p-4 rounded border border-red-200 mb-4 flex items-start gap-3 animate-shake">
                 <i data-lucide="alert-circle" class="shrink-0 w-5 h-5 mt-0.5"></i>
                 <div>
                     <h4 class="font-bold">Lỗi so khớp dữ liệu phách!</h4>
-                    <p class="text-xs mt-0.5" id="ndc-error-text">Phát hiện mã phách không hợp lệ. Vui lòng kiểm tra lại các ô màu đỏ.</p>
+                    <p class="text-xs mt-0.5" id="ndc-error-text">Phát hiện mã phách không hợp lệ. Vui lòng kiểm tra lại
+                        các ô màu đỏ.</p>
                 </div>
             </div>
 
-            <div id="ndc-success" class="hidden-view bg-green-50 text-green-800 p-4 rounded border border-green-200 mb-4 flex items-start gap-3 animate-fade-in">
+            <div id="ndc-success"
+                class="hidden-view bg-green-50 text-green-800 p-4 rounded border border-green-200 mb-4 flex items-start gap-3 animate-fade-in">
                 <i data-lucide="check-circle-2" class="shrink-0 w-5 h-5 mt-0.5"></i>
                 <div>
                     <h4 class="font-bold">Dữ liệu khớp 100%</h4>
-                    <p class="text-xs mt-0.5">Dữ liệu hợp lệ. Vui lòng chuyển sang chức năng [Khóa danh sách mã phách] để niêm phong túi bài thi.</p>
+                    <p class="text-xs mt-0.5">Dữ liệu hợp lệ. Vui lòng chuyển sang chức năng [Khóa danh sách mã phách]
+                        để niêm phong túi bài thi.</p>
                 </div>
             </div>
 
-            <div class="bg-gray-50 border border-gray-200 p-4 rounded-lg mb-6 max-h-[280px] overflow-y-auto">
+            <div
+                class="bg-gray-50 border border-gray-200 p-4 pr-6 rounded-lg mb-6 max-h-[280px] overflow-y-auto overflow-x-hidden">
                 <div class="grid grid-cols-3 gap-4" id="ndc-inputs-grid"></div>
             </div>
 
             <div class="flex gap-4 border-t border-gray-100 pt-4">
-                <button onclick="handleDoiChieuLuuTam()" class="flex-1 bg-white border border-gray-300 text-gray-700 font-bold py-3 rounded hover:bg-gray-50">Lưu tiến độ</button>
-                <button id="ndc-btn-verify" onclick="handleExecuteDoiChieuSoKhop()" class="flex-1 bg-[#9e1c22] text-white font-bold py-3 rounded shadow hover:bg-red-800 flex items-center justify-center gap-2">
-                    Xác thực so khớp
+                <button onclick="handleDoiChieuLuuTam()"
+                    class="flex-1 bg-white border border-gray-300 text-gray-700 font-bold py-3 rounded hover:bg-gray-50">Lưu
+                    tiến độ</button>
+                <button id="ndc-btn-verify" onclick="handleExecuteDoiChieuSoKhop()"
+                    class="flex-1 bg-[#9e1c22] text-white font-bold py-3 rounded shadow hover:bg-red-800 flex items-center justify-center gap-2">
+                    Đối chiếu dữ liệu
                 </button>
             </div>
         </div>

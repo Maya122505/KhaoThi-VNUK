@@ -93,10 +93,21 @@ for i in range(1, 56):
 
 # 3. Generate INITIAL_TUI_PHACH (52 entries)
 INITIAL_TUI_PHACH = []
+import uuid
+import random
+# Global set to ensure uniqueness across all bags
+GLOBAL_PHACH_SET = set()
+
 for i in range(1, 53):
     sub_code, sub_name = SUBJECTS_LIST[i % len(SUBJECTS_LIST)]
     papers = 30 + (i * 3) % 25
-    phach_list = [f"PH{i:02d}{k:02d}" for k in range(1, papers + 1)]
+    phach_list = []
+    while len(phach_list) < papers:
+        new_phach = f"PH{random.randint(10000, 99999)}"
+        if new_phach not in GLOBAL_PHACH_SET:
+            GLOBAL_PHACH_SET.add(new_phach)
+            phach_list.append(new_phach)
+    
     room_id = f"LHP-{i:03d}"
     
     scores_dict = {}
@@ -128,8 +139,9 @@ for i in range(1, 53):
         grader1 = ""
         grader2 = ""
 
+    unique_str = uuid.uuid4().hex[:6].upper()
     INITIAL_TUI_PHACH.append({
-        "id": f"TP-{sub_code}-{i:03d}",
+        "id": f"TP-{sub_code}-{unique_str}",
         "subjectId": sub_code,
         "subjectName": sub_name,
         "papers": papers,
@@ -167,15 +179,13 @@ for i in range(1, 52):
         recipient = "gv"
         status = "Chờ bạn xác nhận" if i > 30 else "Đã hoàn tất"
         rooms = None
-        sub_code, _ = SUBJECTS_LIST[i % len(SUBJECTS_LIST)]
-        bags = [f"TP-{sub_code}-{i:03d}"]
+        bags = [INITIAL_TUI_PHACH[i-1]["id"]]
         qty = "1 túi"
         if status == "Đã hoàn tất":
             log = f"Đã đóng con dấu điện tử bởi Giảng viên GV{(i % 50) + 1:03d} vào 2026-07-12 11:30:00"
     else:
         rooms = None
-        sub_code, _ = SUBJECTS_LIST[i % len(SUBJECTS_LIST)]
-        bags = [f"TP-{sub_code}-{i:03d}"]
+        bags = [INITIAL_TUI_PHACH[i-1]["id"]]
         qty = "1 túi"
         if i % 9 == 2:
             p_type = "Giảng viên trả bài đã chấm cho Giáo vụ (Loại 1)"
@@ -243,7 +253,9 @@ for i in range(1, 51):
         "msv": f"SV{i:03d}",
         "name": generate_name(i + 100),
         "status": status,
-        "file": file
+        "file": file,
+        "semester": "HK2" if i % 3 != 0 else "HK1",
+        "dot": "Đợt 1" if i % 2 == 0 else "Đợt 2"
     })
 
 INITIAL_AUDIT_LOGS = [
@@ -551,12 +563,19 @@ def seed_database_relational():
             sub_c = hist["subject"].split(" (")[-1][:-1]
             sub_obj, _ = HocPhan.objects.get_or_create(ma_hoc_phan=sub_c, defaults={"ten_hoc_phan": hist["subject"].split(" (")[0]})
             
+            lhp_id = f"LHP-{sub_c}-MOCK"
+            lhp_obj, _ = LopHocPhan.objects.get_or_create(
+                ma_lop_hp=lhp_id,
+                defaults={"hoc_phan": sub_obj, "hoc_ky": "Học kỳ III", "nam_hoc": "2025-2026"}
+            )
+
             # Create a mock LichThi for history if not exists
             lt_id = f"LT-{sub_c}-{gv_obj.ma_giang_vien}-{ct_obj.ma_ca_thi}"
             lt_obj, _ = LichThi.objects.get_or_create(
                 ma_lich_thi=lt_id,
                 defaults={
                     "ky_thi_id": "KT-HK3-2026",
+                    "lop_hp": lhp_obj,
                     "ca_thi": ct_obj,
                     "phong_thi": pt_obj,
                     "ngay_thi": parse_date(hist["date"]),
@@ -572,7 +591,7 @@ def seed_database_relational():
             )
 
     # Seed 9: TuiBaiThi & TuiPhach & MaPhach & DiemThi & DoiSoatDiem
-    for tp in INITIAL_TUI_PHACH:
+    for tp_index, tp in enumerate(INITIAL_TUI_PHACH, start=1):
         # Resolve ca thi or lich_thi
         lt_obj = LichThi.objects.filter(ma_lich_thi=tp["rooms"][0]).first() if tp["rooms"] else None
         
@@ -586,7 +605,6 @@ def seed_database_relational():
                 trang_thai="DaDocPhach"
             )
             
-        tp_index = int(tp['id'].split('-')[-1])
         if tp_index > 45:
             # Bỏ qua không tạo túi phách để phòng thi ở trạng thái "Chưa làm phách"
             continue
@@ -862,11 +880,17 @@ def get_state(request):
         
     # 5. phucKhaoData
     phuc_khao_data = []
-    for dpk in DonPhucKhao.objects.select_related('sinh_vien', 'ma_phach', 'lich_thi__lop_hp__hoc_phan').all():
+    for dpk in DonPhucKhao.objects.select_related('sinh_vien', 'ma_phach', 'lich_thi__lop_hp__hoc_phan', 'hoc_phan', 'nguoi_duyet').all():
+        ten_hp = ""
+        if dpk.hoc_phan:
+            ten_hp = dpk.hoc_phan.ten_hoc_phan
+        elif dpk.lich_thi and dpk.lich_thi.lop_hp and dpk.lich_thi.lop_hp.hoc_phan:
+            ten_hp = dpk.lich_thi.lop_hp.hoc_phan.ten_hoc_phan
+
         phuc_khao_data.append({
             "id": dpk.ma_don,
             "phach": dpk.ma_phach.ma_phach if dpk.ma_phach else "",
-            "subjectName": dpk.lich_thi.lop_hp.hoc_phan.ten_hoc_phan if (dpk.lich_thi and dpk.lich_thi.lop_hp and dpk.lich_thi.lop_hp.hoc_phan) else "",
+            "subjectName": ten_hp,
             "pt1": float(dpk.diem_phuc_khao_1) if dpk.diem_phuc_khao_1 is not None else None,
             "pt2": float(dpk.diem_phuc_khao_2) if dpk.diem_phuc_khao_2 is not None else None,
             "ptFinal": float(dpk.diem_phuc_khao_cuoi) if dpk.diem_phuc_khao_cuoi is not None else None,
@@ -874,8 +898,13 @@ def get_state(request):
             "msv": dpk.sinh_vien.ma_sinh_vien,
             "name": dpk.sinh_vien.ho_ten,
             "status": dpk.trang_thai,
-            "file": dpk.file_bien_ban or ""
+            "file": dpk.file_bien_ban or "",
+            "ly_do": dpk.ly_do or "",
+            "ngay_tao": dpk.ngay_tao.strftime('%Y-%m-%d %H:%M:%S') if dpk.ngay_tao else None,
+            "ngay_duyet": dpk.ngay_duyet.strftime('%Y-%m-%d %H:%M:%S') if dpk.ngay_duyet else None,
+            "nguoi_duyet": dpk.nguoi_duyet.full_name or dpk.nguoi_duyet.username if dpk.nguoi_duyet else None
         })
+
         
     # 6. auditLogsData
     audit_logs_data = []
@@ -1150,8 +1179,8 @@ def save_state(request):
                         import random
                         phach_list = []
                         while len(phach_list) < tp["papers"]:
-                            code = f"PH{random.randint(1000, 9999)}"
-                            if code not in phach_list:
+                            code = f"PH{random.randint(10000, 99999)}"
+                            if code not in phach_list and not MaPhach.objects.filter(ma_phach=code).exists():
                                 phach_list.append(code)
                         tp["phachGoc"] = phach_list
 
@@ -1243,12 +1272,18 @@ def save_state(request):
                                 ct_obj = CaThi.objects.first()
                             pt_obj, _ = PhongThi.objects.get_or_create(ma_phong=hist["room"], defaults={"ten_phong": hist["room"]})
                             sub_c = hist["subject"].split(" (")[-1][:-1]
-                            
+                            sub_obj, _ = HocPhan.objects.get_or_create(ma_hoc_phan=sub_c, defaults={"ten_hoc_phan": hist["subject"].split(" (")[0]})
+                            lhp_id = f"LHP-{sub_c}-MOCK"
+                            lhp_obj, _ = LopHocPhan.objects.get_or_create(
+                                ma_lop_hp=lhp_id,
+                                defaults={"hoc_phan": sub_obj, "hoc_ky": "Học kỳ III", "nam_hoc": "2025-2026"}
+                            )
                             lt_id = f"LT-{sub_c}-{gv_obj.ma_giang_vien}-{ct_obj.ma_ca_thi}"
                             lt_obj, _ = LichThi.objects.get_or_create(
                                 ma_lich_thi=lt_id,
                                 defaults={
                                     "ky_thi_id": "KT-HK3-2026",
+                                    "lop_hp": lhp_obj,
                                     "ca_thi": ct_obj,
                                     "phong_thi": pt_obj,
                                     "ngay_thi": parse_date(hist["date"]),
@@ -1270,20 +1305,27 @@ def save_state(request):
                 for pk in data["phucKhaoData"]:
                     sv_obj, _ = SinhVien.objects.get_or_create(ma_sinh_vien=pk["msv"], defaults={"ho_ten": pk["name"]})
                     mp_obj = MaPhach.objects.filter(ma_phach=pk["phach"]).first()
+                    hp_obj = HocPhan.objects.filter(ten_hoc_phan=pk.get("subjectName", "")).first()
                     
+                    defaults_dict = {
+                        "sinh_vien": sv_obj,
+                        "ma_phach": mp_obj,
+                        "diem_goc": pk.get("originalPt1"),
+                        "diem_phuc_khao_1": pk.get("pt1"),
+                        "diem_phuc_khao_2": pk.get("pt2"),
+                        "diem_phuc_khao_cuoi": pk.get("ptFinal"),
+                        "file_bien_ban": pk.get("file"),
+                        "trang_thai": pk.get("status", "ChoXuLy"),
+                        "ly_do": pk.get("ly_do", "")
+                    }
+                    if hp_obj:
+                        defaults_dict["hoc_phan"] = hp_obj
+
                     DonPhucKhao.objects.update_or_create(
                         ma_don=pk["id"],
-                        defaults={
-                            "sinh_vien": sv_obj,
-                            "ma_phach": mp_obj,
-                            "diem_goc": pk["originalPt1"],
-                            "diem_phuc_khao_1": pk["pt1"],
-                            "diem_phuc_khao_2": pk["pt2"],
-                            "diem_phuc_khao_cuoi": pk["ptFinal"],
-                            "file_bien_ban": pk["file"],
-                            "trang_thai": pk["status"]
-                        }
+                        defaults=defaults_dict
                     )
+
                     
             # 6. Đồng bộ auditLogsData -> AuditLog
             if "auditLogsData" in data:
