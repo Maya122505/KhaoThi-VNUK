@@ -48,9 +48,9 @@
 
     <!-- Horizontal Tabs -->
     <nav class="bg-[#9e1c22] text-white px-8 flex relative z-50 shadow-md">
-        <button id="nav-btn-home" class="nav-btn px-6 py-3 text-sm font-semibold border-r border-red-800 transition-colors hover:bg-red-800 bg-red-800" onclick="navigate('view-home')">Giám sát Phòng thi</button>
-        <button id="nav-btn-thay-the" class="nav-btn px-6 py-3 text-sm font-semibold border-r border-red-800 transition-colors hover:bg-red-800" onclick="navigate('view-thay-the')">Thay giám thị khẩn cấp</button>
-        <button id="nav-btn-su-co" class="nav-btn px-6 py-3 text-sm font-semibold border-r border-red-800 transition-colors hover:bg-red-800" onclick="navigate('view-su-co')">Báo cáo Sự cố / Biên bản</button>
+        <button id="nav-btn-home" class="nav-btn px-6 py-3 text-sm font-semibold border-r border-red-800 border-b-4 border-transparent transition-colors hover:bg-red-800" onclick="navigate('view-home')">Giám sát Phòng thi</button>
+        <button id="nav-btn-thay-the" class="nav-btn px-6 py-3 text-sm font-semibold border-r border-red-800 border-b-4 border-transparent transition-colors hover:bg-red-800" onclick="navigate('view-thay-the')">Thay giám thị khẩn cấp</button>
+        <button id="nav-btn-su-co" class="nav-btn px-6 py-3 text-sm font-semibold border-r border-red-800 border-b-4 border-transparent transition-colors hover:bg-red-800" onclick="navigate('view-su-co')">Báo cáo Sự cố / Biên bản</button>
     </nav>
 
     <!-- Main Container -->
@@ -68,8 +68,7 @@
         <div id="view-home" class="view-section animate-fade-in flex flex-col h-full">
             <div class="flex justify-between items-end border-b border-gray-200 pb-4 mb-6">
                 <div>
-                    <h2 class="text-2xl font-bold text-blue-900 mb-1 flex items-center gap-2"><i data-lucide="monitor" class="text-blue-600"></i> Giám sát Trạng thái ca thi trực tuyến</h2>
-                    <p class="text-sm text-gray-600">Kiểm soát sỹ số dự thi, tình hình phân bổ giám thị và ghi nhận các phòng thi hoàn tất.</p>
+                    <h2 class="text-2xl font-bold text-blue-900 flex items-center gap-2"><i data-lucide="monitor" class="text-blue-600"></i> Giám sát Trạng thái ca thi trực tuyến</h2>
                 </div>
             </div>
 
@@ -271,19 +270,29 @@
             if(targetView) targetView.classList.remove('hidden-view');
             sessionStorage.setItem('tkcoithi_activeViewId', viewId);
 
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.className = "nav-btn px-6 py-3 text-sm font-semibold border-r border-red-800 transition-colors hover:bg-red-800");
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-[#801418]', 'border-[#005691]', 'font-bold');
+                btn.classList.add('border-transparent');
+            });
 
             activeViewId = viewId;
+            const activeBtnMap = {
+                'view-home': 'nav-btn-home',
+                'view-thay-the': 'nav-btn-thay-the',
+                'view-su-co': 'nav-btn-su-co'
+            };
+            const activeBtn = document.getElementById(activeBtnMap[viewId]);
+            if (activeBtn) {
+                activeBtn.classList.remove('border-transparent');
+                activeBtn.classList.add('bg-[#801418]', 'border-[#005691]', 'font-bold');
+            }
+
             if(viewId === 'view-home') {
-                document.getElementById('nav-btn-home').className += " bg-red-800";
                 renderPhongThi();
-            } else if(viewId === 'view-thay-the') {
-                document.getElementById('nav-btn-thay-the').className += " bg-red-800";
-            } else if(viewId === 'view-su-co') {
-                document.getElementById('nav-btn-su-co').className += " bg-red-800";
             }
             initIcons();
         }
+        window.navigate = navigate;
 
         function renderPhongThi() {
             const tbody = document.getElementById('phong-tbody');
@@ -403,5 +412,7 @@
             setTimeout(() => toast.classList.add('hidden-view'), 4000);
         }
     </script>
+    <!-- Footer -->
+    {% include 'khaothi_app/_shared/_footer.html' %}
 </body>
 </html>

@@ -13,6 +13,27 @@
             </button>
         </div>
     </div>
-    <button id="nav-btn-phan-cong" class="nav-btn px-6 py-3 text-sm font-semibold border-r border-red-800 border-b-4 border-transparent transition-colors hover:bg-red-800" onclick="navigate('view-phan-cong')">Phân công Chấm thi</button>
-    <button id="nav-btn-nhap-tra-diem" class="nav-btn px-6 py-3 text-sm font-semibold border-r border-red-800 border-b-4 border-transparent transition-colors hover:bg-red-800" onclick="navigate('view-nhap-tra-diem')">Nhập & Trả điểm</button>
+    <div class="relative group">
+        <button id="nav-btn-phan-cong" class="nav-btn px-6 py-3 text-sm font-semibold border-r border-red-800 border-b-4 border-transparent flex items-center gap-2 transition-colors hover:bg-red-800" onclick="toggleDropdown('dropdown-phan-cong', event)">
+            Quản lý Phân công <i data-lucide="chevron-down" class="w-4 h-4" id="icon-phan-cong"></i>
+        </button>
+        <div id="dropdown-phan-cong" class="dropdown-menu hidden-view absolute top-full left-0 bg-white border border-gray-200 shadow-xl min-w-[270px] flex-col text-gray-800 rounded-b-md overflow-hidden animate-fade-in-down">
+            <button class="text-left px-5 py-3 text-sm hover:bg-gray-50 border-b border-gray-100 flex items-center gap-3 transition-colors font-semibold text-gray-700 cursor-pointer" onclick="navigatePhanCong('main')">
+                <i data-lucide="user-check" class="w-4 h-4 text-red-700"></i> Phân công Chấm thi học phần
+            </button>
+            <button class="text-left px-5 py-3 text-sm hover:bg-gray-50 flex items-center gap-3 transition-colors font-semibold text-gray-700 cursor-pointer" onclick="navigatePhanCong('pk')">
+                <i data-lucide="shield-alert" class="w-4 h-4 text-amber-600"></i> Phân công Chấm phúc khảo
+            </button>
+        </div>
+    </div>
+    <div class="relative group">
+        <button id="nav-btn-phe-duyet" class="nav-btn px-6 py-3 text-sm font-semibold border-r border-red-800 border-b-4 border-transparent flex items-center gap-2 transition-colors hover:bg-red-800" onclick="toggleDropdown('dropdown-phe-duyet', event)">
+            Quản lý Phê duyệt <i data-lucide="chevron-down" class="w-4 h-4" id="icon-phe-duyet"></i>
+        </button>
+        <div id="dropdown-phe-duyet" class="dropdown-menu hidden-view absolute top-full left-0 bg-white border border-gray-200 shadow-xl min-w-[250px] flex-col text-gray-800 rounded-b-md overflow-hidden animate-fade-in-down">
+            <button class="text-left px-5 py-3 text-sm hover:bg-gray-50 flex items-center gap-3 transition-colors font-semibold text-gray-700 cursor-pointer" onclick="navigate('view-nhap-tra-diem')">
+                <i data-lucide="award" class="w-4 h-4 text-red-600"></i> Phê duyệt Bảng điểm
+            </button>
+        </div>
+    </div>
 </nav>

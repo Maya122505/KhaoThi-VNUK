@@ -1,10 +1,8 @@
 <div id="view-tao-tui-bai" class="view-section hidden-view animate-fade-in">
     <div class="mb-6 border-b border-gray-200 pb-4">
-        <h2 class="text-2xl font-bold text-blue-900 mb-1 flex items-center gap-2">
+        <h2 class="text-2xl font-bold text-blue-900 flex items-center gap-2">
             <i data-lucide="folder-open" class="text-blue-600"></i> Tạo túi bài thi
         </h2>
-        <p class="text-sm text-gray-600">Gom nhóm các phòng thi chưa làm phách của cùng học phần. Hệ thống tự cắt túi
-            tối đa 60 bài/túi.</p>
     </div>
 
     <div class="flex gap-6">
@@ -36,6 +34,9 @@
                     </thead>
                     <tbody id="tao-tui-tbody" class="divide-y divide-gray-100"></tbody>
                 </table>
+            </div>
+            <div id="tao-tui-pagination" class="flex justify-between items-center px-4 py-3 border-t border-gray-200 text-xs text-gray-500 font-sans">
+                <!-- Phân trang tự động vẽ bằng JS -->
             </div>
             <div class="bg-gray-50 p-4 border-t border-gray-200 rounded-b-lg flex justify-between items-center">
                 <span class="text-sm text-gray-600">Đã chọn: <strong id="tao-tui-selected-count"

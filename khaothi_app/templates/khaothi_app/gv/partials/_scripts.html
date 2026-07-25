@@ -518,8 +518,8 @@
                 `<span class="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-[10px] font-bold">Chờ xác nhận</span>`;
 
             let btn = h.confirmed ?
-                `<span class="text-gray-400 italic text-[10px]">Đã xác nhận ký</span>` :
-                `<button onclick="confirmLichExecute(${idx})" class="bg-[#9e1c22] hover:bg-red-800 text-white font-bold px-3 py-1 rounded text-[10px] shadow transition-colors">KÝ XÁC NHẬN</button>`;
+                `<span class="text-gray-400 italic text-[10px]">Đã xác nhận</span>` :
+                `<button onclick="confirmLichExecute(${idx})" class="bg-[#9e1c22] hover:bg-red-800 text-white font-bold px-3 py-1 rounded text-[10px] shadow transition-colors">XÁC NHẬN</button>`;
 
             tbody.innerHTML += `
                 <tr class="hover:bg-gray-50 transition-colors text-xs">
@@ -540,7 +540,7 @@
         const cb = canBoCoiThiData.find(g => g.code === currentGvCode);
         if(cb && cb.history[idx]) {
             cb.history[idx].confirmed = true;
-            showGlobalToast("Xác nhận thành công", "Đã ký xác nhận ca trực coi thi điện tử thành công.");
+            showGlobalToast("Xác nhận thành công", "Đã xác nhận ca trực coi thi thành công.");
             saveStateToServer();
             renderLich();
         }
@@ -617,50 +617,59 @@
         });
     }
 
-    function saveTempPoint(phach, val) {
-        if(!tempScoring[activeTuiId]) tempScoring[activeTuiId] = {};
-        tempScoring[activeTuiId][phach] = parseFloat(val);
-    }
-
-    function submitGrading() {
+    async function submitGrading() {
         const t = tuiPhachData.find(x => x.id === activeTuiId);
-        if(!t) return;
+        if (!t) return;
 
         const role = t.grader1 === currentGvCode ? 1 : 2;
-        if(!t.scores) t.scores = {};
+        const phachList = t.phachGoc || Array.from({length: t.papers}, (_, i) => `P-1${String(i).padStart(2, '0')}`);
 
-        const phachList = t.phachGoc || Array.from({length: t.papers}, (_, i) => `PH${1000 + i}`);
-
+        let diem_data = [];
         phachList.forEach(ph => {
-            let ptVal = 7.5;
+            let ptVal = 7.5; // Giả lập dữ liệu default
             if(tempScoring[t.id] && tempScoring[t.id][ph] !== undefined) {
                 ptVal = tempScoring[t.id][ph];
             }
-
-            if(!t.scores[ph]) {
-                t.scores[ph] = { pt1: null, pt2: null, ptFinal: null };
-            }
-
-            if(role === 1) t.scores[ph].pt1 = ptVal;
-            else t.scores[ph].pt2 = ptVal;
-
-            if(t.scores[ph].pt1 !== null && t.scores[ph].pt2 !== null) {
-                t.scores[ph].ptFinal = (t.scores[ph].pt1 + t.scores[ph].pt2) / 2;
-            }
+            diem_data.push({
+                ma_phach: ph,
+                diem: ptVal
+            });
         });
 
-        const gradersDone = phachList.every(ph => t.scores[ph].pt1 !== null && t.scores[ph].pt2 !== null);
-        if(gradersDone) {
-            t.status = "Đã đối chiếu hợp lệ";
+        try {
+            const response = await fetch('/gv/api/nop-diem/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    tui_phach: t.id,
+                    lan_cham: role,
+                    diem_data: diem_data
+                })
+            });
+
+            if (!response.ok) throw new Error('Network response was not ok');
+
+            showGlobalToast("Xác nhận bảng điểm thành công", `Đã lưu và xác nhận điểm chấm của túi phách ${t.id}.`);
+            
+            if (typeof loadStateFromServer === 'function') {
+                await loadStateFromServer();
+            }
+
+            document.getElementById('entry-panel-form').classList.add('hidden-view');
+            document.getElementById('entry-panel-empty').classList.remove('hidden-view');
+            activeTuiId = "";
+            renderChamThi();
+        } catch (error) {
+            showGlobalToast("Lỗi", "Không thể nộp điểm", "error");
         }
+    }
 
-        showGlobalToast("Ký bảng điểm thành công", `Đã lưu và ký số xác nhận điểm chấm của túi phách ${t.id}.`);
-        saveStateToServer();
-
-        document.getElementById('entry-panel-form').classList.add('hidden-view');
-        document.getElementById('entry-panel-empty').classList.remove('hidden-view');
-        activeTuiId = "";
-        renderChamThi();
+    function saveTempPoint(phach, val) {
+        if(!tempScoring[activeTuiId]) tempScoring[activeTuiId] = {};
+        tempScoring[activeTuiId][phach] = parseFloat(val);
     }
 
     function showGlobalToast(title, msg, type = 'success') {

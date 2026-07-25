@@ -1,22 +1,27 @@
-<div id="view-nhap-doi-chieu" class="view-section hidden-view max-w-4xl mx-auto animate-fade-in mt-4">
+<div id="view-nhap-doi-chieu" class="view-section hidden-view max-w-4xl mx-auto w-full animate-fade-in mt-4">
     <div class="text-center mb-6">
-        <h2 class="text-3xl font-bold text-[#9e1c22] mb-1 flex justify-center items-center gap-2">
-            <i data-lucide="file-check-2" class="w-7 h-7"></i> Nhập Đối chiếu mã phách
+        <h2 class="text-2xl font-bold text-[#9e1c22] mb-1 flex justify-center items-center gap-2">
+            <i data-lucide="file-check-2" class="w-6 h-6"></i> Nhập Đối chiếu mã phách
         </h2>
     </div>
 
-    <div class="bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
-        <div id="ndc-step1" class="p-5 border-b border-gray-200 flex gap-4 bg-white items-center">
-            <div class="relative flex-1">
-                <i data-lucide="key" class="absolute left-3 top-3.5 text-gray-400 w-5 h-5"></i>
-                <input type="text" id="ndc-search-id" placeholder="Nhập chính xác Mã túi phách (VD: TP-ENG101-001)"
-                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded text-base font-mono focus:border-red-800 outline-none" />
+    <div class="bg-white border border-gray-200 rounded-xl shadow-md overflow-hidden">
+        <div id="ndc-step1" class="p-5 border-b border-gray-200 bg-white">
+            <div class="flex items-center w-full shadow-xs">
+                <div class="relative flex-1">
+                    <i data-lucide="key" class="absolute left-3.5 top-3.5 text-gray-400 w-4 h-4"></i>
+                    <input type="text" id="ndc-search-id" placeholder="Nhập chính xác Mã túi phách (VD: TP-ENG101-001)"
+                        onkeydown="if(event.key==='Enter') handleSearchDoiChieuTui()"
+                        class="w-full pl-10 pr-4 py-2.5 border border-r-0 border-gray-300 rounded-l-lg text-sm font-mono focus:border-[#9e1c22] outline-none" />
+                </div>
+                <button onclick="handleSearchDoiChieuTui()"
+                    class="bg-[#9e1c22] text-white px-7 py-2.5 rounded-r-lg font-bold hover:bg-red-800 transition-colors shrink-0 text-sm flex items-center gap-2 border border-[#9e1c22]">
+                    <i data-lucide="search" class="w-4 h-4"></i> Tìm kiếm
+                </button>
             </div>
-            <button onclick="handleSearchDoiChieuTui()"
-                class="bg-[#9e1c22] text-white px-8 py-3 rounded font-bold hover:bg-red-800 shadow">Tìm kiếm</button>
         </div>
 
-        <div id="ndc-step2" class="hidden-view p-6 animate-fade-in bg-white">
+        <div id="ndc-step2" class="hidden-view p-5 animate-fade-in bg-white">
             <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
                 <h3 class="font-bold text-gray-800 text-sm">NHẬP PHÁCH THỰC TẾ TRÊN TỜ GIẤY THI CỦA TÚI: <span
                         id="ndc-active-id" class="text-blue-900 font-mono text-base font-bold">--</span></h3>
@@ -34,17 +39,32 @@
 
             <div id="ndc-success"
                 class="hidden-view bg-green-50 text-green-800 p-4 rounded border border-green-200 mb-4 flex items-start gap-3 animate-fade-in">
-                <i data-lucide="check-circle-2" class="shrink-0 w-5 h-5 mt-0.5"></i>
+                <i data-lucide="check-circle-2" class="shrink-0 w-5 h-5 mt-0.5 text-green-600"></i>
                 <div>
-                    <h4 class="font-bold">Dữ liệu khớp 100%</h4>
-                    <p class="text-xs mt-0.5">Dữ liệu hợp lệ. Vui lòng chuyển sang chức năng [Khóa danh sách mã phách]
-                        để niêm phong túi bài thi.</p>
+                    <h4 class="font-bold text-green-900">Dữ liệu khớp 100%</h4>
+                    <p class="text-xs mt-1 text-green-800">Dữ liệu hợp lệ. Vui lòng chuyển sang chức năng 
+                        <button onclick="navigateToKhoaPhachFromDoiChieu()" type="button" class="inline-flex items-center gap-1 text-blue-700 hover:text-blue-900 font-bold underline cursor-pointer bg-transparent border-0 p-0 text-xs transition-colors">
+                            [Khóa danh sách mã phách] <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i>
+                        </button> 
+                        để niêm phong túi bài thi.
+                    </p>
                 </div>
             </div>
 
             <div
-                class="bg-gray-50 border border-gray-200 p-4 pr-6 rounded-lg mb-6 max-h-[280px] overflow-y-auto overflow-x-hidden">
-                <div class="grid grid-cols-3 gap-4" id="ndc-inputs-grid"></div>
+                class="bg-white border border-gray-200 rounded-xl mb-6 max-h-[460px] overflow-y-auto shadow-inner">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead class="sticky top-0 bg-gray-100 border-b border-gray-200 text-gray-700 font-bold uppercase tracking-wider z-10 whitespace-nowrap">
+                        <tr>
+                            <th class="px-4 py-3 text-center w-12 whitespace-nowrap">STT</th>
+                            <th class="px-4 py-3 w-32 whitespace-nowrap">Số báo danh</th>
+                            <th class="px-4 py-3 w-32 whitespace-nowrap">Mã sinh viên</th>
+                            <th class="px-4 py-3 whitespace-nowrap">Họ và tên thí sinh</th>
+                            <th class="px-4 py-3 text-center w-48 whitespace-nowrap">Mã phách giấy thi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ndc-inputs-grid" class="divide-y divide-gray-100 bg-white"></tbody>
+                </table>
             </div>
 
             <div class="flex gap-4 border-t border-gray-100 pt-4">

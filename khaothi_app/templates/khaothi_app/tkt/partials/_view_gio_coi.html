@@ -1,10 +1,8 @@
 <div id="view-gio-coi" class="view-section hidden-view w-full h-full animate-fade-in flex flex-col">
     <div class="flex justify-between items-end mb-6 border-b border-gray-200 pb-4">
         <div>
-            <h2 class="text-2xl font-bold text-blue-900 mb-1 flex items-center gap-2"><i data-lucide="shield-check"
+            <h2 class="text-2xl font-bold text-blue-900 flex items-center gap-2"><i data-lucide="shield-check"
                     class="w-6 h-6 text-blue-600"></i> Quản lý Cán bộ coi thi</h2>
-            <p class="text-sm text-gray-600">Phân công giám thị, theo dõi xác nhận lịch coi thi và tổng hợp giờ coi thi
-                thanh toán thù lao [UC 6].</p>
         </div>
     </div>
 
@@ -69,7 +67,7 @@
                     <i data-lucide="alert-triangle" class="w-4 h-4 text-red-600 shrink-0 mt-0.5 animate-bounce"></i>
                     <div>
                         <p class="font-bold">Không thể xuất báo cáo!</p>
-                        <p class="mt-0.5">Phát hiện ca coi thi chưa được Giảng viên ký xác nhận lịch trực. Vui lòng hoàn
+                        <p class="mt-0.5">Phát hiện ca coi thi chưa được Giảng viên xác nhận lịch trực. Vui lòng hoàn
                             tất xác nhận lịch để làm căn cứ thanh toán.</p>
                     </div>
                 </div>
@@ -81,17 +79,19 @@
                         <label class="block font-bold text-gray-600 uppercase mb-0.5">Chọn Học kỳ:</label>
                         <select id="gc-filter-hocky" onchange="filterGioCoiData()"
                             class="w-full p-1.5 border border-gray-300 rounded bg-white outline-none">
-                            <option value="Học kỳ III">Học kỳ III (2025-2026)</option>
-                            <option value="Học kỳ II">Học kỳ II (2025-2026)</option>
+                            <option value="">Tất cả học kỳ</option>
                             <option value="Học kỳ I">Học kỳ I (2025-2026)</option>
+                            <option value="Học kỳ II">Học kỳ II (2025-2026)</option>
+                            <option value="Học kỳ III">Học kỳ III (2025-2026)</option>
                         </select>
                     </div>
                     <div>
                         <label class="block font-bold text-gray-600 uppercase mb-0.5">Chọn Kỳ thi:</label>
                         <select id="gc-filter-kythi" onchange="filterGioCoiData()"
                             class="w-full p-1.5 border border-gray-300 rounded bg-white outline-none">
-                            <option value="Kỳ thi Cuối kỳ học kỳ III">Kỳ thi Cuối kỳ học kỳ III</option>
-                            <option value="Kỳ thi Giữa kỳ học kỳ III">Kỳ thi Giữa kỳ học kỳ III</option>
+                            <option value="">Tất cả kỳ thi</option>
+                            <option value="Kỳ thi Cuối kỳ">Kỳ thi Cuối kỳ</option>
+                            <option value="Kỳ thi Giữa kỳ">Kỳ thi Giữa kỳ</option>
                         </select>
                     </div>
                     <div>

@@ -86,32 +86,46 @@
         if(targetView) targetView.classList.remove('hidden-view');
         sessionStorage.setItem('cvht_activeViewId', viewId);
 
-        document.querySelectorAll('.nav-btn').forEach(btn => btn.className = "nav-btn px-6 py-3 text-sm font-semibold border-r border-red-800 transition-colors hover:bg-red-800");
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.classList.remove('bg-[#801418]', 'border-[#005691]', 'font-bold');
+            btn.classList.add('border-transparent');
+        });
 
         activeViewId = viewId;
+        const activeBtnMap = {
+            'view-home': 'nav-btn-home',
+            'view-danh-muc': 'nav-btn-danh-muc',
+            'view-cau-hinh': 'nav-btn-cau-hinh'
+        };
+        const activeBtn = document.getElementById(activeBtnMap[viewId]);
+        if (activeBtn) {
+            activeBtn.classList.remove('border-transparent');
+            activeBtn.classList.add('bg-[#801418]', 'border-[#005691]', 'font-bold');
+        }
+
         if(viewId === 'view-home') {
-            document.getElementById('nav-btn-home').className += " bg-red-800";
             renderLogs();
         } else if(viewId === 'view-danh-muc') {
-            document.getElementById('nav-btn-danh-muc').className += " bg-red-800";
             renderDanhMuc();
         } else if(viewId === 'view-cau-hinh') {
-            document.getElementById('nav-btn-cau-hinh').className += " bg-red-800";
-            populateConfigSubjects();
-            document.getElementById('config-type-selector').value = "nhap_diem_hp";
-            switchConfigType("nhap_diem_hp");
+            const selector = document.getElementById('config-type-selector');
+            if (selector) {
+                selector.value = "nhap_diem_hp";
+                switchConfigType("nhap_diem_hp");
+            }
         }
         initIcons();
     }
+    window.navigate = navigate;
 
     function switchConfigType(val) {
         document.querySelectorAll('.config-sub-view').forEach(el => el.classList.add('hidden-view'));
         if(val === 'nhap_diem_hp') {
             document.getElementById('config-area-nhap-diem-hp').classList.remove('hidden-view');
-            loadSubjectConfigNhapDiem(document.getElementById('config-nd-subject').value);
+            loadConfigNhapDiem();
         } else if(val === 'phuc_khao') {
             document.getElementById('config-area-phuc-khao').classList.remove('hidden-view');
-            loadSubjectConfigPhucKhao(document.getElementById('config-pk-subject').value);
+            loadConfigPhucKhao();
         } else if(val === 'nop_de') {
             document.getElementById('config-area-nop-de').classList.remove('hidden-view');
         } else if(val === 'nhap_thanh_phan') {
@@ -125,6 +139,7 @@
         }
         initIcons();
     }
+    window.switchConfigType = switchConfigType;
 
     function renderLogs() {
         const tbody = document.getElementById('logs-tbody');
@@ -150,21 +165,105 @@
         });
     }
 
-    function loadSubjectConfigNhapDiem(subId) {
-        const cfg = systemConfigsData.nhapDiem?.[subId] || { start: "", end: "", publish: "" };
-        document.getElementById('config-nd-start').value = cfg.start || "";
-        document.getElementById('config-nd-end').value = cfg.end || "";
-        document.getElementById('config-nd-publish').value = cfg.publish || "";
-        validateNhapDiemDates();
-    }
+    function loadConfigNhapDiem() {
+        const namHoc = document.getElementById('config-nd-namhoc')?.value || '2025-2026';
+        const hocKy = document.getElementById('config-nd-hocky')?.value || 'Học kỳ I';
+        const dotThi = document.getElementById('config-nd-dotthi')?.value || 'Đợt 1';
+        const key = `${namHoc}_${hocKy}_${dotThi}`;
 
-    function loadSubjectConfigPhucKhao(subId) {
-        const cfg = systemConfigsData.phucKhao?.[subId] || { start: "", end: "", deadline: "" };
-        document.getElementById('config-pk-start').value = cfg.start || "";
-        document.getElementById('config-pk-end').value = cfg.end || "";
-        document.getElementById('config-pk-deadline').value = cfg.deadline || "";
-        validatePhucKhaoDates();
+        const cfg = systemConfigsData.nhapDiem?.[key];
+        const startEl = document.getElementById('config-nd-start');
+        const endEl = document.getElementById('config-nd-end');
+        const publishEl = document.getElementById('config-nd-publish');
+
+        const btnSave = document.getElementById('btn-save-nd');
+        const btnEdit = document.getElementById('btn-edit-nd');
+
+        if (cfg && cfg.start) {
+            startEl.value = cfg.start;
+            endEl.value = cfg.end;
+            publishEl.value = cfg.publish;
+
+            [startEl, endEl, publishEl].forEach(el => {
+                if (el) {
+                    el.setAttribute('disabled', 'true');
+                    el.classList.add('bg-gray-100', 'cursor-not-allowed');
+                }
+            });
+            if (btnSave) {
+                btnSave.classList.add('opacity-50', 'cursor-not-allowed');
+                btnSave.setAttribute('disabled', 'true');
+            }
+            if (btnEdit) btnEdit.classList.remove('hidden-view');
+        } else {
+            startEl.value = "";
+            endEl.value = "";
+            publishEl.value = "";
+
+            [startEl, endEl, publishEl].forEach(el => {
+                if (el) {
+                    el.removeAttribute('disabled');
+                    el.classList.remove('bg-gray-100', 'cursor-not-allowed');
+                }
+            });
+            if (btnSave) {
+                btnSave.classList.remove('opacity-50', 'cursor-not-allowed');
+                btnSave.removeAttribute('disabled');
+            }
+            if (btnEdit) btnEdit.classList.add('hidden-view');
+        }
     }
+    window.loadConfigNhapDiem = loadConfigNhapDiem;
+
+    function loadConfigPhucKhao() {
+        const namHoc = document.getElementById('config-pk-namhoc')?.value || '2025-2026';
+        const hocKy = document.getElementById('config-pk-hocky')?.value || 'Học kỳ I';
+        const dotThi = document.getElementById('config-pk-dotthi')?.value || 'Đợt 1';
+        const key = `${namHoc}_${hocKy}_${dotThi}`;
+
+        const cfg = systemConfigsData.phucKhao?.[key];
+        const startEl = document.getElementById('config-pk-start');
+        const endEl = document.getElementById('config-pk-end');
+        const deadlineEl = document.getElementById('config-pk-deadline');
+
+        const btnSave = document.getElementById('btn-save-pk');
+        const btnEdit = document.getElementById('btn-edit-pk');
+
+        if (cfg && cfg.start) {
+            startEl.value = cfg.start;
+            endEl.value = cfg.end;
+            deadlineEl.value = cfg.deadline;
+
+            [startEl, endEl, deadlineEl].forEach(el => {
+                if (el) {
+                    el.setAttribute('disabled', 'true');
+                    el.classList.add('bg-gray-100', 'cursor-not-allowed');
+                }
+            });
+            if (btnSave) {
+                btnSave.classList.add('opacity-50', 'cursor-not-allowed');
+                btnSave.setAttribute('disabled', 'true');
+            }
+            if (btnEdit) btnEdit.classList.remove('hidden-view');
+        } else {
+            startEl.value = "";
+            endEl.value = "";
+            deadlineEl.value = "";
+
+            [startEl, endEl, deadlineEl].forEach(el => {
+                if (el) {
+                    el.removeAttribute('disabled');
+                    el.classList.remove('bg-gray-100', 'cursor-not-allowed');
+                }
+            });
+            if (btnSave) {
+                btnSave.classList.remove('opacity-50', 'cursor-not-allowed');
+                btnSave.removeAttribute('disabled');
+            }
+            if (btnEdit) btnEdit.classList.add('hidden-view');
+        }
+    }
+    window.loadConfigPhucKhao = loadConfigPhucKhao;
 
     function validateNhapDiemDates() {
         const start = document.getElementById('config-nd-start').value;
@@ -222,45 +321,205 @@
     }
 
     function saveConfigNhapDiem() {
+        const startEl = document.getElementById('config-nd-start');
+        const endEl = document.getElementById('config-nd-end');
+        const publishEl = document.getElementById('config-nd-publish');
+
+        if (!startEl?.value || !endEl?.value || !publishEl?.value) {
+            showGlobalToast("Cảnh báo", "Vui lòng nhập đầy đủ tất cả các mốc thời gian trước khi lưu cấu hình!", "error");
+            return;
+        }
+
         if (!validateNhapDiemDates()) return;
-        const subId = document.getElementById('config-nd-subject').value;
+
+        const namHoc = document.getElementById('config-nd-namhoc')?.value || '2025-2026';
+        const hocKy = document.getElementById('config-nd-hocky')?.value || 'Học kỳ I';
+        const dotThi = document.getElementById('config-nd-dotthi')?.value || 'Đợt 1';
+        const key = `${namHoc}_${hocKy}_${dotThi}`;
 
         if(!systemConfigsData.nhapDiem) systemConfigsData.nhapDiem = {};
-        systemConfigsData.nhapDiem[subId] = {
-            start: document.getElementById('config-nd-start').value,
-            end: document.getElementById('config-nd-end').value,
-            publish: document.getElementById('config-nd-publish').value
+        systemConfigsData.nhapDiem[key] = {
+            start: startEl.value,
+            end: endEl.value,
+            publish: publishEl.value
         };
 
-        showGlobalToast("Lưu cấu hình", `Đã lưu cấu hình thời gian nhập & công bố điểm cho học phần ${subId}.`);
-        saveStateToServer();
+        // Lock inputs & toggle buttons
+        [startEl, endEl, publishEl].forEach(el => {
+            el.setAttribute('disabled', 'true');
+            el.classList.add('bg-gray-100', 'cursor-not-allowed');
+        });
+
+        const btnSave = document.getElementById('btn-save-nd');
+        const btnEdit = document.getElementById('btn-edit-nd');
+        if (btnSave) {
+            btnSave.classList.add('opacity-50', 'cursor-not-allowed');
+            btnSave.setAttribute('disabled', 'true');
+        }
+        if (btnEdit) btnEdit.classList.remove('hidden-view');
+
+        try {
+            const response = await fetch('/cvht/api/configs/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    systemConfigsData: systemConfigsData,
+                    systemGlobals: systemGlobals
+                })
+            });
+            if (!response.ok) throw new Error('Network response was not ok');
+            showGlobalToast("Lưu cấu hình", `Đã lưu thành công & khóa chỉnh sửa cấu hình ${hocKy} (${namHoc} - ${dotThi}).`);
+        } catch (error) {
+            showGlobalToast("Lỗi", "Không thể lưu cấu hình hệ thống", "error");
+        }
     }
+
+    function editConfigNhapDiem() {
+        const startEl = document.getElementById('config-nd-start');
+        const endEl = document.getElementById('config-nd-end');
+        const publishEl = document.getElementById('config-nd-publish');
+
+        [startEl, endEl, publishEl].forEach(el => {
+            if (el) {
+                el.removeAttribute('disabled');
+                el.classList.remove('bg-gray-100', 'cursor-not-allowed');
+            }
+        });
+
+        const btnSave = document.getElementById('btn-save-nd');
+        const btnEdit = document.getElementById('btn-edit-nd');
+        if (btnSave) {
+            btnSave.classList.remove('opacity-50', 'cursor-not-allowed');
+            btnSave.removeAttribute('disabled');
+        }
+        if (btnEdit) btnEdit.classList.add('hidden-view');
+
+        showGlobalToast("Thông báo", "Đã mở khóa. Bạn có thể thay đổi mốc thời gian và bấm 'Lưu cấu hình'.");
+    }
+    window.editConfigNhapDiem = editConfigNhapDiem;
 
     function saveConfigPhucKhao() {
+        const startEl = document.getElementById('config-pk-start');
+        const endEl = document.getElementById('config-pk-end');
+        const deadlineEl = document.getElementById('config-pk-deadline');
+
+        if (!startEl?.value || !endEl?.value || !deadlineEl?.value) {
+            showGlobalToast("Cảnh báo", "Vui lòng nhập đầy đủ tất cả các mốc thời gian nhận đơn, khóa cổng và hạn chấm phúc khảo!", "error");
+            return;
+        }
+
         if (!validatePhucKhaoDates()) return;
-        const subId = document.getElementById('config-pk-subject').value;
+
+        const namHoc = document.getElementById('config-pk-namhoc')?.value || '2025-2026';
+        const hocKy = document.getElementById('config-pk-hocky')?.value || 'Học kỳ I';
+        const dotThi = document.getElementById('config-pk-dotthi')?.value || 'Đợt 1';
+        const key = `${namHoc}_${hocKy}_${dotThi}`;
 
         if(!systemConfigsData.phucKhao) systemConfigsData.phucKhao = {};
-        systemConfigsData.phucKhao[subId] = {
-            start: document.getElementById('config-pk-start').value,
-            end: document.getElementById('config-pk-end').value,
-            deadline: document.getElementById('config-pk-deadline').value
+        systemConfigsData.phucKhao[key] = {
+            start: startEl.value,
+            end: endEl.value,
+            deadline: deadlineEl.value
         };
 
-        showGlobalToast("Lưu cấu hình", `Đã lưu cấu hình thời gian phúc khảo cho học phần ${subId}.`);
-        saveStateToServer();
+        // Lock inputs & toggle buttons
+        [startEl, endEl, deadlineEl].forEach(el => {
+            el.setAttribute('disabled', 'true');
+            el.classList.add('bg-gray-100', 'cursor-not-allowed');
+        });
+
+        const btnSave = document.getElementById('btn-save-pk');
+        const btnEdit = document.getElementById('btn-edit-pk');
+        if (btnSave) {
+            btnSave.classList.add('opacity-50', 'cursor-not-allowed');
+            btnSave.setAttribute('disabled', 'true');
+        }
+        if (btnEdit) btnEdit.classList.remove('hidden-view');
+
+        try {
+            const response = await fetch('/cvht/api/configs/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    systemConfigsData: systemConfigsData,
+                    systemGlobals: systemGlobals
+                })
+            });
+            if (!response.ok) throw new Error('Network response was not ok');
+            showGlobalToast("Lưu cấu hình", `Đã lưu thành công & khóa chỉnh sửa cấu hình phúc khảo ${hocKy} (${namHoc} - ${dotThi}).`);
+        } catch (error) {
+            showGlobalToast("Lỗi", "Không thể lưu cấu hình hệ thống", "error");
+        }
     }
+
+    function editConfigPhucKhao() {
+        const startEl = document.getElementById('config-pk-start');
+        const endEl = document.getElementById('config-pk-end');
+        const deadlineEl = document.getElementById('config-pk-deadline');
+
+        [startEl, endEl, deadlineEl].forEach(el => {
+            if (el) {
+                el.removeAttribute('disabled');
+                el.classList.remove('bg-gray-100', 'cursor-not-allowed');
+            }
+        });
+
+        const btnSave = document.getElementById('btn-save-pk');
+        const btnEdit = document.getElementById('btn-edit-pk');
+        if (btnSave) {
+            btnSave.classList.remove('opacity-50', 'cursor-not-allowed');
+            btnSave.removeAttribute('disabled');
+        }
+        if (btnEdit) btnEdit.classList.add('hidden-view');
+
+        showGlobalToast("Thông báo", "Đã mở khóa. Bạn có thể thay đổi mốc thời gian và bấm 'Lưu cấu hình'.");
+    }
+    window.editConfigPhucKhao = editConfigPhucKhao;
+
+    function renderLogs() {
+        const tbody = document.getElementById('dash-audit-logs-tbody');
+        const countEl = document.getElementById('dash-log-count');
+        if (!tbody) return;
+
+        const defaultLogs = [
+            { timestamp: '2026-07-22 19:35:12', actor: 'cvht01 (Nguyễn Văn Quản Trị)', action: 'Lưu cấu hình mốc thời gian nhập điểm Học kỳ I (2025-2026 - Đợt 1)', ip: '192.168.1.10' },
+            { timestamp: '2026-07-22 18:20:45', actor: 'tkt01 (Lê Thị Thu)', action: 'Duyệt đợt rút phách & gộp 4 bài thi cho đơn PK001', ip: '192.168.1.15' },
+            { timestamp: '2026-07-22 17:15:30', actor: 'gv002 (Trần Thị B)', action: 'Ký xác nhận lịch trực giám thị ca 2 phòng P.301', ip: '192.168.1.22' },
+            { timestamp: '2026-07-22 15:40:00', actor: 'system (Tự động)', action: 'Kiểm tra trạng thái đối soát dữ liệu & đồng bộ CSDL', ip: '127.0.0.1' }
+        ];
+
+        const logsToRender = (auditLogsData && auditLogsData.length > 0) ? auditLogsData : defaultLogs;
+        if (countEl) countEl.innerText = `${logsToRender.length} sự kiện`;
+
+        tbody.innerHTML = '';
+        logsToRender.forEach(log => {
+            tbody.innerHTML += `
+                <tr class="hover:bg-gray-50 border-b border-gray-100">
+                    <td class="px-4 py-3 font-mono font-bold text-gray-700">${log.timestamp || log.time || '2026-07-22 19:00'}</td>
+                    <td class="px-4 py-3 font-semibold text-blue-900">${log.actor || log.user || 'Admin'}</td>
+                    <td class="px-4 py-3 text-gray-800">${log.action || log.content || 'Đăng nhập hệ thống'}</td>
+                    <td class="px-4 py-3 text-center font-mono text-gray-500">${log.ip || '127.0.0.1'}</td>
+                </tr>
+            `;
+        });
+    }
+    window.renderLogs = renderLogs;
 
     function clearSystemLogs() {
         if(confirm("Bạn có chắc chắn muốn xóa toàn bộ lịch sử nhật ký hệ thống?")) {
             auditLogsData = [];
-            showGlobalToast("Xóa nhật ký", "Đã xóa toàn bộ nhật ký sự kiện hệ thống.");
-            saveStateToServer();
+            showGlobalToast("Xóa nhật ký", "Đã xóa toàn bộ nhật ký sự kiện hệ thống trên giao diện.");
             renderLogs();
         }
     }
 
-    function toggleSystemLock() {
+    async function toggleSystemLock() {
         isSystemLocked = !isSystemLocked;
         const btn = document.getElementById('btn-lock-system');
         const text = document.getElementById('system-lock-text');
@@ -277,6 +536,24 @@
             text.innerText = "● HỆ THỐNG ĐANG MỞ (OPERATIONAL)";
             text.className = "text-green-600 font-mono font-bold text-[10px] block mt-0.5";
             showGlobalToast("Mở hệ thống", "Hệ thống đã phục hồi trạng thái hoạt động bình thường.");
+        }
+
+        systemGlobals.isSystemLocked = isSystemLocked;
+        
+        try {
+            await fetch('/cvht/api/configs/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    systemConfigsData: systemConfigsData,
+                    systemGlobals: systemGlobals
+                })
+            });
+        } catch (error) {
+            console.error("Lỗi khi lưu trạng thái khóa:", error);
         }
     }
 

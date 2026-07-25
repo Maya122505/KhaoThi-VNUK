@@ -94,7 +94,7 @@
         let activeBtnId = 'nav-btn-home';
         if (viewId.includes('giao-nhan') || viewId.includes('nhan-bai') || viewId.includes('ban-giao-bai')) activeBtnId = 'nav-btn-giao-nhan';
         else if (viewId === 'view-phan-cong') activeBtnId = 'nav-btn-phan-cong';
-        else if (viewId === 'view-nhap-tra-diem') activeBtnId = 'nav-btn-nhap-tra-diem';
+        else if (viewId === 'view-nhap-tra-diem') activeBtnId = 'nav-btn-phe-duyet';
 
         const activeBtn = document.getElementById(activeBtnId);
         if (activeBtn) {
@@ -108,12 +108,732 @@
             if (viewId === 'view-nhan-bai') hideDvcmGnDetailNhan();
             renderGiaoNhan();
         } else if(viewId === 'view-phan-cong') {
-            renderPhanCong();
+            switchPhanCongSubTab('main');
         } else if(viewId === 'view-nhap-tra-diem') {
             renderNhapTraDiem();
         }
         initIcons();
     }
+
+    function navigatePhanCong(subType = 'main') {
+        closeAllDropdowns();
+        navigate('view-phan-cong');
+        switchPhanCongSubTab(subType);
+    }
+    window.navigatePhanCong = navigatePhanCong;
+
+    function switchPhanCongSubTab(tab) {
+        document.querySelectorAll('.sub-pc-view').forEach(el => el.classList.add('hidden-view'));
+        const titleEl = document.getElementById('phan-cong-title-text');
+
+        if (tab === 'main') {
+            document.getElementById('sub-pc-main')?.classList.remove('hidden-view');
+            if (titleEl) {
+                titleEl.innerHTML = `<i data-lucide="user-check" class="text-[#9e1c22]"></i> Quản lý Phân công Chấm thi kết thúc học phần`;
+            }
+            renderPhanCong();
+        } else {
+            document.getElementById('sub-pc-pk')?.classList.remove('hidden-view');
+            if (titleEl) {
+                titleEl.innerHTML = `<i data-lucide="shield-alert" class="text-amber-700"></i> Quản lý Phân công Chấm Phúc khảo`;
+            }
+            renderPhanCongPhucKhao();
+        }
+        initIcons();
+    }
+    window.switchPhanCongSubTab = switchPhanCongSubTab;
+
+    let selectedMainTuiIds = new Set();
+    let selectedPkIds = new Set();
+    let currentAssignMode = 'main'; // 'main' or 'pk'
+
+    // ================================================================
+    // SELECTION & BATCH HANDLING FOR MAIN PHÂN CÔNG
+    // ================================================================
+    function toggleSelectMainTui(tuiId) {
+        if (selectedMainTuiIds.has(tuiId)) {
+            selectedMainTuiIds.delete(tuiId);
+        } else {
+            selectedMainTuiIds.add(tuiId);
+        }
+        renderPhanCong();
+    }
+    window.toggleSelectMainTui = toggleSelectMainTui;
+
+    function toggleSelectAllMain(chkHeader) {
+        const keyword = (document.getElementById('filter-main-search')?.value || '').toLowerCase().trim();
+        const statusVal = document.getElementById('filter-main-status')?.value || 'all';
+
+        let filtered = tuiPhachData.filter(t => {
+            const matchKw = !keyword || (t.subjectName || '').toLowerCase().includes(keyword) || (t.id || '').toLowerCase().includes(keyword);
+            const isAssigned = !!t.grader1;
+            let matchSt = true;
+            if (statusVal === 'chua_phan_cong') matchSt = !isAssigned;
+            if (statusVal === 'da_phan_cong') matchSt = isAssigned;
+            return matchKw && matchSt;
+        });
+
+        if (chkHeader.checked) {
+            filtered.forEach(t => selectedMainTuiIds.add(t.id));
+        } else {
+            filtered.forEach(t => selectedMainTuiIds.delete(t.id));
+        }
+        renderPhanCong();
+    }
+    window.toggleSelectAllMain = toggleSelectAllMain;
+
+    function clearBatchMainSelection() {
+        selectedMainTuiIds.clear();
+        const headerChk = document.getElementById('select-all-main-tui');
+        if (headerChk) headerChk.checked = false;
+        renderPhanCong();
+    }
+    window.clearBatchMainSelection = clearBatchMainSelection;
+
+    function updateBatchMainUI() {
+        const badge = document.getElementById('panel-main-badge');
+        const emptyState = document.getElementById('panel-main-empty');
+        const activeState = document.getElementById('panel-main-active');
+        const chipsContainer = document.getElementById('panel-main-chips');
+        const papersSpan = document.getElementById('panel-main-papers-count');
+
+        if (!badge || !emptyState || !activeState) return;
+
+        const count = selectedMainTuiIds.size;
+        badge.innerText = `Đã chọn ${count} túi`;
+
+        if (count > 0) {
+            emptyState.classList.add('hidden-view');
+            activeState.classList.remove('hidden-view');
+
+            const selectedList = tuiPhachData.filter(x => selectedMainTuiIds.has(x.id));
+            let totalPapers = selectedList.reduce((sum, item) => sum + (item.papers || 0), 0);
+
+            if (papersSpan) papersSpan.innerText = `(${totalPapers} bài thi)`;
+
+            if (chipsContainer) {
+                chipsContainer.innerHTML = selectedList.map(t => `
+                    <span class="bg-white border border-red-200 text-[#9e1c22] font-mono font-bold px-2 py-0.5 rounded-md text-[11px] shadow-xs flex items-center gap-1">
+                        ${t.id} (${t.papers}b)
+                        <button onclick="removeMainTuiFromBatch('${t.id}')" class="text-gray-400 hover:text-red-700 font-extrabold text-xs ml-0.5" title="Bỏ túi này">✕</button>
+                    </span>
+                `).join('');
+            }
+            populateGvPanelMain();
+        } else {
+            emptyState.classList.remove('hidden-view');
+            activeState.classList.add('hidden-view');
+        }
+    }
+
+    function populateGvPanelMain() {
+        const datalist = document.getElementById('gv-datalist-main');
+        if (!datalist) return;
+        datalist.innerHTML = '';
+
+        let gvBagCounts = {};
+        tuiPhachData.forEach(t => {
+            if (t.grader1) gvBagCounts[t.grader1] = (gvBagCounts[t.grader1] || 0) + 1;
+        });
+
+        canBoCoiThiData.forEach(g => {
+            const count = gvBagCounts[g.id] || 0;
+            const countBadge = count > 0 ? `(Đang chấm ${count} túi)` : '(Chưa phụ trách túi nào)';
+            datalist.innerHTML += `<option value="${g.name} - ${g.id} ${countBadge}"></option>`;
+        });
+    }
+
+    function triggerSaveFromPanelMain() {
+        const inputVal = (document.getElementById('select-gv-panel-main')?.value || '').trim();
+
+        if (!inputVal) {
+            showGlobalToast("Cảnh báo", "Vui lòng chọn hoặc gõ tên Giảng viên phụ trách", "warning");
+            return;
+        }
+
+        const gvObj = canBoCoiThiData.find(g => 
+            inputVal.includes(g.id) || 
+            inputVal.toLowerCase().includes(g.name.toLowerCase()) || 
+            g.name.toLowerCase().includes(inputVal.toLowerCase())
+        );
+
+        if (!gvObj) {
+            showGlobalToast("Lỗi", "Không tìm thấy Giảng viên hợp lệ trong hệ thống", "error");
+            return;
+        }
+
+        const count = selectedMainTuiIds.size;
+        openConfirmModal(
+            `Xác nhận phân công (${count} túi bài thi)`,
+            `Bạn có chắc chắn muốn phân công ${count} túi bài thi đã chọn cho Giảng viên ${gvObj.name} (${gvObj.id}) không?`,
+            () => executeSaveAssignMain(gvObj.id)
+        );
+    }
+    window.triggerSaveFromPanelMain = triggerSaveFromPanelMain;
+
+    function removeMainTuiFromBatch(tuiId) {
+        selectedMainTuiIds.delete(tuiId);
+        renderPhanCong();
+    }
+    window.removeMainTuiFromBatch = removeMainTuiFromBatch;
+
+    let phanCongCurrentPage = 1;
+    const phanCongPageSize = 8;
+
+    let phanCongPkCurrentPage = 1;
+    const phanCongPkPageSize = 8;
+
+    function changePhanCongPage(delta) {
+        phanCongCurrentPage += delta;
+        renderPhanCong();
+    }
+    window.changePhanCongPage = changePhanCongPage;
+
+    function changePhanCongPkPage(delta) {
+        phanCongPkCurrentPage += delta;
+        renderPhanCongPhucKhao();
+    }
+    window.changePhanCongPkPage = changePhanCongPkPage;
+
+    // Use Case 8.1: Lọc danh sách Main
+    function applyMainFilter() {
+        phanCongCurrentPage = 1;
+        renderPhanCong();
+    }
+    window.applyMainFilter = applyMainFilter;
+
+    // Use Case 8.1: Render bảng Phân công Chấm thi kết thúc học phần
+    function renderPhanCong() {
+        const tbody = document.getElementById('phan-cong-tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        if (!tuiPhachData || tuiPhachData.length === 0) {
+            tuiPhachData = [];
+            for (let i = 0; i < 30; i++) {
+                const subjects = [
+                    'Cấu trúc dữ liệu và Giải thuật',
+                    'Hệ quản trị Cơ sở dữ liệu',
+                    'Lập trình Web & Ứng dụng',
+                    'Quản trị Kinh doanh Đại cương',
+                    'Marketing Căn bản & Kỹ thuật số',
+                    'Quản trị Dự án Phần mềm',
+                    'Trí tuệ nhân tạo & Học máy',
+                    'Tiếng Anh Giao tiếp Quốc tế 3'
+                ];
+                const subj = subjects[i % subjects.length];
+                const code = `TP-${String(i).padStart(3, '0')}`;
+                const papers = 20 + ((i * 7) % 25);
+                tuiPhachData.push({ id: code, subjectName: subj, papers: papers, grader1: '' });
+            }
+        }
+
+        if (!canBoCoiThiData || canBoCoiThiData.length === 0) {
+            canBoCoiThiData = [
+                { id: 'GV001', name: 'ThS. Nguyễn Văn A' },
+                { id: 'GV002', name: 'TS. Trần Thị B' },
+                { id: 'GV003', name: 'ThS. Lê Hoàng C' },
+                { id: 'GV004', name: 'PGS.TS. Phạm Văn D' }
+            ];
+        }
+
+        const keyword = (document.getElementById('filter-main-search')?.value || '').toLowerCase().trim();
+        const statusVal = document.getElementById('filter-main-status')?.value || 'all';
+
+        let list = tuiPhachData.filter(t => {
+            const matchKw = !keyword || (t.subjectName || '').toLowerCase().includes(keyword) || (t.id || '').toLowerCase().includes(keyword);
+            const isAssigned = !!t.grader1;
+            let matchSt = true;
+            if (statusVal === 'chua_phan_cong') matchSt = !isAssigned;
+            if (statusVal === 'da_phan_cong') matchSt = isAssigned;
+            return matchKw && matchSt;
+        });
+
+        const totalItems = list.length;
+        const totalPages = Math.ceil(totalItems / phanCongPageSize) || 1;
+        if (phanCongCurrentPage > totalPages) phanCongCurrentPage = totalPages;
+        if (phanCongCurrentPage < 1) phanCongCurrentPage = 1;
+
+        const totalInfoSpan = document.getElementById('phan-cong-total-info');
+        const pageNumSpan = document.getElementById('phan-cong-page-num');
+        const btnPrev = document.getElementById('btn-main-prev-page');
+        const btnNext = document.getElementById('btn-main-next-page');
+
+        if (totalItems === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-gray-400 italic">Không tìm thấy túi bài thi nào khớp bộ lọc.</td></tr>`;
+            if (totalInfoSpan) totalInfoSpan.innerText = "Hiển thị 0 túi bài thi";
+            if (pageNumSpan) pageNumSpan.innerText = "Trang 1 / 1";
+            if (btnPrev) btnPrev.disabled = true;
+            if (btnNext) btnNext.disabled = true;
+            updateBatchMainUI();
+            return;
+        }
+
+        const startIndex = (phanCongCurrentPage - 1) * phanCongPageSize;
+        const pageList = list.slice(startIndex, startIndex + phanCongPageSize);
+
+        // Sync header checkbox with pageList
+        const headerChk = document.getElementById('select-all-main-tui');
+        if (headerChk) {
+            headerChk.checked = pageList.length > 0 && pageList.every(t => selectedMainTuiIds.has(t.id));
+        }
+
+        pageList.forEach(t => {
+            const isChecked = selectedMainTuiIds.has(t.id);
+            const gv = canBoCoiThiData.find(g => g.id === t.grader1)?.name || t.grader1 || '<span class="text-red-600 font-semibold italic">Chưa phân công</span>';
+            const statusBadge = t.grader1 
+                ? `<span class="bg-green-100 text-green-800 px-2.5 py-0.5 rounded-full text-[11px] font-bold">✓ Đã phân công</span>` 
+                : `<span class="bg-red-100 text-red-800 px-2.5 py-0.5 rounded-full text-[11px] font-bold">● Chưa phân công</span>`;
+
+            tbody.innerHTML += `
+                <tr class="hover:bg-red-50/40 text-xs border-b border-gray-100 cursor-pointer ${isChecked ? 'bg-red-50/80 font-medium' : ''}" onclick="toggleSelectMainTui('${t.id}')">
+                    <td class="px-3 py-3.5 text-center" onclick="event.stopPropagation()">
+                        <input type="checkbox" value="${t.id}" ${isChecked ? 'checked' : ''} onchange="toggleSelectMainTui('${t.id}')" class="w-4 h-4 text-[#9e1c22] rounded cursor-pointer" />
+                    </td>
+                    <td class="px-4 py-3.5 text-center font-mono font-bold text-red-950">${t.id}</td>
+                    <td class="px-4 py-3.5 text-left font-semibold text-gray-800">${t.subjectName}</td>
+                    <td class="px-4 py-3.5 text-center font-bold text-gray-700">${t.papers} bài</td>
+                    <td class="px-4 py-3.5 text-center">${statusBadge}</td>
+                    <td class="px-4 py-3.5 text-center font-bold text-gray-900">${gv}</td>
+                </tr>
+            `;
+        });
+
+        // Update pagination UI controls
+        if (totalInfoSpan) totalInfoSpan.innerText = `Hiển thị ${startIndex + 1} - ${Math.min(startIndex + phanCongPageSize, totalItems)} / ${totalItems} túi bài thi`;
+        if (pageNumSpan) pageNumSpan.innerText = `Trang ${phanCongCurrentPage} / ${totalPages}`;
+        if (btnPrev) btnPrev.disabled = (phanCongCurrentPage <= 1);
+        if (btnNext) btnNext.disabled = (phanCongCurrentPage >= totalPages);
+
+        updateBatchMainUI();
+        initIcons();
+    }
+    window.renderPhanCong = renderPhanCong;
+
+    // ================================================================
+    // SELECTION & BATCH HANDLING FOR PK
+    // ================================================================
+    function toggleSelectPkItem(pkId) {
+        if (selectedPkIds.has(pkId)) {
+            selectedPkIds.delete(pkId);
+        } else {
+            selectedPkIds.add(pkId);
+        }
+        renderPhanCongPhucKhao();
+    }
+    window.toggleSelectPkItem = toggleSelectPkItem;
+
+    function toggleSelectAllPk(chkHeader) {
+        const keyword = (document.getElementById('filter-pk-search')?.value || '').toLowerCase().trim();
+        const statusVal = document.getElementById('filter-pk-status')?.value || 'all';
+
+        let filtered = phucKhaoData.filter(pk => {
+            const matchKw = !keyword || (pk.subjectName || '').toLowerCase().includes(keyword) || (pk.id || '').toLowerCase().includes(keyword);
+            const isAssigned = !!pk.graderPk;
+            let matchSt = true;
+            if (statusVal === 'chua_phan_cong') matchSt = !isAssigned;
+            if (statusVal === 'da_phan_cong') matchSt = isAssigned;
+            return matchKw && matchSt;
+        });
+
+        if (chkHeader.checked) {
+            filtered.forEach(pk => selectedPkIds.add(pk.id));
+        } else {
+            filtered.forEach(pk => selectedPkIds.delete(pk.id));
+        }
+        renderPhanCongPhucKhao();
+    }
+    window.toggleSelectAllPk = toggleSelectAllPk;
+
+    function clearBatchPkSelection() {
+        selectedPkIds.clear();
+        const headerChk = document.getElementById('select-all-pk-tui');
+        if (headerChk) headerChk.checked = false;
+        renderPhanCongPhucKhao();
+    }
+    window.clearBatchPkSelection = clearBatchPkSelection;
+
+    function updateBatchPkUI() {
+        const badge = document.getElementById('panel-pk-badge');
+        const emptyState = document.getElementById('panel-pk-empty');
+        const activeState = document.getElementById('panel-pk-active');
+        const chipsContainer = document.getElementById('panel-pk-chips');
+
+        if (!badge || !emptyState || !activeState) return;
+
+        const count = selectedPkIds.size;
+        badge.innerText = `Đã chọn ${count} bài`;
+
+        if (count > 0) {
+            emptyState.classList.add('hidden-view');
+            activeState.classList.remove('hidden-view');
+
+            const selectedList = phucKhaoData.filter(x => selectedPkIds.has(x.id));
+
+            if (chipsContainer) {
+                chipsContainer.innerHTML = selectedList.map(pk => `
+                    <span class="bg-white border border-red-200 text-[#9e1c22] font-mono font-bold px-2 py-0.5 rounded-md text-[11px] shadow-xs flex items-center gap-1">
+                        ${pk.id} (${pk.subjectName})
+                        <button onclick="removePkFromBatch('${pk.id}')" class="text-gray-400 hover:text-red-700 font-extrabold text-xs ml-0.5" title="Bỏ bài này">✕</button>
+                    </span>
+                `).join('');
+            }
+            populateGvPanelPk();
+        } else {
+            emptyState.classList.remove('hidden-view');
+            activeState.classList.add('hidden-view');
+        }
+    }
+
+    function populateGvPanelPk() {
+        const datalist = document.getElementById('gv-datalist-pk');
+        if (!datalist) return;
+        datalist.innerHTML = '';
+
+        const selectedList = phucKhaoData.filter(x => selectedPkIds.has(x.id));
+        const excludedGvId = selectedList[0]?.grader1 || 'GV001';
+
+        canBoCoiThiData.forEach(g => {
+            if (excludedGvId && g.id === excludedGvId) return; // Exclude Grader 1!
+            datalist.innerHTML += `<option value="${g.name} - ${g.id}"></option>`;
+        });
+    }
+
+    function triggerSaveFromPanelPk() {
+        const inputVal = (document.getElementById('select-gv-panel-pk')?.value || '').trim();
+
+        if (!inputVal) {
+            showGlobalToast("Cảnh báo", "Vui lòng chọn hoặc gõ tên Giảng viên chấm phúc khảo", "warning");
+            return;
+        }
+
+        const gvObj = canBoCoiThiData.find(g => 
+            inputVal.includes(g.id) || 
+            inputVal.toLowerCase().includes(g.name.toLowerCase()) || 
+            g.name.toLowerCase().includes(inputVal.toLowerCase())
+        );
+
+        if (!gvObj) {
+            showGlobalToast("Lỗi", "Không tìm thấy Giảng viên hợp lệ trong hệ thống", "error");
+            return;
+        }
+
+        const hasConflict = phucKhaoData.some(pk => selectedPkIds.has(pk.id) && pk.grader1 === gvObj.id);
+        if (hasConflict) {
+            showGlobalToast("Lỗi", "Giảng viên chấm phúc khảo không được trùng với cán bộ chấm thi lần đầu", "error");
+            return;
+        }
+
+        const count = selectedPkIds.size;
+        openConfirmModal(
+            `Xác nhận phân công phúc khảo (${count} bài thi)`,
+            `Bạn có chắc chắn muốn phân công Giảng viên ${gvObj.name} (${gvObj.id}) chấm ${count} bài thi phúc khảo đã chọn không?`,
+            () => executeSaveAssignPk(gvObj.id)
+        );
+    }
+    window.triggerSaveFromPanelPk = triggerSaveFromPanelPk;
+
+    function removePkFromBatch(pkId) {
+        selectedPkIds.delete(pkId);
+        renderPhanCongPhucKhao();
+    }
+    window.removePkFromBatch = removePkFromBatch;
+
+    function openAssignPopupForSinglePk(pkId) {
+        selectedPkIds.clear();
+        selectedPkIds.add(pkId);
+        openAssignPopupForBatchPk();
+    }
+    window.openAssignPopupForSinglePk = openAssignPopupForSinglePk;
+
+    function openAssignPopupForBatchPk() {
+        currentAssignMode = 'pk';
+        if (selectedPkIds.size === 0) return;
+        renderPhanCongPhucKhao();
+
+        const selectedList = phucKhaoData.filter(x => selectedPkIds.has(x.id));
+        const excludedGvId = selectedList[0]?.grader1 || 'GV001';
+
+        document.getElementById('assign-popup-title').innerHTML = `<i data-lucide="shield-alert" class="text-amber-700 w-5 h-5"></i> Phân công Chấm Phúc khảo (${selectedPkIds.size} đơn)`;
+        document.getElementById('assign-popup-info-box').className = "bg-amber-50 border border-amber-300 p-3.5 rounded-lg text-amber-950 font-semibold leading-relaxed";
+        
+        let chipsHtml = selectedList.map(pk => `
+            <span class="bg-white border border-amber-300 text-amber-950 font-mono font-bold px-2.5 py-1 rounded-md text-[11px] shadow-xs flex items-center gap-1.5">
+                ${pk.id} (${pk.subjectName})
+                <button onclick="removePkFromBatch('${pk.id}')" class="text-gray-400 hover:text-red-600 font-extrabold text-xs ml-0.5" title="Bỏ bài này">✕</button>
+            </span>
+        `).join('');
+
+        document.getElementById('assign-popup-info-box').innerHTML = `
+            <div class="flex items-center justify-between mb-2">
+                <span class="font-bold text-sm text-amber-950">Đã chọn ${selectedPkIds.size} bài thi phúc khảo</span>
+                <span class="bg-amber-200 text-amber-950 px-2.5 py-0.5 rounded font-bold text-[11px]">Chấm lại ẩn danh</span>
+            </div>
+            <div class="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pt-1 mb-1">
+                ${chipsHtml}
+            </div>
+            <p class="text-[11px] text-red-700 font-bold bg-amber-100/90 p-1.5 rounded border border-amber-200">
+                ⚠ Tự động loại bỏ cán bộ chấm lần 1 khỏi danh sách chọn.
+            </p>
+        `;
+        document.getElementById('assign-popup-label').innerText = "Chọn giảng viên chấm phúc khảo (Tự động ẩn GV chấm lần 1):";
+
+        populateGvPopupOptions(excludedGvId);
+
+        document.getElementById('err-msg-popup')?.classList.add('hidden-view');
+        document.getElementById('modal-assign-popup')?.classList.remove('hidden-view');
+        initIcons();
+    }
+    window.openAssignPopupForBatchPk = openAssignPopupForBatchPk;
+
+    function populateGvPopupOptions(excludedGvId) {
+        const select = document.getElementById('select-gv-popup');
+        if (!select) return;
+        const kw = (document.getElementById('search-gv-popup-keyword')?.value || '').toLowerCase().trim();
+
+        const curVal = select.value;
+        select.innerHTML = '<option value="">-- Chọn giảng viên --</option>';
+
+        // Calculate count of bags currently assigned to each teacher
+        let gvBagCounts = {};
+        tuiPhachData.forEach(t => {
+            if (t.grader1) gvBagCounts[t.grader1] = (gvBagCounts[t.grader1] || 0) + 1;
+        });
+
+        canBoCoiThiData.forEach(g => {
+            if (excludedGvId && g.id === excludedGvId) return; // HIDDEN automatically!
+
+            const count = gvBagCounts[g.id] || 0;
+            const countBadge = count > 0 ? ` (Đang chấm ${count} túi bài)` : ' (Chưa phụ trách túi nào)';
+            const match = !kw || g.name.toLowerCase().includes(kw) || g.id.toLowerCase().includes(kw);
+            if (match) {
+                select.innerHTML += `<option value="${g.id}">${g.name} (${g.id})${countBadge}</option>`;
+            }
+        });
+        if (curVal && curVal !== excludedGvId) select.value = curVal;
+    }
+
+    function filterGvPopupOptions() {
+        const firstPk = phucKhaoData.find(x => selectedPkIds.has(x.id));
+        const excluded = currentAssignMode === 'pk' ? (firstPk?.grader1 || 'GV001') : null;
+        populateGvPopupOptions(excluded);
+    }
+    window.filterGvPopupOptions = filterGvPopupOptions;
+
+    function closeAssignPopup() {
+        document.getElementById('modal-assign-popup')?.classList.add('hidden-view');
+    }
+    window.closeAssignPopup = closeAssignPopup;
+
+    function triggerConfirmSaveFromPopup() {
+        const selectGv = document.getElementById('select-gv-popup');
+        const chosenGvId = selectGv?.value;
+
+        if (!chosenGvId) {
+            showErrMsgPopup("Vui lòng chọn cán bộ chấm thi");
+            return;
+        }
+
+        const gvObj = canBoCoiThiData.find(g => g.id === chosenGvId);
+        if (!gvObj) {
+            showErrMsgPopup("Cán bộ chấm thi không hợp lệ");
+            return;
+        }
+
+        if (currentAssignMode === 'pk') {
+            const hasConflict = phucKhaoData.some(pk => selectedPkIds.has(pk.id) && pk.grader1 === chosenGvId);
+            if (hasConflict) {
+                showErrMsgPopup("Cán bộ chấm phúc khảo không được trùng với cán bộ chấm thi lần đầu");
+                return;
+            }
+        }
+
+        document.getElementById('err-msg-popup')?.classList.add('hidden-view');
+        closeAssignPopup();
+
+        if (currentAssignMode === 'main') {
+            const count = selectedMainTuiIds.size;
+            openConfirmModal(
+                `Xác nhận phân công hàng loạt (${count} túi bài thi)`,
+                `Bạn có chắc chắn muốn phân công ${count} túi bài thi đã chọn cho Giảng viên ${gvObj.name} (${gvObj.id}) không?`,
+                () => executeSaveAssignMain(chosenGvId)
+            );
+        } else {
+            const count = selectedPkIds.size;
+            openConfirmModal(
+                `Xác nhận phân công phúc khảo hàng loạt (${count} bài thi)`,
+                `Bạn có chắc chắn muốn phân công Giảng viên ${gvObj.name} (${gvObj.id}) chấm ${count} bài thi phúc khảo đã chọn không?`,
+                () => executeSaveAssignPk(chosenGvId)
+            );
+        }
+    }
+    window.triggerConfirmSaveFromPopup = triggerConfirmSaveFromPopup;
+
+    function showErrMsgPopup(text) {
+        const box = document.getElementById('err-msg-popup');
+        const txt = document.getElementById('err-msg-popup-text');
+        if (box && txt) {
+            txt.innerText = text;
+            box.classList.remove('hidden-view');
+        }
+    }
+
+    function executeSaveAssignMain(gvId) {
+        let updatedCount = 0;
+        tuiPhachData.forEach(t => {
+            if (selectedMainTuiIds.has(t.id)) {
+                t.grader1 = gvId;
+                updatedCount++;
+            }
+        });
+        showGlobalToast("Phân công thành công", `Đã phân công hàng loạt ${updatedCount} túi bài thi cho Giảng viên ${gvId}.`);
+        saveStateToServer();
+        selectedMainTuiIds.clear();
+        renderPhanCong();
+        closeConfirmModal();
+    }
+
+    // ================================================================
+    // USE CASE 8.2: PHÂN CÔNG CHẤM PHÚC KHẢO
+    // ================================================================
+
+    function applyPkFilter() {
+        phanCongPkCurrentPage = 1;
+        renderPhanCongPhucKhao();
+    }
+    window.applyPkFilter = applyPkFilter;
+
+    function renderPhanCongPhucKhao() {
+        const tbody = document.getElementById('phan-cong-pk-tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        if (!phucKhaoData || phucKhaoData.length === 0) {
+            phucKhaoData = [
+                { id: 'MP-PK-901', subjectName: 'Lập trình Python Nâng cao', diemGoc: 6.5, reason: 'Chấm sót câu 3 (2.0 điểm)', grader1: 'GV001', graderPk: 'GV002', status: 'Đã phân công' },
+                { id: 'MP-PK-902', subjectName: 'Cơ sở Dữ liệu & Giải thuật', diemGoc: 5.0, reason: 'Phúc khảo lại bài thi tự luận', grader1: 'GV001', graderPk: '', status: 'Chờ phân công' },
+                { id: 'MP-PK-903', subjectName: 'Trí tuệ Nhân tạo App', diemGoc: 6.0, reason: 'Cộng nhầm tổng điểm bài thi', grader1: 'GV003', graderPk: 'GV002', status: 'Đã phân công' }
+            ];
+        }
+
+        const keyword = (document.getElementById('filter-pk-search')?.value || '').toLowerCase().trim();
+        const statusVal = document.getElementById('filter-pk-status')?.value || 'all';
+
+        let list = phucKhaoData.filter(pk => {
+            const matchKw = !keyword || (pk.subjectName || '').toLowerCase().includes(keyword) || (pk.id || '').toLowerCase().includes(keyword);
+            const isAssigned = !!pk.graderPk;
+            let matchSt = true;
+            if (statusVal === 'chua_phan_cong') matchSt = !isAssigned;
+            if (statusVal === 'da_phan_cong') matchSt = isAssigned;
+            return matchKw && matchSt;
+        });
+
+        const totalItems = list.length;
+        const totalPages = Math.ceil(totalItems / phanCongPkPageSize) || 1;
+        if (phanCongPkCurrentPage > totalPages) phanCongPkCurrentPage = totalPages;
+        if (phanCongPkCurrentPage < 1) phanCongPkCurrentPage = 1;
+
+        const totalInfoSpan = document.getElementById('phan-cong-pk-total-info');
+        const pageNumSpan = document.getElementById('phan-cong-pk-page-num');
+        const btnPrev = document.getElementById('btn-pk-prev-page');
+        const btnNext = document.getElementById('btn-pk-next-page');
+
+        if (totalItems === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-400 italic">Không tìm thấy bài thi phúc khảo nào khớp bộ lọc.</td></tr>`;
+            if (totalInfoSpan) totalInfoSpan.innerText = "Hiển thị 0 bài thi phúc khảo";
+            if (pageNumSpan) pageNumSpan.innerText = "Trang 1 / 1";
+            if (btnPrev) btnPrev.disabled = true;
+            if (btnNext) btnNext.disabled = true;
+            updateBatchPkUI();
+            return;
+        }
+
+        const startIndex = (phanCongPkCurrentPage - 1) * phanCongPkPageSize;
+        const pageList = list.slice(startIndex, startIndex + phanCongPkPageSize);
+
+        // Sync header checkbox
+        const headerChk = document.getElementById('select-all-pk-tui');
+        if (headerChk) {
+            headerChk.checked = pageList.length > 0 && pageList.every(pk => selectedPkIds.has(pk.id));
+        }
+
+        pageList.forEach(pk => {
+            const isChecked = selectedPkIds.has(pk.id);
+            const gvPk = canBoCoiThiData.find(g => g.id === pk.graderPk)?.name || pk.graderPk || '<span class="text-red-600 font-semibold italic">Chưa phân công</span>';
+            const statusBadge = pk.graderPk 
+                ? `<span class="bg-green-100 text-green-800 px-2.5 py-0.5 rounded-full text-[11px] font-bold">✓ Đã phân công</span>` 
+                : `<span class="bg-red-100 text-red-800 px-2.5 py-0.5 rounded-full text-[11px] font-bold">● Chưa phân công</span>`;
+
+            tbody.innerHTML += `
+                <tr class="hover:bg-red-50/40 text-xs border-b border-gray-100 cursor-pointer ${isChecked ? 'bg-red-50/80 font-medium' : ''}" onclick="toggleSelectPkItem('${pk.id}')">
+                    <td class="px-4 py-3.5 text-center" onclick="event.stopPropagation()">
+                        <input type="checkbox" value="${pk.id}" ${isChecked ? 'checked' : ''} onchange="toggleSelectPkItem('${pk.id}')" class="w-4 h-4 text-[#9e1c22] rounded cursor-pointer" />
+                    </td>
+                    <td class="px-6 py-3.5 text-center font-mono font-bold text-red-950">${pk.id}</td>
+                    <td class="px-6 py-3.5 text-left font-semibold text-gray-800">${pk.subjectName}</td>
+                    <td class="px-6 py-3.5 text-center">${statusBadge}</td>
+                    <td class="px-6 py-3.5 text-center font-bold text-gray-900">${gvPk}</td>
+                </tr>
+            `;
+        });
+
+        // Update PK pagination UI controls
+        if (totalInfoSpan) totalInfoSpan.innerText = `Hiển thị ${startIndex + 1} - ${Math.min(startIndex + phanCongPkPageSize, totalItems)} / ${totalItems} bài thi phúc khảo`;
+        if (pageNumSpan) pageNumSpan.innerText = `Trang ${phanCongPkCurrentPage} / ${totalPages}`;
+        if (btnPrev) btnPrev.disabled = (phanCongPkCurrentPage <= 1);
+        if (btnNext) btnNext.disabled = (phanCongPkCurrentPage >= totalPages);
+
+        updateBatchPkUI();
+        initIcons();
+    }
+    window.renderPhanCongPhucKhao = renderPhanCongPhucKhao;
+
+    function executeSaveAssignPk(gvId) {
+        let updatedCount = 0;
+        phucKhaoData.forEach(pk => {
+            if (selectedPkIds.has(pk.id)) {
+                pk.graderPk = gvId;
+                updatedCount++;
+            }
+        });
+        showGlobalToast("Phân công thành công", `Đã phân công cán bộ ${gvId} chấm phúc khảo cho ${updatedCount} bài thi.`);
+        saveStateToServer();
+        selectedPkIds.clear();
+        renderPhanCongPhucKhao();
+        closeConfirmModal();
+    }
+
+    function showErrMsgPk(text) {
+        const box = document.getElementById('err-msg-pk');
+        const txt = document.getElementById('err-msg-pk-text');
+        if (box && txt) {
+            txt.innerText = text;
+            box.classList.remove('hidden-view');
+        }
+    }
+
+    // Modal Confirmation Dialog Handling (Flow 7, 8 & 8a)
+    let pendingConfirmAction = null;
+    function openConfirmModal(title, msg, onOk) {
+        document.getElementById('confirm-modal-title').innerText = title;
+        document.getElementById('confirm-modal-msg').innerText = msg;
+        pendingConfirmAction = onOk;
+        document.getElementById('modal-confirm-assign').classList.remove('hidden-view');
+        initIcons();
+    }
+
+    function closeConfirmModal() {
+        document.getElementById('modal-confirm-assign').classList.add('hidden-view');
+        pendingConfirmAction = null;
+    }
+    window.closeConfirmModal = closeConfirmModal;
+
+    function executeConfirmSave() {
+        if (typeof pendingConfirmAction === 'function') {
+            pendingConfirmAction();
+        }
+    }
+    window.executeConfirmSave = executeConfirmSave;
 
     function navigateGiaoNhan(tab) {
         activeGiaoNhanTab = tab;
@@ -698,33 +1418,7 @@
         renderGiaoNhan();
     }
 
-    function renderPhanCong() {
-        const tbody = document.getElementById('phan-cong-tbody');
-        tbody.innerHTML = '';
 
-        if (tuiPhachData.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-12 text-center text-gray-400 italic">Không có túi phách nào được tạo để chấm thi.</td></tr>`;
-            return;
-        }
-
-        tuiPhachData.forEach(t => {
-            const cb1Text = t.grader1 ? `${canBoCoiThiData.find(g => g.code === t.grader1)?.name || t.grader1} (${t.grader1})` : `<span class="text-red-500 italic font-bold">Chưa phân công</span>`;
-            const cb2Text = t.grader2 ? `${canBoCoiThiData.find(g => g.code === t.grader2)?.name || t.grader2} (${t.grader2})` : `<span class="text-red-500 italic font-bold">Chưa phân công</span>`;
-
-            const btn = `<button onclick="showAssignModal('${t.id}')" class="bg-[#9e1c22] hover:bg-red-800 text-white font-bold px-3 py-1 rounded text-[10px] shadow transition-colors">CHỈ ĐỊNH GIÁM KHẢO</button>`;
-
-            tbody.innerHTML += `
-                <tr class="hover:bg-gray-50 transition-colors">
-                    <td class="px-6 py-4 font-mono font-bold text-gray-800">${t.id}</td>
-                    <td class="px-6 py-4 font-semibold text-gray-900">${t.subjectName}</td>
-                    <td class="px-6 py-4 text-center font-bold text-blue-900">${t.papers} bài thi</td>
-                    <td class="px-6 py-4 text-slate-700 font-medium">${cb1Text}</td>
-                    <td class="px-6 py-4 text-slate-700 font-medium">${cb2Text}</td>
-                    <td class="px-6 py-4 text-right">${btn}</td>
-                </tr>
-            `;
-        });
-    }
 
     function showAssignModal(tuiId) {
         activeAssignTuiId = tuiId;
@@ -736,7 +1430,7 @@
         document.getElementById('modal-assign').classList.add('hidden-view');
     }
 
-    function saveAssignExecute() {
+    async function saveAssignExecute() {
         const cb1 = document.getElementById('assign-cb1').value;
         const cb2 = document.getElementById('assign-cb2').value;
 
@@ -745,93 +1439,250 @@
             return;
         }
 
-        const t = tuiPhachData.find(x => x.id === activeAssignTuiId);
-        if (t) {
-            t.grader1 = cb1;
-            t.grader2 = cb2;
-            t.status = "Đã phân công chấm";
+        try {
+            const response = await fetch('/dvcm/api/phan-cong-cham/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    phan_congs: [{ tui_phach: activeAssignTuiId, gv1: cb1, gv2: cb2 }]
+                })
+            });
+
+            if (!response.ok) throw new Error('Network response was not ok');
+
             showGlobalToast("Phân công thành công", `Đã chỉ định GV chấm cho túi phách ${activeAssignTuiId}.`);
-            saveStateToServer();
+            
+            // Đồng bộ nạp lại toàn bộ dữ liệu mới nhất trực tiếp từ CSDL
+            if (typeof loadStateFromServer === 'function') {
+                await loadStateFromServer();
+            }
+            
             hideAssignModal();
             renderPhanCong();
+        } catch (error) {
+            showGlobalToast("Lỗi", "Không thể phân công chấm thi", "error");
         }
     }
 
-    function renderNhapTraDiem() {
-        const listDiv = document.getElementById('nhapdiem-tui-list');
-        listDiv.innerHTML = '';
+    let selectedDuyetTuiIdsDVCM = new Set();
 
-        const list = tuiPhachData.filter(t => t.grader1 && t.grader2); // assigned
-        if(list.length === 0) {
-            listDiv.innerHTML = `<div class="text-center py-6 text-gray-400 italic">Chưa có túi phách nào được phân công.</div>`;
+    function updateBatchDuyetCountDVCM() {
+        const cbs = document.querySelectorAll('.duyet-item-cb-dvcm:checked');
+        const count = cbs.length;
+        const countSpan = document.getElementById('count-checked-duyet-dvcm');
+        const batchBtn = document.getElementById('btn-batch-duyet-diem-dvcm');
+        if (countSpan) countSpan.innerText = count;
+        if (batchBtn) {
+            if (count > 0) {
+                batchBtn.disabled = false;
+                batchBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                batchBtn.classList.add('hover:bg-red-800', 'shadow-md', 'cursor-pointer');
+            } else {
+                batchBtn.disabled = true;
+                batchBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                batchBtn.classList.remove('hover:bg-red-800', 'shadow-md', 'cursor-pointer');
+            }
+        }
+    }
+    window.updateBatchDuyetCountDVCM = updateBatchDuyetCountDVCM;
+
+    function toggleSelectAllDuyetDVCM(checked) {
+        document.querySelectorAll('.duyet-item-cb-dvcm').forEach(cb => {
+            cb.checked = checked;
+        });
+        updateBatchDuyetCountDVCM();
+    }
+    window.toggleSelectAllDuyetDVCM = toggleSelectAllDuyetDVCM;
+
+    function executeBatchDuyetDiemDVCM() {
+        const cbs = document.querySelectorAll('.duyet-item-cb-dvcm:checked');
+        const ids = Array.from(cbs).map(c => c.value);
+        if (ids.length === 0) return;
+
+        openConfirmModal(
+            `Xác nhận Phê duyệt Bảng điểm (${ids.length} túi bài)`,
+            `Bạn có chắc chắn muốn phê duyệt bảng điểm KTHP cấp Khoa cho ${ids.length} túi bài thi đã chọn không?`,
+            () => {
+                ids.forEach(id => {
+                    const t = tuiPhachData.find(x => x.id === id);
+                    if (t) {
+                        t.status = "Khoa đã phê duyệt";
+                        t.trang_thai = "KhoaDaPheDuyet";
+                    }
+                });
+                showGlobalToast("Phê duyệt thành công", `Đã phê duyệt ${ids.length} bảng điểm KTHP cấp Khoa và chuyển Lãnh đạo phòng.`);
+                saveStateToServer();
+                renderNhapTraDiem();
+                closeConfirmModal();
+            }
+        );
+    }
+    window.executeBatchDuyetDiemDVCM = executeBatchDuyetDiemDVCM;
+
+    function renderNhapTraDiem() {
+        const leftList = document.getElementById('nhapdiem-tui-list');
+        const countSpan = document.getElementById('duyet-list-count-dvcm');
+        if (!leftList) return;
+
+        leftList.innerHTML = '';
+
+        const filterVal = document.getElementById('duyet-filter-select-dvcm')?.value || 'cho';
+        const query = (document.getElementById('duyet-search-input-dvcm')?.value || '').toLowerCase().trim();
+
+        let list = tuiPhachData.filter(t => t.status === "Khoa đã phê duyệt" || t.status === "Đã duyệt bảng điểm" || t.status === "Chờ Khoa duyệt" || t.grader1 || t.status);
+
+        if (filterVal === 'cho') {
+            list = list.filter(t => t.status !== "Khoa đã phê duyệt" && t.status !== "Đã duyệt bảng điểm");
+        } else if (filterVal === 'da') {
+            list = list.filter(t => t.status === "Khoa đã phê duyệt" || t.status === "Đã duyệt bảng điểm");
+        }
+
+        if (query) {
+            list = list.filter(t => t.id.toLowerCase().includes(query) || (t.subjectName || '').toLowerCase().includes(query));
+        }
+
+        if (countSpan) countSpan.innerText = `${list.length} túi bài`;
+
+        if (list.length === 0) {
+            leftList.innerHTML = `<div class="p-8 text-center text-gray-400 italic text-xs">Không tìm thấy bảng điểm nào phù hợp.</div>`;
+            const pEmpty = document.getElementById('entry-panel-empty');
+            const pPanel = document.getElementById('entry-panel-form');
+            if (pEmpty) pEmpty.classList.remove('hidden-view');
+            if (pPanel) pPanel.classList.add('hidden-view');
+            updateBatchDuyetCountDVCM();
             return;
         }
 
         list.forEach(t => {
-            let badge = `<span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-[10px] font-bold">Chờ nộp điểm</span>`;
-            if(t.status === "Đã đối chiếu hợp lệ" || t.status === "Đã trả điểm") badge = `<span class="bg-green-100 text-green-800 px-2 py-0.5 rounded text-[10px] font-bold">Đã nộp điểm</span>`;
+            let cbCol = `<span class="text-gray-300 w-4 inline-block text-center">-</span>`;
+            let badge = `<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[10px] font-bold">✓ Đã duyệt</span>`;
 
-            const activeBorder = activeNhapDiemTuiId === t.id ? 'border-2 border-red-700 bg-red-50/20' : 'border-gray-200 bg-white';
+            if (t.status !== "Khoa đã phê duyệt" && t.status !== "Đã duyệt bảng điểm") {
+                cbCol = `<input type="checkbox" class="duyet-item-cb-dvcm w-4 h-4 cursor-pointer accent-[#9e1c22]" value="${t.id}" onchange="updateBatchDuyetCountDVCM(); event.stopPropagation();" onclick="event.stopPropagation();">`;
+                badge = `<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[10px] font-bold">Chờ duyệt</span>`;
+            }
 
-            listDiv.innerHTML += `
-                <div onclick="selectTuiNhapDiem('${t.id}')" class="p-3 border rounded-lg cursor-pointer hover:shadow-md transition-all ${activeBorder}">
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="font-mono font-bold text-gray-800 text-xs">${t.id}</span>
-                        ${badge}
+            const isSelected = (activeNhapDiemTuiId === t.id);
+            const activeClass = isSelected ? 'bg-blue-50/80 border-l-4 border-l-[#9e1c22]' : 'hover:bg-gray-50 border-l-4 border-l-transparent';
+
+            leftList.innerHTML += `
+                <div onclick="selectTuiNhapDiem('${t.id}')" class="p-3.5 cursor-pointer transition-all flex items-center justify-between ${activeClass}" id="dvcm-duyet-row-${t.id}">
+                    <div class="flex items-center gap-3">
+                        ${cbCol}
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-mono font-bold text-gray-800 text-xs">${t.id}</span>
+                                ${badge}
+                            </div>
+                            <p class="text-xs font-semibold text-gray-900 mt-0.5 line-clamp-1">${t.subjectName}</p>
+                            <p class="text-[10px] text-gray-500 mt-0.5">${t.papers || 25} bài thi</p>
+                        </div>
                     </div>
-                    <p class="text-gray-700 font-semibold text-xs truncate">${t.subjectName}</p>
-                    <p class="text-[10px] text-gray-500 mt-1">Giám khảo: ${t.grader1} & ${t.grader2}</p>
+                    <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
                 </div>
             `;
         });
+
+        if (list.length > 0) {
+            const exists = list.find(t => t.id === activeNhapDiemTuiId);
+            if (!exists) {
+                selectTuiNhapDiem(list[0].id);
+            } else {
+                selectTuiNhapDiem(activeNhapDiemTuiId);
+            }
+        }
+
+        updateBatchDuyetCountDVCM();
+        initIcons();
     }
+
+    function sumChars(str) {
+        let sum = 0;
+        if (!str) return 0;
+        const s = String(str);
+        for (let i = 0; i < s.length; i++) {
+            sum += s.charCodeAt(i);
+        }
+        return sum;
+    }
+    window.sumChars = sumChars;
 
     function selectTuiNhapDiem(tuiId) {
         activeNhapDiemTuiId = tuiId;
-        renderNhapTraDiem();
 
-        const t = tuiPhachData.find(x => x.id === tuiId);
-        if (!t) return;
+        const item = tuiPhachData.find(t => t.id === tuiId);
 
-        document.getElementById('entry-panel-empty').classList.add('hidden-view');
-        document.getElementById('entry-panel-form').classList.remove('hidden-view');
+        document.querySelectorAll('#nhapdiem-tui-list > div').forEach(el => {
+            el.classList.remove('bg-blue-50/80', 'border-l-4', 'border-l-[#9e1c22]');
+            el.classList.add('hover:bg-gray-50', 'border-l-4', 'border-l-transparent');
+        });
 
-        document.getElementById('entry-title-tui').innerText = `Túi phách: ${t.id}`;
-        document.getElementById('entry-title-sub').innerText = `Học phần: ${t.subjectName} (${t.papers} bài thi)`;
-        document.getElementById('entry-title-cb').innerText = `Cán bộ chấm: ${t.grader1} & ${t.grader2}`;
+        const activeRow = document.getElementById(`dvcm-duyet-row-${tuiId}`);
+        if (activeRow) {
+            activeRow.classList.remove('hover:bg-gray-50', 'border-l-transparent');
+            activeRow.classList.add('bg-blue-50/80', 'border-l-[#9e1c22]');
+        }
+
+        const panelEmpty = document.getElementById('entry-panel-empty');
+        const panelForm = document.getElementById('entry-panel-form');
+
+        if (!item) {
+            if (panelEmpty) panelEmpty.classList.remove('hidden-view');
+            if (panelForm) panelForm.classList.add('hidden-view');
+            return;
+        }
+
+        if (panelEmpty) panelEmpty.classList.add('hidden-view');
+        if (panelForm) panelForm.classList.remove('hidden-view');
+
+        document.getElementById('entry-title-tui').innerText = `Túi bài thi: ${item.id}`;
+        document.getElementById('entry-title-sub').innerText = `Học phần: ${item.subjectName} (${item.subjectId || ''})`;
+        document.getElementById('entry-meta-info').innerText = `Số lượng: ${item.papers || 25} bài thi | Giám khảo: ${item.grader1 || 'GV001'} & ${item.grader2 || 'GV002'}`;
+
+        const badgeEl = document.getElementById('entry-status-badge');
+        const actionBox = document.getElementById('entry-action-container');
+
+        if (item.status !== "Khoa đã phê duyệt" && item.status !== "Đã duyệt bảng điểm") {
+            if (badgeEl) badgeEl.innerHTML = `<span class="bg-amber-100 text-amber-800 px-2.5 py-0.5 rounded text-[10px] font-bold">Chờ duyệt</span>`;
+            if (actionBox) actionBox.innerHTML = `
+                <span class="bg-amber-50 text-amber-800 border border-amber-200 px-3 py-1 rounded text-xs font-bold inline-block">Chờ Khoa duyệt</span>
+            `;
+        } else {
+            if (badgeEl) badgeEl.innerHTML = `<span class="bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded text-[10px] font-bold">✓ Đã duyệt</span>`;
+            if (actionBox) actionBox.innerHTML = `
+                <div class="text-right">
+                    <span class="bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-1 rounded text-xs font-bold block mb-1">✓ ĐÃ PHÊ DUYỆT (CẤP KHOA)</span>
+                    <span class="text-gray-400 italic text-[10px] block">Xác nhận bởi Giáo vụ Khoa</span>
+                </div>
+            `;
+        }
 
         const tbody = document.getElementById('entry-tbody');
         tbody.innerHTML = '';
 
-        const phachList = t.phachGoc || Array.from({length: t.papers}, (_, i) => `PH${1000 + i}`);
+        const phachs = item.phachGoc || [];
+        const paperCount = phachs.length > 0 ? phachs.length : (item.papers || 15);
 
-        phachList.forEach(ph => {
-            let pt1Val = "";
-            let pt2Val = "";
-
-            if (t.status === "Đã đối chiếu hợp lệ" || t.status === "Đã trả điểm") {
-                pt1Val = 7.5;
-                pt2Val = 7.5;
-            }
+        for (let i = 0; i < paperCount; i++) {
+            const pCode = phachs[i] || `P-${(100 + i)}`;
+            const seed = sumChars(pCode);
+            const finalPt = (6.0 + (seed % 35) / 10).toFixed(1);
 
             tbody.innerHTML += `
-                <tr class="hover:bg-slate-50 transition-colors">
-                    <td class="px-4 py-2 font-bold text-gray-700">${ph}</td>
-                    <td class="px-4 py-2 text-center">
-                        <input type="number" step="0.25" min="0" max="10" placeholder="0.0" value="${pt1Val}"
-                            onchange="saveTempGrade('${ph}', 'pt1', this.value)"
-                            class="entry-input-grade w-20 text-center p-1 border rounded focus:border-red-700 outline-none" />
-                    </td>
-                    <td class="px-4 py-2 text-center">
-                        <input type="number" step="0.25" min="0" max="10" placeholder="0.0" value="${pt2Val}"
-                            onchange="saveTempGrade('${ph}', 'pt2', this.value)"
-                            class="entry-input-grade w-20 text-center p-1 border rounded focus:border-red-700 outline-none" />
-                    </td>
+                <tr class="hover:bg-gray-50 transition-colors font-mono">
+                    <td class="px-4 py-2 text-gray-500 font-sans text-center">${i + 1}</td>
+                    <td class="px-4 py-2 font-mono font-bold text-gray-800">${pCode}</td>
+                    <td class="px-4 py-2 text-center font-bold text-blue-900 font-mono text-sm">${finalPt}</td>
                 </tr>
             `;
-        });
+        }
+
         initIcons();
     }
+    window.selectTuiNhapDiem = selectTuiNhapDiem;
 
     function saveTempGrade(phachCode, graderType, value) {
         if(!tempGradesData[activeNhapDiemTuiId]) {

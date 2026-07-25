@@ -1,5 +1,5 @@
 from django import forms
-from ..models import KyThi, CaThi, HocPhan, PhongThi, User
+from ..models import KyThi, CaThi, HocPhan, PhongThi, User, PhieuGiaoNhan
 
 class KyThiForm(forms.ModelForm):
     class Meta:
@@ -40,3 +40,8 @@ class NhapDiemLan2PhachForm(forms.Form):
     ma_tui_phach = forms.CharField(label="Mã túi phách", max_length=100, widget=forms.TextInput(attrs={'class': 'form-control'}))
     mat_khau = forms.CharField(label="Mật khẩu túi phách", widget=forms.PasswordInput(attrs={'class': 'form-control'}))
     # Dữ liệu điểm sẽ được xử lý động
+
+class PhieuGiaoNhanForm(forms.ModelForm):
+    class Meta:
+        model = PhieuGiaoNhan
+        fields = ['ma_phieu', 'nguoi_giao', 'nguoi_nhan', 'loai_phieu', 'bien_ban_giao_nhan', 'log_xac_nhan', 'trang_thai']

@@ -1,7 +1,22 @@
 <!-- Horizontal Tabs -->
 <nav class="bg-[#9e1c22] text-white px-8 flex relative z-50 shadow-md">
-    <button id="nav-btn-home" class="nav-btn px-6 py-3 text-sm font-semibold border-r border-red-800 transition-colors hover:bg-red-800" onclick="navigate('view-home')">Trang chủ</button>
-    <button id="nav-btn-duyet-diem" class="nav-btn px-6 py-3 text-sm font-semibold border-r border-red-800 transition-colors hover:bg-red-800" onclick="navigate('view-duyet-diem')">Phê duyệt Bảng điểm</button>
-    <button id="nav-btn-duyet-phuc-khao" class="nav-btn px-6 py-3 text-sm font-semibold border-r border-red-800 transition-colors hover:bg-red-800" onclick="navigate('view-duyet-phuc-khao')">Phê duyệt Phúc khảo</button>
-    <button id="nav-btn-duyet-thu-lao" class="nav-btn px-6 py-3 text-sm font-semibold border-r border-red-800 transition-colors hover:bg-red-800" onclick="navigate('view-duyet-thu-lao')">Phê duyệt Thù lao coi thi</button>
+    <button id="nav-btn-home" class="nav-btn px-6 py-3 text-sm font-semibold border-r border-red-800 border-b-4 border-transparent transition-colors hover:bg-red-800" onclick="navigate('view-home')">
+        Trang chủ
+    </button>
+    <div class="relative group">
+        <button id="nav-btn-phe-duyet" class="nav-btn px-6 py-3 text-sm font-semibold border-r border-red-800 border-b-4 border-transparent flex items-center gap-2 transition-colors hover:bg-red-800" onclick="toggleDropdown('dropdown-phe-duyet', event)">
+            Quản lý Phê duyệt <i data-lucide="chevron-down" class="w-4 h-4" id="icon-phe-duyet"></i>
+        </button>
+        <div id="dropdown-phe-duyet" class="dropdown-menu hidden-view absolute top-full left-0 bg-white border border-gray-200 shadow-xl min-w-[250px] flex flex-col text-gray-800 rounded-b-md overflow-hidden animate-fade-in-down z-[100]">
+            <button class="text-left px-5 py-3 text-sm hover:bg-gray-50 border-b border-gray-100 flex items-center gap-3 transition-colors font-semibold text-gray-700" onclick="navigatePheDuyet('diem')">
+                <i data-lucide="award" class="w-4 h-4 text-red-600"></i> Phê duyệt Bảng điểm
+            </button>
+            <button class="text-left px-5 py-3 text-sm hover:bg-gray-50 border-b border-gray-100 flex items-center gap-3 transition-colors font-semibold text-gray-700" onclick="navigatePheDuyet('phuc-khao')">
+                <i data-lucide="mail-check" class="w-4 h-4 text-purple-600"></i> Phê duyệt Phúc khảo
+            </button>
+            <button class="text-left px-5 py-3 text-sm hover:bg-gray-50 flex items-center gap-3 transition-colors font-semibold text-gray-700" onclick="navigatePheDuyet('thu-lao')">
+                <i data-lucide="clock" class="w-4 h-4 text-pink-600"></i> Phê duyệt Thù lao coi thi
+            </button>
+        </div>
+    </div>
 </nav>
