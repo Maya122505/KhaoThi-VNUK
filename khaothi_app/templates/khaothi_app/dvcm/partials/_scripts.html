@@ -31,8 +31,8 @@
     window.onload = async function() {
         initIcons();
         await loadStateFromServer();
-        const savedViewId = sessionStorage.getItem('dvcm_activeViewId');
-        navigate(savedViewId || 'view-home');
+        sessionStorage.removeItem('dvcm_activeViewId');
+        navigate('view-home');
     };
 
     function initIcons() { lucide.createIcons(); }
@@ -88,7 +88,6 @@
         document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden-view'));
         const targetView = document.getElementById(viewId);
         if(targetView) targetView.classList.remove('hidden-view');
-        sessionStorage.setItem('dvcm_activeViewId', viewId);
 
         document.querySelectorAll('.nav-btn').forEach(btn => btn.className = "nav-btn px-6 py-3 text-sm font-semibold border-r border-red-800 transition-colors hover:bg-red-800");
 
@@ -488,7 +487,7 @@
             flow = "Đơn vị Chuyên môn ➔ Tổ Khảo thí";
         }
 
-        phieuGiaoNhanData.push({
+        phieuGiaoNhanData.unshift({
             id: newPhieuId,
             type: typeText,
             flow: flow,
@@ -681,7 +680,7 @@
         });
 
         const pid = `PTD-${new Date().getFullYear()}-${String(phieuGiaoNhanData.length + 1).padStart(3, '0')}`;
-        phieuGiaoNhanData.push({
+        phieuGiaoNhanData.unshift({
             id: pid,
             type: `Trả điểm & file quét bài thi học phần (Loại 2)`,
             flow: `Đơn vị Chuyên môn (Khoa) ➔ Tổ Khảo thí`,
@@ -767,7 +766,7 @@
         const now = new Date();
         const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} ${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()}`;
         
-        deThiData.push({
+        deThiData.unshift({
             id: ma,
             hocPhan: hocPhan,
             nguoiNop: "GV. Nguyễn Văn A", // Giả lập người nộp
@@ -800,12 +799,12 @@
             else if (dt.trangThai === "Chờ chỉnh sửa") statusClass = "bg-red-100 text-red-700";
 
             return `
-                <tr class="bg-white border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                <tr class="bg-white border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer" onclick="showDeThiDetail('${dt.id}')">
                     <td class="px-4 py-3 font-bold">${dt.id}</td>
                     <td class="px-4 py-3">${dt.hocPhan}</td>
                     <td class="px-4 py-3">${dt.nguoiNop}</td>
                     <td class="px-4 py-3 text-xs">${dt.thoiGian}</td>
-                    <td class="px-4 py-3 text-blue-600 font-medium cursor-pointer hover:underline"><i data-lucide="file-text" class="w-4 h-4 inline mr-1"></i>${dt.fileName}</td>
+                    <td class="px-4 py-3 text-blue-600 font-medium hover:underline" onclick="event.stopPropagation();"><i data-lucide="file-text" class="w-4 h-4 inline mr-1"></i>${dt.fileName}</td>
                     <td class="px-4 py-3">
                         <span class="px-2 py-1 rounded-full text-[10px] font-bold ${statusClass}">${dt.trangThai}</span>
                     </td>
@@ -816,5 +815,32 @@
             `;
         }).join('') || `<tr><td colspan="7" class="text-center py-4 text-gray-500 text-xs italic">Bạn chưa nộp đề thi nào.</td></tr>`;
         initIcons();
+    }
+
+    function showDeThiDetail(id) {
+        const dt = deThiData.find(x => x.id === id);
+        if (!dt) return;
+
+        document.getElementById('dt-detail-id').innerText = dt.id;
+        
+        let statusClass = "bg-gray-100 text-gray-700";
+        if (dt.trangThai === "Chờ rà soát") statusClass = "bg-yellow-100 text-yellow-700";
+        else if (dt.trangThai === "Đạt") statusClass = "bg-green-100 text-green-700";
+        else if (dt.trangThai === "Chờ chỉnh sửa") statusClass = "bg-red-100 text-red-700";
+        
+        document.getElementById('dt-detail-status').innerHTML = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${statusClass}">${dt.trangThai}</span>`;
+        document.getElementById('dt-detail-subject').innerText = dt.hocPhan;
+        document.getElementById('dt-detail-submitter').innerText = dt.nguoiNop || "-";
+        document.getElementById('dt-detail-time').innerText = dt.thoiGian || "-";
+        document.getElementById('dt-detail-file-name').innerText = dt.fileName || "-";
+        document.getElementById('dt-detail-note').innerText = dt.ghiChu || "-";
+        document.getElementById('dt-detail-review').innerText = dt.nhanXet || "-";
+
+        document.getElementById('modal-detail-de-thi').classList.remove('hidden-view');
+        initIcons();
+    }
+
+    function closeDeThiDetail() {
+        document.getElementById('modal-detail-de-thi').classList.add('hidden-view');
     }
 </script>

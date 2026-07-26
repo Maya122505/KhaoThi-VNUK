@@ -9,7 +9,7 @@
     <!-- User info -->
     <div class="flex-1 min-w-0">
         <p class="text-xs font-black text-[#9e1c22] tracking-wide">Thư ký chấm thi</p>
-        <p class="text-[10px] text-gray-500 font-mono font-bold truncate mt-0.5">{{ request.user.username }}</p>
+        <p class="text-[10px] text-gray-500 font-mono font-bold truncate mt-0.5">{{ request.user.username|lower|default:"tkct" }}</p>
     </div>
     <!-- Action Buttons -->
     <div class="flex items-center gap-1.5">

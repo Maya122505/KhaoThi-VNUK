@@ -1,0 +1,55 @@
+<!-- View: Phê duyệt Đề thi -->
+<div id="view-duyet-de-thi" class="view-section hidden-view animate-fade-in flex flex-col h-full space-y-6">
+    <div class="mb-2 border-b border-gray-200 pb-4">
+        <h2 class="text-2xl font-bold text-blue-900 mb-1 flex items-center gap-2">
+            <i data-lucide="file-check" class="text-blue-600"></i> Phê duyệt Đề thi Kết thúc Học phần
+        </h2>
+        <p class="text-sm text-gray-600">Đánh giá kết quả rà soát của bộ môn và phê duyệt đề thi chính thức cho in sao & bảo mật.</p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-3 border-b border-gray-100">
+            <!-- Thanh tìm kiếm -->
+            <div class="relative flex-1 max-w-md">
+                <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input type="search" id="search-duyet-de" name="search_duyet_de_query_no_autofill" value="" autocomplete="off" aria-autocomplete="none" onfocus="if(this.value==='ldp'||this.value==='LDP') this.value='';" onkeyup="if(this.value==='ldp'||this.value==='LDP') this.value=''; renderDuyetDeThi()" placeholder="Tìm theo mã đề thi, tên học phần, người nộp..." class="w-full pl-9 pr-4 py-2 border border-gray-300 rounded text-xs focus:border-red-800 outline-none" />
+            </div>
+
+            <!-- Bộ lọc trạng thái & Thao tác chọn hàng loạt -->
+            <div class="flex items-center gap-2">
+                <button id="btn-select-duyet-de" onclick="toggleSelectMode('duyet-de')" class="bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 font-bold px-3 py-1.5 text-xs rounded transition-colors flex items-center gap-1.5"><i data-lucide="check-square" class="w-3.5 h-3.5 text-gray-600"></i> <span>Chọn</span></button>
+                <button id="btn-approve-all-duyet-de" onclick="handleApproveSelected('duyet-de')" class="text-emerald-700 hover:text-emerald-800 font-bold px-2.5 py-1.5 text-xs transition-colors items-center gap-1.5 hidden cursor-pointer"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i> <span>Phê duyệt chọn</span></button>
+                <button id="btn-reject-all-duyet-de" onclick="handleRejectSelected('duyet-de')" class="text-rose-700 hover:text-rose-800 font-bold px-2.5 py-1.5 text-xs transition-colors items-center gap-1.5 hidden cursor-pointer"><i data-lucide="x-circle" class="w-4 h-4 text-rose-600"></i> <span>Từ chối chọn</span></button>
+                <span class="text-xs font-bold text-gray-600 ml-2">LỌC TRẠNG THÁI:</span>
+                <div class="inline-flex rounded shadow-sm" role="group">
+                    <button onclick="filterDuyetDeThiStatus('all')" id="fde-status-all" class="fde-status-btn px-3 py-1.5 text-xs font-bold bg-[#9e1c22] text-white rounded-l border border-[#9e1c22]">Tất cả</button>
+                    <button onclick="filterDuyetDeThiStatus('cho-duyet')" id="fde-status-cho-duyet" class="fde-status-btn px-3 py-1.5 text-xs font-bold bg-white text-gray-700 hover:bg-gray-50 border-t border-b border-r border-gray-300">Chờ phê duyệt</button>
+                    <button onclick="filterDuyetDeThiStatus('da-duyet')" id="fde-status-da-duyet" class="fde-status-btn px-3 py-1.5 text-xs font-bold bg-white text-gray-700 hover:bg-gray-50 border-t border-b border-r border-gray-300">Đã phê duyệt</button>
+                    <button onclick="filterDuyetDeThiStatus('tu-choi')" id="fde-status-tu-choi" class="fde-status-btn px-3 py-1.5 text-xs font-bold bg-white text-gray-700 hover:bg-gray-50 border-t border-b border-r border-gray-300 rounded-r">Từ chối</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bảng danh sách đề thi -->
+        <div class="overflow-x-auto overflow-y-auto max-h-[420px] border border-gray-200 rounded-lg">
+            <table class="w-full text-left text-xs border-collapse">
+                <thead class="bg-gray-50 text-gray-700 font-bold uppercase tracking-wider border-b border-gray-200 sticky top-0 bg-gray-50 z-10">
+                    <tr>
+                        <th class="select-col-duyet-de hidden px-3 py-3 border-b text-center w-8"></th>
+                        <th class="px-4 py-3 text-center w-12 whitespace-nowrap">STT</th>
+                        <th class="px-4 py-3 whitespace-nowrap">Mã đề thi</th>
+                        <th class="px-4 py-3 whitespace-nowrap">Học phần</th>
+                        <th class="px-4 py-3 whitespace-nowrap">Thông tin nộp đề</th>
+                        <th class="px-4 py-3 text-center whitespace-nowrap">Tệp đính kèm</th>
+                        <th class="px-4 py-3 whitespace-nowrap">Kết quả rà soát</th>
+                        <th class="px-4 py-3 text-center whitespace-nowrap">Trạng thái</th>
+                        <th class="px-4 py-3 text-center whitespace-nowrap min-w-[160px]">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="duyet-de-thi-tbody" class="divide-y divide-gray-200">
+                    <!-- Dynamic rendering -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

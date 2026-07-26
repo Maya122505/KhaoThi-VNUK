@@ -5,6 +5,7 @@
     let lichThiData = [];
     let hocPhiData = [];
     let lopThiDiemData = [];
+    let hocPhanData = [];
 
     // ==========================================================
     // DỮ LIỆU GIẢ LẬP (STATE MANAGEMENT)
@@ -71,6 +72,7 @@
             phieuGiaoNhanData = data.phieuGiaoNhanData;
             canBoCoiThiData = data.canBoCoiThiData;
             phucKhaoData = data.phucKhaoData;
+            hocPhanData = data.hocPhanData || [];
             isStateLoaded = true;
         } catch(e) {
             console.error("Lỗi đồng bộ dữ liệu từ server:", e);
@@ -102,11 +104,26 @@
         }
     }
 
+    function populateTkctSubjectDropdowns() {
+        const selectTao = document.getElementById('tao-tui-hoc-phan');
+        if (selectTao) {
+            selectTao.innerHTML = '<option value="">-- Tất cả học phần --</option>' +
+                hocPhanData.map(hp => `<option value="${hp.code}">${hp.name}</option>`).join('');
+        }
+
+        const selectFilter = document.getElementById('filter-tui-mon');
+        if (selectFilter) {
+            selectFilter.innerHTML = '<option value="">Học phần: Tất cả</option>' +
+                hocPhanData.map(hp => `<option value="${hp.code}">${hp.name}</option>`).join('');
+        }
+    }
+
     window.onload = async function() {
         initIcons();
         await loadStateFromServer();
-        const savedViewId = sessionStorage.getItem('tkct_activeViewId');
-        navigate(savedViewId || 'view-home');
+        populateTkctSubjectDropdowns();
+        sessionStorage.removeItem('tkct_activeViewId');
+        navigate('view-home');
     };
 
     function initIcons() {
@@ -117,7 +134,6 @@
         document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden-view'));
         const targetView = document.getElementById(viewId);
         if(targetView) targetView.classList.remove('hidden-view');
-        sessionStorage.setItem('tkct_activeViewId', viewId);
 
         document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('bg-red-800'));
         closeAllDropdowns();
@@ -374,7 +390,7 @@
                 }
             });
 
-            tuiBaiData.push({
+            tuiBaiData.unshift({
                 id: newBagId, subjectId: subId, subjectName: subName,
                 papers: size, rooms: rooms, status: "Đã tạo phách",
                 password: `VNUK@${subId}_${Math.floor(100 + Math.random() * 899)}`,
@@ -1175,7 +1191,7 @@
         const nextNum = phieuGiaoNhanData.length + 1;
         const newPhieuId = `PBG-2026-${String(nextNum).padStart(3, '0')}`;
 
-        phieuGiaoNhanData.push({
+        phieuGiaoNhanData.unshift({
             id: newPhieuId,
             type: "Thư ký chấm thi trả túi bài thi về Tổ khảo thí (Loại 3)",
             flow: "Thư ký Chấm thi ➔ Tổ Khảo thí",

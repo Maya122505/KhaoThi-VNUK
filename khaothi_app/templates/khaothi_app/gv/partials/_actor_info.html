@@ -19,7 +19,7 @@
                 <option value="GV005">Đặng Thanh E</option>
             </select>
         </div>
-        <p class="text-[10px] text-gray-500 font-mono font-bold truncate mt-0.5" id="selected-gv-code">{{ request.user.username }}</p>
+        <p class="text-[10px] text-gray-500 font-mono font-bold truncate mt-0.5" id="selected-gv-code">{{ request.user.username|lower|default:"gv" }}</p>
     </div>
     <!-- Action Buttons -->
     <div class="flex items-center gap-1.5">

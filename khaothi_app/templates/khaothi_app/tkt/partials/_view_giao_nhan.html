@@ -7,19 +7,6 @@
     </div>
 
     <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex flex-1 min-h-[500px]">
-        <div class="w-64 bg-gray-50 border-r border-gray-200 p-4 flex flex-col gap-2 shrink-0">
-            <button id="tab-btn-tao" onclick="switchGiaoNhanTab('tao')" class="text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 text-gray-600 hover:bg-gray-100 font-sans shadow-none">
-                <i data-lucide="send" class="w-4 h-4"></i> Tạo phiếu bàn giao
-            </button>
-            <button id="tab-btn-nhan" onclick="switchGiaoNhanTab('nhan')" class="text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 text-gray-600 hover:bg-gray-100 font-sans shadow-none">
-                <i data-lucide="inbox" class="w-4 h-4"></i> Phiếu chờ nhận
-                <span id="badge-cho-nhan" class="ml-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full shadow-sm animate-pulse">1</span>
-            </button>
-            <button id="tab-btn-lich-su" onclick="switchGiaoNhanTab('lich-su')" class="text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 text-gray-600 hover:bg-gray-100 font-sans shadow-none">
-                <i data-lucide="history" class="w-4 h-4"></i> Lịch sử phiếu giao nhận
-            </button>
-        </div>
-
         <div class="flex-1 p-6 overflow-y-auto bg-white relative">
             <!-- Tab: Tạo phiếu bàn giao -->
             <div id="tab-content-tao" class="animate-fade-in flex flex-col h-full">

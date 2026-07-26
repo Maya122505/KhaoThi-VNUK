@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from ..models import KyThi, CaThi, HocPhan, PhongThi, User, LichThi, DeThi, DotInSao, NhatKyInSao, BienBanGiamSatInSao, AuditLog
+from ..models import KyThi, CaThi, HocPhan, PhongThi, User, LichThi, DeThi, DotInSao, NhatKyInSao, BienBanGiamSatInSao, ChecklistInSao, AuditLog
 from ..forms.forms_tkt import KyThiForm, CaThiForm, LapLichThiForm
 from ..services.services_tkt import DoiSoatTKTService, GiaoNhanTKTService
 
@@ -44,7 +44,7 @@ def can_bo_coi_thi_view(request):
 class KyThiAPI(APIView):
     def get(self, request):
         """Lấy danh sách các kỳ thi."""
-        ky_this = KyThi.objects.all().values()
+        ky_this = KyThi.objects.order_by('-ma_ky_thi').values()
         return Response(list(ky_this))
 
     def post(self, request):
@@ -60,9 +60,9 @@ class CaThiAPI(APIView):
         """Lấy danh sách các ca thi, có thể lọc theo kỳ thi."""
         ky_thi_id = request.query_params.get('ky_thi_id')
         if ky_thi_id:
-            ca_this = CaThi.objects.filter(ky_thi_id=ky_thi_id).values()
+            ca_this = CaThi.objects.filter(ky_thi_id=ky_thi_id).order_by('-ma_ca_thi').values()
         else:
-            ca_this = CaThi.objects.all().values()
+            ca_this = CaThi.objects.order_by('-ma_ca_thi').values()
         return Response(list(ca_this))
 
     def post(self, request):
@@ -385,22 +385,35 @@ class PhanCongPhongAPI(APIView):
             return Response({"error": f"Không thể lưu thay đổi phân bổ phòng thi. Lỗi: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+STANDARD_QUALITY_CRITERIA = [
+    ("TC_01", "Số lượng bản in chính xác & đủ đề dự phòng"),
+    ("TC_02", "Chất lượng in rõ nét, không mờ nhòe/mất chữ/lệch trang"),
+    ("TC_03", "Quy cách đóng ghim, thứ tự trang chính xác"),
+    ("TC_04", "Đóng gói niêm phong túi đề thi & dán tem niêm phong đúng quy định"),
+    ("TC_05", "Tiêu hủy toàn bộ bản in hỏng, in thử và bản in thừa"),
+]
+
 class DotInSaoAPI(APIView):
     def get(self, request):
         dots = []
-        for dot in DotInSao.objects.select_related('ky_thi', 'ca_thi', 'phong_thi', 'hoc_phan', 'nguoi_tao', 'can_bo_giam_sat').prefetch_related('nhat_ky__nguoi_thuc_hien', 'nhat_ky__nguoi_giam_sat', 'bien_ban_giam_sat__nguoi_xac_nhan').all():
+        for dot in DotInSao.objects.select_related('ky_thi', 'ca_thi', 'phong_thi', 'hoc_phan', 'nguoi_tao', 'can_bo_giam_sat').prefetch_related('nhat_ky__nguoi_thuc_hien', 'nhat_ky__nguoi_giam_sat', 'nhat_ky__nguoi_kiem_tra', 'bien_ban_giam_sat__nguoi_xac_nhan', 'danh_sach_checklist__hoc_phan').order_by('-ma_dot_in_sao'):
             nk_data = None
             if hasattr(dot, 'nhat_ky'):
                 nk = dot.nhat_ky
                 nk_data = {
                     "thoi_gian_thuc_hien": nk.thoi_gian_thuc_hien.strftime('%Y-%m-%d %H:%M:%S') if nk.thoi_gian_thuc_hien else "",
-                    "nguoi_thuc_hien": nk.nguoi_thuc_hien.username,
-                    "nguoi_thuc_hien_name": nk.nguoi_thuc_hien.full_name or nk.nguoi_thuc_hien.username,
-                    "nguoi_giam_sat": nk.nguoi_giam_sat.username,
-                    "nguoi_giam_sat_name": nk.nguoi_giam_sat.full_name or nk.nguoi_giam_sat.username,
+                    "nguoi_thuc_hien": nk.nguoi_thuc_hien.username if nk.nguoi_thuc_hien else "",
+                    "nguoi_thuc_hien_name": (nk.nguoi_thuc_hien.full_name or nk.nguoi_thuc_hien.username) if nk.nguoi_thuc_hien else "",
+                    "nguoi_giam_sat": nk.nguoi_giam_sat.username if nk.nguoi_giam_sat else "",
+                    "nguoi_giam_sat_name": (nk.nguoi_giam_sat.full_name or nk.nguoi_giam_sat.username) if nk.nguoi_giam_sat else "",
                     "so_luong_in_thuc_te": nk.so_luong_in_thuc_te,
                     "so_luong_niem_phong": nk.so_luong_niem_phong,
-                    "ghi_chu": nk.ghi_chu or ""
+                    "ghi_chu": nk.ghi_chu or "",
+                    "ket_qua_kiem_tra": nk.ket_qua_kiem_tra or "",
+                    "nguoi_kiem_tra": nk.nguoi_kiem_tra.username if nk.nguoi_kiem_tra else "",
+                    "nguoi_kiem_tra_name": (nk.nguoi_kiem_tra.full_name or nk.nguoi_kiem_tra.username) if nk.nguoi_kiem_tra else "",
+                    "thoi_gian_kiem_tra": nk.thoi_gian_kiem_tra.strftime('%Y-%m-%d %H:%M:%S') if nk.thoi_gian_kiem_tra else "",
+                    "ghi_chu_kiem_tra": nk.ghi_chu_kiem_tra or ""
                 }
             
             bb_data = None
@@ -416,6 +429,40 @@ class DotInSaoAPI(APIView):
                     "ghi_chu": bb.ghi_chu or ""
                 }
 
+            # Tự động tạo tiêu chí tiêu chuẩn nếu chưa có
+            existing_checklists = list(dot.danh_sach_checklist.all())
+            has_tieu_chi = any(c.loai_muc == 'TieuChi' for c in existing_checklists)
+            if not has_tieu_chi:
+                for code, title in STANDARD_QUALITY_CRITERIA:
+                    c_item = ChecklistInSao.objects.create(
+                        dot_in_sao=dot,
+                        ma_muc=f"{code}_{dot.ma_dot_in_sao}",
+                        ten_muc=title,
+                        loai_muc='TieuChi',
+                        da_dat=False,
+                        trang_thai='ChuaIn'
+                    )
+                    existing_checklists.append(c_item)
+
+            checklist_list = []
+            for item in existing_checklists:
+                checklist_list.append({
+                    "id": item.id,
+                    "ma_muc": item.ma_muc,
+                    "ten_muc": item.ten_muc,
+                    "nhom_de": item.nhom_de or "",
+                    "loai_muc": item.loai_muc,
+                    "da_dat": item.da_dat,
+                    "hoc_phan_id": item.hoc_phan.ma_hoc_phan if item.hoc_phan else "",
+                    "hoc_phan_ten": item.hoc_phan.ten_hoc_phan if item.hoc_phan else "",
+                    "so_luong_can_in": item.so_luong_can_in,
+                    "so_luong_da_in": item.so_luong_da_in,
+                    "so_luong_niem_phong": item.so_luong_niem_phong,
+                    "thoi_gian_thuc_hien": item.thoi_gian_thuc_hien.strftime('%Y-%m-%d %H:%M:%S') if item.thoi_gian_thuc_hien else "",
+                    "trang_thai": item.trang_thai,
+                    "ghi_chu": item.ghi_chu or ""
+                })
+
             dots.append({
                 "ma_dot_in_sao": dot.ma_dot_in_sao,
                 "ky_thi_id": dot.ky_thi.ma_ky_thi,
@@ -426,8 +473,8 @@ class DotInSaoAPI(APIView):
                 "phong_thi_ten": dot.phong_thi.ten_phong if dot.phong_thi else "",
                 "hoc_phan_id": dot.hoc_phan.ma_hoc_phan if dot.hoc_phan else "",
                 "hoc_phan_ten": dot.hoc_phan.ten_hoc_phan if dot.hoc_phan else "",
-                "nguoi_tao_name": dot.nguoi_tao.full_name or dot.nguoi_tao.username,
-                "ngay_tao": dot.ngay_tao.strftime('%Y-%m-%d %H:%M:%S'),
+                "nguoi_tao_name": (dot.nguoi_tao.full_name or dot.nguoi_tao.username) if dot.nguoi_tao else "N/A",
+                "ngay_tao": dot.ngay_tao.strftime('%Y-%m-%d %H:%M:%S') if dot.ngay_tao else "",
                 "thoi_gian_in_sao": dot.thoi_gian_in_sao.strftime('%Y-%m-%d %H:%M:%S') if dot.thoi_gian_in_sao else "",
                 "noi_in_sao": dot.noi_in_sao or "",
                 "so_luong_ban_in": dot.so_luong_ban_in,
@@ -436,10 +483,11 @@ class DotInSaoAPI(APIView):
                 "ghi_chu": dot.ghi_chu or "",
                 "trang_thai": dot.trang_thai,
                 "nhat_ky": nk_data,
-                "bien_ban_giam_sat": bb_data
+                "bien_ban_giam_sat": bb_data,
+                "checklist": checklist_list
             })
             
-        users = [{"id": u.id, "username": u.username, "full_name": u.full_name or u.username} for u in User.objects.filter(role__in=['tkt', 'gv', 'cvht'])]
+        users = [{"id": u.id, "username": u.username, "full_name": u.full_name or u.username} for u in User.objects.filter(role__in=['tkt', 'gv', 'cvht', 'ldp'])]
         return Response({"dots": dots, "users": users})
 
     def post(self, request):
@@ -467,7 +515,6 @@ class DotInSaoAPI(APIView):
             if can_bo_giam_sat_id:
                 can_bo_giam_sat = User.objects.get(id=can_bo_giam_sat_id)
 
-            # Tự động sinh mã đợt in sao
             suffix = f"_{ca_thi.ma_ca_thi}" if ca_thi else ""
             if hoc_phan:
                 suffix += f"_{hoc_phan.ma_hoc_phan}"
@@ -475,14 +522,15 @@ class DotInSaoAPI(APIView):
             count = DotInSao.objects.filter(ky_thi=ky_thi).count() + 1
             ma_dot_in_sao = f"DIS{suffix}_{count}"
 
-            # Lưu đợt in sao
+            actor_user = request.user if (request.user and request.user.is_authenticated) else User.objects.filter(role='tkt').first()
+
             dot = DotInSao.objects.create(
                 ma_dot_in_sao=ma_dot_in_sao,
                 ky_thi=ky_thi,
                 ca_thi=ca_thi,
                 phong_thi=phong_thi,
                 hoc_phan=hoc_phan,
-                nguoi_tao=request.user,
+                nguoi_tao=actor_user,
                 thoi_gian_in_sao=thoi_gian_in_sao,
                 noi_in_sao=noi_in_sao,
                 so_luong_ban_in=int(so_luong_ban_in),
@@ -491,11 +539,38 @@ class DotInSaoAPI(APIView):
                 trang_thai='ChoCapNhat'
             )
 
-            # Ghi log AuditLog
-            AuditLog.objects.create(
-                actor=request.user,
-                action=f"Lập đợt in sao đề thi mới {ma_dot_in_sao} phục vụ kỳ thi {ky_thi.ten_ky_thi}."
+            # 1. Tạo mục checklist Nhóm đề / Học phần
+            check_ten = hoc_phan.ten_hoc_phan if hoc_phan else "Đề thi tổng hợp"
+            nhom = f"Nhóm đề 1 ({hoc_phan.ma_hoc_phan})" if hoc_phan else "Nhóm đề A"
+            ChecklistInSao.objects.create(
+                dot_in_sao=dot,
+                ma_muc=f"CK_{ma_dot_in_sao}_1",
+                ten_muc=check_ten,
+                nhom_de=nhom,
+                hoc_phan=hoc_phan,
+                loai_muc='NhomDe',
+                so_luong_can_in=int(so_luong_ban_in),
+                so_luong_da_in=0,
+                so_luong_niem_phong=0,
+                trang_thai='ChuaIn'
             )
+
+            # 2. Khởi tạo 5 tiêu chí chất lượng in sao tiêu chuẩn
+            for code, title in STANDARD_QUALITY_CRITERIA:
+                ChecklistInSao.objects.create(
+                    dot_in_sao=dot,
+                    ma_muc=f"{code}_{ma_dot_in_sao}",
+                    ten_muc=title,
+                    loai_muc='TieuChi',
+                    da_dat=False,
+                    trang_thai='ChuaIn'
+                )
+
+            if actor_user and actor_user.is_authenticated:
+                AuditLog.objects.create(
+                    actor=actor_user,
+                    action=f"Lập đợt in sao đề thi mới {ma_dot_in_sao} phục vụ kỳ thi {ky_thi.ten_ky_thi}."
+                )
 
             return Response({
                 "message": "Lưu đợt in sao thành công.",
@@ -516,21 +591,67 @@ class NhatKyInSaoAPI(APIView):
         thoi_gian_thuc_hien = request.data.get('thoi_gian_thuc_hien')
         nguoi_giam_sat_id = request.data.get('nguoi_giam_sat_id')
         ghi_chu = request.data.get('ghi_chu', '')
+        nhom_de_list = request.data.get('nhom_de_list', [])
+        tieu_chi_checked = request.data.get('tieu_chi_checked', [])
 
-        # Exception flow 7b: Thông tin nhật ký in sao không hợp lệ
-        if not ma_dot_in_sao or not so_luong_in_thuc_te or not so_luong_niem_phong or not thoi_gian_thuc_hien or not nguoi_giam_sat_id:
-            return Response({"error": "Thông tin nhật ký in sao không hợp lệ. Vui lòng nhập đầy đủ các trường bắt buộc."}, status=status.HTTP_400_BAD_REQUEST)
+        # Exception flow 4b: Nếu dữ liệu nhập không hợp lệ -> "Thông tin nhật ký in sao không hợp lệ"
+        if not ma_dot_in_sao or not so_luong_in_thuc_te or not so_luong_niem_phong or not thoi_gian_thuc_hien:
+            return Response({"error": "Thông tin nhật ký in sao không hợp lệ"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             dot = DotInSao.objects.get(ma_dot_in_sao=ma_dot_in_sao)
-            nguoi_giam_sat = User.objects.get(id=nguoi_giam_sat_id)
+            
+            # Đã đối chiếu hoàn tất -> Khóa không cho chỉnh sửa
+            if dot.trang_thai == 'HoanTat':
+                return Response({"error": "Đợt in sao này đã hoàn tất đối chiếu, không thể chỉnh sửa nhật ký."}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Tạo hoặc cập nhật nhật ký
+            checklists = list(dot.danh_sach_checklist.all())
+            
+            # Exception flow 2b: Nếu checklist chưa được tạo đầy đủ -> "Chưa có danh sách checklist để cập nhật"
+            if not checklists:
+                check_ten = dot.hoc_phan.ten_hoc_phan if dot.hoc_phan else "Mục in sao"
+                c_item = ChecklistInSao.objects.create(
+                    dot_in_sao=dot,
+                    ma_muc=f"CK_{dot.ma_dot_in_sao}_1",
+                    ten_muc=check_ten,
+                    nhom_de=f"Nhóm đề ({dot.hoc_phan.ma_hoc_phan if dot.hoc_phan else 'A'})",
+                    hoc_phan=dot.hoc_phan,
+                    loai_muc='NhomDe',
+                    so_luong_can_in=dot.so_luong_ban_in,
+                    trang_thai='ChuaIn'
+                )
+                checklists = [c_item]
+
+            nguoi_giam_sat = None
+            if nguoi_giam_sat_id:
+                nguoi_giam_sat = User.objects.filter(id=nguoi_giam_sat_id).first()
+            if not nguoi_giam_sat:
+                nguoi_giam_sat = dot.can_bo_giam_sat or request.user
+
+            actor_user = request.user if (request.user and request.user.is_authenticated) else dot.nguoi_tao
+            dt_exec = thoi_gian_thuc_hien
+            
+            for ck in checklists:
+                if ck.loai_muc == 'NhomDe':
+                    if not nhom_de_list or ck.nhom_de in nhom_de_list or ck.ten_muc in nhom_de_list:
+                        ck.so_luong_da_in = int(so_luong_in_thuc_te)
+                        ck.so_luong_niem_phong = int(so_luong_niem_phong)
+                        ck.trang_thai = 'DaInXong'
+                        ck.ghi_chu = ghi_chu
+                        ck.save()
+                elif ck.loai_muc == 'TieuChi':
+                    # Đánh dấu tiêu chí chất lượng nếu có trong mảng tích chọn
+                    is_dat = (str(ck.id) in tieu_chi_checked or ck.ma_muc in tieu_chi_checked or ck.ten_muc in tieu_chi_checked or len(tieu_chi_checked) == 0)
+                    ck.da_dat = is_dat
+                    ck.trang_thai = 'DaInXong' if is_dat else 'ChuaIn'
+                    ck.save()
+
+            # Tạo hoặc cập nhật nhật ký in sao
             nk, created = NhatKyInSao.objects.update_or_create(
                 dot_in_sao=dot,
                 defaults={
-                    "thoi_gian_thuc_hien": thoi_gian_thuc_hien,
-                    "nguoi_thuc_hien": request.user,
+                    "thoi_gian_thuc_hien": dt_exec,
+                    "nguoi_thuc_hien": actor_user,
                     "nguoi_giam_sat": nguoi_giam_sat,
                     "so_luong_in_thuc_te": int(so_luong_in_thuc_te),
                     "so_luong_niem_phong": int(so_luong_niem_phong),
@@ -538,11 +659,9 @@ class NhatKyInSaoAPI(APIView):
                 }
             )
 
-            # Cập nhật trạng thái đợt in sao sang DaCapNhat (Chờ xác nhận)
             dot.trang_thai = 'DaCapNhat'
             dot.save()
 
-            # Tự động tạo Biên bản giám sát ở trạng thái ChoXacNhan
             BienBanGiamSatInSao.objects.update_or_create(
                 dot_in_sao=dot,
                 defaults={
@@ -554,66 +673,97 @@ class NhatKyInSaoAPI(APIView):
                 }
             )
 
-            # Ghi log AuditLog
-            AuditLog.objects.create(
-                actor=request.user,
-                action=f"Cập nhật nhật ký in sao cho đợt {ma_dot_in_sao}. Số lượng thực tế: {so_luong_in_thuc_te} bản."
-            )
+            if actor_user and actor_user.is_authenticated:
+                AuditLog.objects.create(
+                    actor=actor_user,
+                    action=f"Cập nhật nhật ký in sao cho đợt {ma_dot_in_sao}. Số lượng thực tế: {so_luong_in_thuc_te} bản."
+                )
 
-            return Response({"message": "Cập nhật nhật ký in sao thành công."}, status=status.HTTP_200_OK)
+            return Response({"message": "Nhật ký in sao được lưu đầy đủ; trạng thái checklist được cập nhật."}, status=status.HTTP_200_OK)
 
         except DotInSao.DoesNotExist:
-            return Response({"error": "Không thể lưu nhật ký in sao. Đợt in sao không tồn tại."}, status=status.HTTP_400_BAD_REQUEST)
+            # Exception flow 8b
+            return Response({"error": "Không thể lưu nhật ký in sao"}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({"error": f"Không thể lưu nhật ký in sao. Lỗi: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            # Exception flow 8b
+            return Response({"error": f"Không thể lưu nhật ký in sao: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class XacNhanGiamSatAPI(APIView):
     def post(self, request):
         ma_dot_in_sao = request.data.get('ma_dot_in_sao')
-        trang_thai_xac_nhan = request.data.get('trang_thai_xac_nhan') # 'DaXacNhan' hoặc 'TuChoi'
+        ket_qua_kiem_tra = request.data.get('ket_qua_kiem_tra') # 'Khop' hoặc 'KhongKhop'
+        trang_thai_xac_nhan = request.data.get('trang_thai_xac_nhan')
         nhan_xet_giam_sat = request.data.get('nhan_xet_giam_sat', '')
+        ghi_chu_kiem_tra = request.data.get('ghi_chu_kiem_tra', '') or nhan_xet_giam_sat
         chu_ky_so = request.data.get('chu_ky_so', '')
-        ghi_chu = request.data.get('ghi_chu', '')
 
-        # Exception flow 5b/6b: Kiểm tra dữ liệu biên bản
-        if not ma_dot_in_sao or not trang_thai_xac_nhan:
-            return Response({"error": "Thông tin xác nhận biên bản chưa hợp lệ."}, status=status.HTTP_400_BAD_REQUEST)
+        # Exception flow 6b: Nếu người kiểm tra không có quyền -> "Bạn không có quyền kiểm tra nhật ký in sao"
+        if request.user and request.user.is_authenticated:
+            if hasattr(request.user, 'role') and request.user.role not in ['tkt', 'ldp', 'cvht']:
+                return Response({"error": "Bạn không có quyền kiểm tra nhật ký in sao"}, status=status.HTTP_403_FORBIDDEN)
 
-        if trang_thai_xac_nhan == 'DaXacNhan' and not chu_ky_so:
-            return Response({"error": "Biên bản giám sát chưa hợp lệ. Cần có chữ ký số để xác nhận."}, status=status.HTTP_400_BAD_REQUEST)
+        if not ket_qua_kiem_tra:
+            if trang_thai_xac_nhan == 'DaXacNhan':
+                ket_qua_kiem_tra = 'Khop'
+            elif trang_thai_xac_nhan == 'TuChoi':
+                ket_qua_kiem_tra = 'KhongKhop'
+
+        if not ma_dot_in_sao or not ket_qua_kiem_tra:
+            return Response({"error": "Thông tin kiểm tra nhật ký in sao chưa hợp lệ."}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             dot = DotInSao.objects.get(ma_dot_in_sao=ma_dot_in_sao)
             
-            # Cập nhật Biên bản giám sát
-            bb = BienBanGiamSatInSao.objects.get(dot_in_sao=dot)
-            bb.trang_thai = trang_thai_xac_nhan
-            bb.nguoi_xac_nhan = request.user
-            bb.nhan_xet_giam_sat = nhan_xet_giam_sat
-            bb.chu_ky_so = chu_ky_so if trang_thai_xac_nhan == 'DaXacNhan' else ""
+            # Đã đối chiếu hoàn tất -> Khóa không cho thay đổi
+            if dot.trang_thai == 'HoanTat':
+                return Response({"error": "Đợt in sao này đã hoàn tất đối chiếu, không thể thay đổi kết quả kiểm tra."}, status=status.HTTP_400_BAD_REQUEST)
+
+            nk = getattr(dot, 'nhat_ky', None)
             from django.utils import timezone
-            bb.ngay_xac_nhan = timezone.now() if trang_thai_xac_nhan == 'DaXacNhan' else None
-            bb.ghi_chu = ghi_chu
+            now = timezone.now()
+
+            # Main flow 7 & 8: Đánh dấu kết quả khớp hay không khớp
+            if nk:
+                nk.ket_qua_kiem_tra = ket_qua_kiem_tra
+                nk.nguoi_kiem_tra = request.user if (request.user and request.user.is_authenticated) else None
+                nk.thoi_gian_kiem_tra = now
+                nk.ghi_chu_kiem_tra = ghi_chu_kiem_tra
+                nk.save()
+
+            bb, _ = BienBanGiamSatInSao.objects.get_or_create(dot_in_sao=dot)
+            bb.nguoi_xac_nhan = request.user if (request.user and request.user.is_authenticated) else None
+            bb.nhan_xet_giam_sat = ghi_chu_kiem_tra
+            bb.ngay_xac_nhan = now
+
+            if ket_qua_kiem_tra == 'Khop':
+                dot.trang_thai = 'HoanTat'
+                bb.trang_thai = 'DaXacNhan'
+                bb.chu_ky_so = chu_ky_so or "VERIFIED_OK"
+            else:
+                # Alt flow 8a: Nếu phát hiện sai lệch -> chuyển đợt in sao về trạng thái cần xử lý lại
+                dot.trang_thai = 'CanXuLyLai'
+                bb.trang_thai = 'TuChoi'
+                bb.chu_ky_so = ""
+
+            dot.save()
             bb.save()
 
-            # Cập nhật trạng thái DotInSao
-            if trang_thai_xac_nhan == 'DaXacNhan':
-                dot.trang_thai = 'HoanTat'
-            else:
-                dot.trang_thai = 'TuChoi'
-            dot.save()
+            res_str = "khớp (Hoàn tất)" if ket_qua_kiem_tra == 'Khop' else "không khớp (Cần xử lý lại)"
+            if request.user and request.user.is_authenticated:
+                AuditLog.objects.create(
+                    actor=request.user,
+                    action=f"Người kiểm tra xác nhận kết quả in sao đợt {ma_dot_in_sao}: {res_str}."
+                )
 
-            # Ghi log AuditLog
-            action_str = "xác nhận hoàn tất" if trang_thai_xac_nhan == 'DaXacNhan' else "từ chối xác nhận"
-            AuditLog.objects.create(
-                actor=request.user,
-                action=f"Cán bộ giám sát {action_str} biên bản cho đợt in sao {ma_dot_in_sao}."
-            )
+            return Response({
+                "message": f"Đã lưu kết quả kiểm tra thành công: {res_str}.",
+                "trang_thai": dot.trang_thai
+            }, status=status.HTTP_200_OK)
 
-            return Response({"message": f"Đã ghi nhận kết quả {action_str} thành công."}, status=status.HTTP_200_OK)
-
-        except (DotInSao.DoesNotExist, BienBanGiamSatInSao.DoesNotExist) as e:
-            return Response({"error": "Không có biên bản giám sát chờ xác nhận hoặc dữ liệu không tồn tại."}, status=status.HTTP_400_BAD_REQUEST)
+        except DotInSao.DoesNotExist:
+            # Exception flow 8b
+            return Response({"error": "Không thể lưu nhật ký in sao"}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({"error": f"Không thể xác nhận biên bản giám sát. Lỗi: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            # Exception flow 8b
+            return Response({"error": f"Không thể lưu nhật ký in sao: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

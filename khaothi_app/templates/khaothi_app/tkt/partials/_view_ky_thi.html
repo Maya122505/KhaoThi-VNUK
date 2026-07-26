@@ -68,8 +68,13 @@
 
         <!-- Danh sách Kỳ thi hiện hữu (chiếm 2 cột) -->
         <div class="col-span-2 bg-white border border-gray-200 rounded-lg shadow-sm p-6 flex flex-col h-[600px]">
-            <h3 class="font-bold text-lg text-gray-800 mb-4 border-b pb-2 flex items-center gap-2 text-[#9e1c22]"><i data-lucide="list" class="w-5 h-5"></i> Danh sách kỳ thi hiện có</h3>
-            <p class="text-xs text-gray-400 mb-2 italic">Mẹo: Nhấn vào thẻ kỳ thi để xem chi tiết các ca thi trực thuộc.</p>
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                <h3 class="font-bold text-lg text-gray-800 flex items-center gap-2 text-[#9e1c22]"><i data-lucide="list" class="w-5 h-5"></i> Danh sách kỳ thi hiện có</h3>
+                <div class="flex items-center gap-2">
+                    <button id="btn-select-ky-thi" onclick="toggleSelectMode('ky-thi')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-3 py-1 text-xs rounded transition-colors flex items-center gap-1.5"><i data-lucide="check-square" class="w-3.5 h-3.5 text-gray-600"></i> <span>Chọn</span></button>
+                    <button id="btn-delete-all-ky-thi" onclick="handleDeleteSelected('ky-thi')" class="bg-red-600 hover:bg-red-700 text-white font-bold p-1.5 rounded transition-colors flex items-center justify-center hidden shadow-sm" title="Xóa các mục đã chọn"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                </div>
+            </div>
             <div class="flex-1 overflow-y-auto space-y-3" id="ky-thi-list-div"></div>
         </div>
     </div>

@@ -1,0 +1,158 @@
+<!-- Giao diện quản lý phòng thi -->
+<div id="view-phong-thi" class="view-section hidden-view w-full h-full animate-fade-in flex flex-col">
+    <div class="mb-6 border-b border-gray-200 pb-4">
+        <h2 class="text-2xl font-bold text-blue-900 mb-1 flex items-center gap-2"><i data-lucide="layout-grid" class="w-6 h-6 text-blue-600"></i> Quản lý Phòng thi</h2>
+        <p class="text-sm text-gray-600">Quản lý danh sách phòng thi và phân bổ phòng cho các lịch thi.</p>
+    </div>
+
+    <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex flex-1 min-h-[500px]">
+        <!-- Content Area -->
+        <div class="flex-1 p-6 overflow-y-auto bg-white relative">
+            <!-- Danh sách phòng thi -->
+            <div id="phong-thi-danh-sach-tab" class="animate-fade-in flex flex-col h-full">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Form Thêm phòng thi -->
+                    <div class="lg:col-span-1 bg-white border border-gray-200 rounded-lg shadow-sm p-6 h-fit">
+                        <h3 class="font-bold text-lg text-gray-800 mb-4 border-b pb-2 flex items-center gap-2 text-blue-900"><i data-lucide="plus-circle" class="w-5 h-5"></i> Thêm phòng thi mới</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Tên phòng thi</label>
+                                <input id="pt-ten" type="text" placeholder="Ví dụ: P.201" class="w-full p-2 border border-gray-300 rounded text-sm focus:border-red-800 outline-none" />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Sức chứa (số thí sinh)</label>
+                                <input id="pt-suc-chua" type="number" min="1" placeholder="40" class="w-full p-2 border border-gray-300 rounded text-sm focus:border-red-800 outline-none" />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Vị trí (Toà nhà)</label>
+                                <select id="pt-vi-tri" class="w-full p-2 border border-gray-300 rounded text-sm bg-white focus:border-red-800 outline-none">
+                                    <option value="Toà nhà A">Toà nhà A</option>
+                                    <option value="Toà nhà B">Toà nhà B</option>
+                                    <option value="Toà nhà C">Toà nhà C</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Loại phòng</label>
+                                <select id="pt-loai" class="w-full p-2 border border-gray-300 rounded text-sm bg-white focus:border-red-800 outline-none">
+                                    <option value="Phòng thường">Phòng thường</option>
+                                    <option value="Phòng máy tính">Phòng máy tính</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Trạng thái</label>
+                                <select id="pt-trang-thai" class="w-full p-2 border border-gray-300 rounded text-sm bg-white focus:border-red-800 outline-none">
+                                    <option value="Khả dụng">Khả dụng</option>
+                                    <option value="Đang bảo trì">Đang bảo trì</option>
+                                    <option value="Ngừng sử dụng">Ngừng sử dụng</option>
+                                </select>
+                            </div>
+                            <button onclick="handleCreatePhongThi()" class="w-full bg-[#9e1c22] text-white font-bold py-2.5 rounded shadow hover:bg-red-800 transition-colors">Lưu phòng thi</button>
+                        </div>
+                    </div>
+
+                    <!-- Bảng Danh sách phòng thi -->
+                    <div class="lg:col-span-2 bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col">
+                        <div class="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50 rounded-t-lg">
+                            <h3 class="font-bold text-gray-800 flex items-center gap-2"><i data-lucide="layout-grid" class="w-5 h-5 text-gray-500"></i> Danh sách phòng thi</h3>
+                            <div class="flex items-center gap-2">
+                                <button id="btn-select-phong-thi" onclick="toggleSelectMode('phong-thi')" class="bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 font-bold px-3 py-1.5 text-xs rounded transition-colors flex items-center gap-1.5"><i data-lucide="check-square" class="w-3.5 h-3.5 text-gray-600"></i> <span>Chọn</span></button>
+                                <button id="btn-delete-all-phong-thi" onclick="handleDeleteSelected('phong-thi')" class="bg-red-600 hover:bg-red-700 text-white font-bold p-1.5 rounded transition-colors flex items-center justify-center hidden shadow-sm" title="Xóa các mục đã chọn"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                                <div class="relative w-56">
+                                    <input type="text" id="pt-search" placeholder="Tìm kiếm phòng..." class="w-full pl-8 pr-3 py-1.5 border border-gray-300 rounded-md text-sm outline-none focus:border-red-800 bg-white" onkeyup="renderPhongThiTable()">
+                                    <i data-lucide="search" class="w-4 h-4 absolute left-2.5 top-2 text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex-1 overflow-y-auto max-h-[350px]">
+                            <table class="w-full text-sm text-left border-collapse">
+                                <thead class="text-xs text-gray-600 uppercase bg-gray-100 border-b border-gray-200 sticky top-0 bg-gray-100 z-10 font-bold">
+                                    <tr>
+                                        <th class="select-col-phong-thi hidden px-3 py-3 w-8 text-center"></th>
+                                        <th class="px-4 py-3">Mã phòng</th>
+                                        <th class="px-4 py-3">Tên phòng</th>
+                                        <th class="px-4 py-3 text-center">Sức chứa</th>
+                                        <th class="px-4 py-3">Vị trí</th>
+                                        <th class="px-4 py-3">Trạng thái</th>
+                                        <th class="px-4 py-3 text-center">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="phong-thi-tbody">
+                                    <!-- JS render -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Phân công phòng thi -->
+            <div id="phong-thi-phan-cong-tab" class="hidden-view animate-fade-in flex flex-col h-full">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-1 bg-white border border-gray-200 rounded-lg shadow-sm p-6 h-fit">
+                        <h3 class="font-bold text-lg text-gray-800 mb-4 border-b pb-2 flex items-center gap-2 text-[#9e1c22]"><i data-lucide="calendar-check" class="w-5 h-5"></i> Phân bổ phòng</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Chọn Ca thi / Lịch thi cần phân công</label>
+                                <select id="pc-lich-thi" class="w-full p-2 border border-gray-300 rounded text-sm bg-white focus:border-red-800 outline-none" onchange="updatePCInfo()">
+                                    <!-- JS render -->
+                                </select>
+                            </div>
+                            <div class="bg-gray-50 p-3 rounded border border-gray-200 text-sm">
+                                <p class="text-gray-600">Số lượng thí sinh: <span id="pc-so-luong" class="font-bold text-gray-900">0</span></p>
+                                <p class="text-gray-600 mt-1">Ngày thi: <span id="pc-ngay-thi" class="font-bold text-gray-900">-</span></p>
+                                <p class="text-gray-600 mt-1">Ca thi: <span id="pc-ca-thi" class="font-bold text-gray-900">-</span></p>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Chọn phòng khả dụng</label>
+                                <select id="pc-phong-thi" multiple class="w-full p-2 border border-gray-300 rounded text-sm bg-white focus:border-red-800 outline-none h-32" onchange="updatePCCapacity()">
+                                    <!-- JS render -->
+                                </select>
+                                <p class="text-[10px] text-gray-500 mt-1">Giữ phím Ctrl (Windows) hoặc Cmd (Mac) để chọn nhiều phòng.</p>
+                            </div>
+                            <div class="space-y-2.5 pt-3 border-t border-gray-200">
+                                <button onclick="handlePhanCongPhong()" class="w-full bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-bold py-2.5 px-4 rounded-lg shadow-xs transition-colors flex items-center justify-center gap-2 text-xs">
+                                    <i data-lucide="check-circle" class="w-4 h-4 text-red-600"></i> Xác nhận phân bổ thủ công
+                                </button>
+                                <button onclick="autoAssignPhongThi()" class="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 font-bold py-2.5 px-4 rounded-lg shadow-xs transition-colors flex items-center justify-center gap-2 text-xs" title="Hệ thống tự động chọn phòng thi khả dụng phù hợp sức chứa cho các lịch thi">
+                                    <i data-lucide="sparkles" class="w-4 h-4 text-blue-600"></i> Tự động phân công phòng
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bảng danh sách phân bổ hiện tại -->
+                    <div class="lg:col-span-2 bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col">
+                        <div class="p-4 border-b border-gray-200 bg-gray-50 rounded-t-lg flex justify-between items-center">
+                            <h3 class="font-bold text-gray-800 flex items-center gap-2"><i data-lucide="list-checks" class="w-5 h-5 text-gray-500"></i> Danh sách phân bổ phòng</h3>
+                            <div class="flex items-center gap-2">
+                                <button id="btn-select-phan-cong" onclick="toggleSelectMode('phan-cong')" class="bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 font-bold px-3 py-1.5 text-xs rounded transition-colors flex items-center gap-1.5"><i data-lucide="check-square" class="w-3.5 h-3.5 text-gray-600"></i> <span>Chọn</span></button>
+                                <button id="btn-delete-all-phan-cong" onclick="handleDeleteSelected('phan-cong')" class="bg-red-600 hover:bg-red-700 text-white font-bold p-1.5 rounded transition-colors flex items-center justify-center hidden shadow-sm" title="Xóa các mục đã chọn"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                                <button id="btn-send-lich-thi" onclick="handleSendLichThiForApproval()" class="bg-[#9e1c22] hover:bg-red-800 text-white font-bold px-3 py-1.5 text-xs rounded transition-colors flex items-center gap-1.5 shadow-xs" title="Gửi danh sách lịch thi đã xếp phòng cho Lãnh đạo phòng duyệt">
+                                    <i data-lucide="send" class="w-3.5 h-3.5"></i> <span>Gửi duyệt Lịch thi</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex-1 overflow-y-auto max-h-[350px]">
+                            <table class="w-full text-sm text-left border-collapse">
+                                <thead class="text-xs text-gray-600 uppercase bg-gray-100 border-b border-gray-200 sticky top-0 bg-gray-100 z-10 font-bold">
+                                    <tr>
+                                        <th class="select-col-phan-cong hidden px-3 py-3 w-8 text-center"></th>
+                                        <th class="px-4 py-3">Lịch thi / Học phần</th>
+                                        <th class="px-4 py-3">Ngày thi</th>
+                                        <th class="px-4 py-3">Ca thi</th>
+                                        <th class="px-4 py-3 text-center">Số SV</th>
+                                        <th class="px-4 py-3">Phòng đã xếp</th>
+                                        <th class="px-4 py-3 text-center">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="phan-cong-tbody">
+                                    <!-- JS render -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

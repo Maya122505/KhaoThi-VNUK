@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 # ===================================================================
-# 1. CORE MODELS: Người dùng và Phân quyền
+# 1. MODELS: Người dùng và Phân quyền
 # ===================================================================
 
 class User(AbstractUser):
@@ -182,7 +182,7 @@ class PhongThi(models.Model):
     loai_phong = models.CharField(max_length=50, null=True, blank=True)
     suc_chua = models.PositiveIntegerField(default=0)
     vi_tri = models.CharField(max_length=255, null=True, blank=True)
-    trang_thai = models.CharField(max_length=50, default='KhaDung')
+    trang_thai = models.CharField(max_length=50, default='Khả dụng')
     ghi_chu = models.TextField(null=True, blank=True)
 
     def __str__(self):
@@ -310,6 +310,7 @@ class DotInSao(models.Model):
             ('ChoCapNhat', 'Chờ cập nhật nhật ký'), 
             ('DaCapNhat', 'Đã cập nhật nhật ký (Chờ xác nhận)'), 
             ('HoanTat', 'Hoàn tất'), 
+            ('CanXuLyLai', 'Cần xử lý lại'),
             ('TuChoi', 'Từ chối xác nhận')
         ]
     )
@@ -330,6 +331,47 @@ class NhatKyInSao(models.Model):
     so_luong_in_thuc_te = models.PositiveIntegerField(default=0)
     so_luong_niem_phong = models.PositiveIntegerField(default=0)
     ghi_chu = models.TextField(null=True, blank=True)
+    
+    # Kết quả kiểm tra chất lượng đề sau in sao
+    ket_qua_kiem_tra = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True,
+        choices=[('Khop', 'Khớp'), ('KhongKhop', 'Không khớp')]
+    )
+    nguoi_kiem_tra = models.ForeignKey(User, on_delete=models.PROTECT, related_name='nhat_ky_in_sao_da_kiem_tra', null=True, blank=True)
+    thoi_gian_kiem_tra = models.DateTimeField(null=True, blank=True)
+    ghi_chu_kiem_tra = models.TextField(null=True, blank=True)
+
+
+class ChecklistInSao(models.Model):
+    """
+    Danh sách checklist chi tiết từng học phần/nhóm đề hoặc tiêu chí chất lượng thuộc đợt in sao.
+    """
+    LOAI_MUC_CHOICES = (
+        ('NhomDe', 'Nhóm đề / Học phần'),
+        ('TieuChi', 'Tiêu chí chất lượng'),
+    )
+    dot_in_sao = models.ForeignKey(DotInSao, on_delete=models.CASCADE, related_name='danh_sach_checklist')
+    ma_muc = models.CharField(max_length=50)
+    ten_muc = models.CharField(max_length=255, verbose_name="Tên học phần / Tiêu chí checklist")
+    nhom_de = models.CharField(max_length=100, null=True, blank=True, verbose_name="Nhóm đề")
+    hoc_phan = models.ForeignKey(HocPhan, on_delete=models.PROTECT, related_name='checklist_in_sao', null=True, blank=True)
+    loai_muc = models.CharField(max_length=20, choices=LOAI_MUC_CHOICES, default='NhomDe')
+    so_luong_can_in = models.PositiveIntegerField(default=0)
+    so_luong_da_in = models.PositiveIntegerField(default=0)
+    so_luong_niem_phong = models.PositiveIntegerField(default=0)
+    da_dat = models.BooleanField(default=False, verbose_name="Đạt tiêu chí chất lượng")
+    thoi_gian_thuc_hien = models.DateTimeField(null=True, blank=True)
+    trang_thai = models.CharField(
+        max_length=50,
+        default='ChuaIn',
+        choices=[('ChuaIn', 'Chưa in'), ('DaInXong', 'Đã in xong')]
+    )
+    ghi_chu = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.dot_in_sao.ma_dot_in_sao} - {self.ten_muc}"
 
 
 class BienBanGiamSatInSao(models.Model):
