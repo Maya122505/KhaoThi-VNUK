@@ -1455,6 +1455,8 @@ def save_state(request):
                             
             # 5. Đồng bộ phucKhaoData -> DonPhucKhao
             if "phucKhaoData" in data:
+                payload_ids = [pk["id"] for pk in data["phucKhaoData"] if pk.get("id")]
+                DonPhucKhao.objects.exclude(ma_don__in=payload_ids).delete()
                 for pk in data["phucKhaoData"]:
                     sv_obj, _ = SinhVien.objects.get_or_create(ma_sinh_vien=pk["msv"], defaults={"ho_ten": pk["name"]})
                     mp_obj = MaPhach.objects.filter(ma_phach=pk["phach"]).first()

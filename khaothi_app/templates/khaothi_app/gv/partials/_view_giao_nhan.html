@@ -2,8 +2,7 @@
 <div id="view-giao-nhan" class="view-section hidden-view max-w-6xl mx-auto h-full animate-fade-in flex flex-col">
     <div class="flex justify-between items-end mb-6 border-b border-gray-200 pb-4">
         <div>
-            <h2 class="text-2xl font-bold text-blue-900 mb-1 flex items-center gap-2"><i data-lucide="arrow-right-left" class="w-6 h-6 text-blue-600"></i> Quản lý Giao nhận túi phách</h2>
-            <p class="text-sm text-gray-600">Giảng viên: Nhận túi phách bài thi từ Giáo vụ Khoa và bàn giao trả bài thi sau khi chấm xong.</p>
+            <h2 class="text-2xl font-bold text-blue-900 flex items-center gap-2"><i data-lucide="arrow-right-left" class="w-6 h-6 text-blue-600"></i> Quản lý Giao nhận túi phách</h2>
         </div>
     </div>
 
@@ -59,7 +58,7 @@
                             <i data-lucide="x-circle" class="w-4 h-4"></i> TỪ CHỐI NHẬN
                         </button>
                         <button onclick="showGvGnKyNhanModal()" class="px-5 py-2 rounded font-bold text-white bg-green-600 hover:bg-green-700 flex items-center gap-1 shadow font-sans">
-                            <i data-lucide="file-signature" class="w-4 h-4"></i> KÝ ĐIỆN TỬ NHẬN BÀI
+                            <i data-lucide="check-circle" class="w-4 h-4"></i> XÁC NHẬN
                         </button>
                     </div>
                 </div>
@@ -71,17 +70,17 @@
                 <div class="flex gap-6 flex-1">
                     <div class="w-1/2 flex flex-col gap-4">
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Bên tiếp nhận</label>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Bên tiếp nhận:</label>
                             <input type="text" readonly value="Giáo vụ Khoa (dvcm)" class="w-full p-2.5 border border-gray-300 rounded text-sm bg-gray-50 outline-none font-bold text-gray-800" />
                         </div>
                         <div class="flex-1 flex flex-col">
-                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Chọn các túi bài thi đã hoàn tất chấm điểm</label>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Chọn các túi bài thi đã hoàn tất chấm điểm:</label>
                             <div class="border border-gray-300 rounded p-2 bg-gray-50 flex-1 overflow-y-auto space-y-1" id="gv-gn-list-tui-kha-dung"></div>
                         </div>
                     </div>
                     <div class="w-1/2 flex flex-col justify-between">
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Đính kèm bảng điểm chi tiết đã ký (nếu có)</label>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Đính kèm bảng điểm chi tiết đã xác nhận (nếu có):</label>
                             <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center bg-gray-50 text-gray-400 text-center hover:bg-gray-100 cursor-pointer">
                                 <i data-lucide="upload-cloud" class="w-8 h-8 mb-2 text-blue-500"></i>
                                 <span class="text-xs font-bold text-gray-700">Tải lên file scan bảng điểm (.pdf)</span>
@@ -118,7 +117,7 @@
     <!-- Modal: Ký nhận điện tử nội bộ cho Giảng viên -->
     <div id="modal-gv-gn-ky-nhan" class="hidden-view fixed inset-0 bg-black/60 z-[100] flex items-center justify-center animate-fade-in">
         <div class="bg-white rounded-xl shadow-2xl p-6 w-96 max-w-sm flex flex-col gap-4 border border-gray-100">
-            <h3 class="font-bold text-gray-800 text-base">Xác nhận Chữ ký điện tử nội bộ</h3>
+            <h3 class="font-bold text-gray-800 text-base">Xác nhận điện tử nội bộ</h3>
             <p class="text-xs text-gray-500 leading-relaxed" id="modal-gv-gn-ky-nhan-desc">Vui lòng nhập mật khẩu tài khoản của bạn để xác thực trách nhiệm và nhận túi phách bài thi.</p>
             <div>
                 <input type="password" id="gv-gn-ky-nhan-pw" placeholder="Mật khẩu của bạn" class="w-full p-2.5 border rounded outline-none text-xs focus:border-[#9e1c22]" />
@@ -126,7 +125,7 @@
             </div>
             <div class="flex gap-3 justify-end text-xs font-bold pt-2">
                 <button onclick="hideGvGnKyNhanModal()" class="px-4 py-2 border rounded text-gray-600 hover:bg-gray-50 font-sans">Hủy bỏ</button>
-                <button onclick="confirmGvGnKyNhanExecute()" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded font-sans">Ký chốt nhận</button>
+                <button onclick="confirmGvGnKyNhanExecute()" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded font-sans">Xác nhận nhận bài</button>
             </div>
         </div>
     </div>

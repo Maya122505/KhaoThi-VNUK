@@ -33,6 +33,7 @@ urlpatterns = [
     path('api/don-phuc-khao/<str:pk>/', views_tkt.DonPhucKhaoDetailAPI.as_view(), name='api_don_phuc_khao_detail'),
 
     # API cho Giao nhận
+    path('api/giao-nhan-data/', views_tkt.GiaoNhanDataAPI.as_view(), name='api_giao_nhan_data'),
     path('api/phieu-giao-nhan/', views_tkt.PhieuGiaoNhanAPI.as_view(), name='api_phieu_giao_nhan'),
     path('api/phieu-giao-nhan/<str:pk>/xac-nhan/', views_tkt.XacNhanPhieuAPI.as_view(), name='api_xac_nhan_phieu'),
     

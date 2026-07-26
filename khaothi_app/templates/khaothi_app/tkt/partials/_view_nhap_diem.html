@@ -1,11 +1,16 @@
-<div id="view-nhap-diem" class="view-section hidden-view animate-fade-in flex flex-col h-full max-w-4xl mx-auto">
-    <div class="mb-6 border-b border-gray-200 pb-4">
-        <h2 class="text-2xl font-bold text-blue-900 mb-1 flex items-center gap-2"><i data-lucide="file-signature" class="text-blue-600"></i> Đối soát & Nhập điểm Lần 2</h2>
-        <p class="text-sm text-gray-600">Nhập điểm độc lập lần 2 để chạy đối soát chênh lệch điểm và tự động giải mã khớp phách theo BPMN.</p>
+<div id="view-nhap-diem" class="view-section hidden-view animate-fade-in flex flex-col h-full w-full">
+    <div class="mb-6 border-b border-gray-200 pb-4 flex justify-between items-end">
+        <div>
+            <h2 class="text-2xl font-bold text-blue-900 flex items-center gap-2"><i data-lucide="file-signature" class="text-blue-600"></i> Đối soát & Nhập điểm Lần 2</h2>
+        </div>
+        <div class="flex gap-2">
+            <button id="btn-nd-tab-phach" onclick="switchNdTab('phach')" class="bg-blue-900 text-white px-3.5 py-1.5 rounded text-xs font-semibold shadow">Nhập theo Phách</button>
+            <button id="btn-nd-tab-sbd" onclick="switchNdTab('sbd')" class="bg-gray-100 text-gray-700 px-3.5 py-1.5 rounded text-xs font-semibold hover:bg-gray-200">Nhập theo SBD</button>
+        </div>
     </div>
 
     <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex flex-col">
-        <!-- Sub-tab 1: Nhập điểm theo Phách (UC 4.2) -->
+        <!-- Sub-tab 1: Nhập điểm theo Phách -->
         <div id="nd-content-phach" class="flex flex-col animate-fade-in">
             <div class="p-5 border-b border-gray-200 flex gap-4 bg-gray-50 items-center">
                 <div class="grid grid-cols-2 gap-3 flex-1">
@@ -88,7 +93,7 @@
             </div>
         </div>
 
-        <!-- Sub-tab 2: Nhập điểm theo SBD (UC 4.1) -->
+        <!-- Sub-tab 2: Nhập điểm theo SBD -->
         <div id="nd-content-sbd" class="hidden-view flex flex-col animate-fade-in">
             <div class="p-5 border-b border-gray-200 flex gap-4 bg-gray-50 items-center">
                 <div class="relative flex-1">

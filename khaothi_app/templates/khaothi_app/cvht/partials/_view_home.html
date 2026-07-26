@@ -1,0 +1,84 @@
+<!-- View: Home CVHT -->
+<div id="view-home" class="view-section animate-fade-in space-y-6">
+    <div class="bg-gradient-to-r from-slate-900 to-red-950 rounded-2xl p-6 text-white shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <h2 class="text-2xl font-black flex items-center gap-3">
+                <i data-lucide="shield-check" class="w-8 h-8 text-red-400"></i>
+                Cổng Chuyên viên Hệ thống (Admin Portal)
+            </h2>
+            <p class="text-slate-300 text-sm mt-1">Quản lý cấu hình toàn hệ thống, danh mục quy trình khảo thí và nhật ký hệ thống VNUK.</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <span class="bg-red-900/80 border border-red-700 text-red-200 text-xs px-3 py-1.5 rounded-full font-bold">
+                <i data-lucide="activity" class="w-3.5 h-3.5 inline mr-1"></i>Hệ thống đang vận hành
+            </span>
+        </div>
+    </div>
+
+    <!-- Quick Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-bold text-gray-500 uppercase">Cấu hình Đợt thi</p>
+                    <h3 class="text-2xl font-black text-gray-900 mt-1" id="cvht-stat-config-count">Đang mở</h3>
+                </div>
+                <div class="w-12 h-12 bg-red-50 text-red-800 rounded-xl flex items-center justify-center">
+                    <i data-lucide="sliders" class="w-6 h-6"></i>
+                </div>
+            </div>
+            <p class="text-xs text-gray-500 mt-3">Quản lý hạn đóng/mở cổng nhập điểm & phúc khảo</p>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-bold text-gray-500 uppercase">Danh mục Học phần</p>
+                    <h3 class="text-2xl font-black text-gray-900 mt-1" id="cvht-stat-subject-count">Đã đồng bộ</h3>
+                </div>
+                <div class="w-12 h-12 bg-blue-50 text-blue-800 rounded-xl flex items-center justify-center">
+                    <i data-lucide="book-open" class="w-6 h-6"></i>
+                </div>
+            </div>
+            <p class="text-xs text-gray-500 mt-3">Cấu hình trọng số và phiên bản cột điểm</p>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-bold text-gray-500 uppercase">Nhật ký Hệ thống</p>
+                    <h3 class="text-2xl font-black text-gray-900 mt-1" id="cvht-stat-audit-count">An toàn</h3>
+                </div>
+                <div class="w-12 h-12 bg-amber-50 text-amber-800 rounded-xl flex items-center justify-center">
+                    <i data-lucide="file-text" class="w-6 h-6"></i>
+                </div>
+            </div>
+            <p class="text-xs text-gray-500 mt-3">Ghi nhật ký AuditLog thao tác người dùng</p>
+        </div>
+    </div>
+
+    <!-- Audit Logs Section -->
+    <div class="bg-white border rounded-xl shadow-sm overflow-hidden mt-6">
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+            <h3 class="font-bold text-gray-900 text-base flex items-center gap-2">
+                <i data-lucide="history" class="w-5 h-5 text-red-800"></i>
+                Nhật ký Hệ thống (Audit Log)
+            </h3>
+            <span id="dash-log-count" class="text-xs font-bold text-gray-500">Hiển thị các thao tác mới nhất</span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-gray-600">
+                <thead class="bg-gray-100 text-gray-700 uppercase text-xs">
+                    <tr>
+                        <th class="px-6 py-3">Thời gian</th>
+                        <th class="px-6 py-3">Tác nhân</th>
+                        <th class="px-6 py-3">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="logs-tbody" class="divide-y divide-gray-200">
+                    <!-- Rendered dynamically by JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -127,6 +127,10 @@ class DonPhucKhaoDetailAPI(APIView):
         # TODO: Cập nhật điểm phúc khảo
         return Response({"message": "Chức năng đang được phát triển"}, status=status.HTTP_501_NOT_IMPLEMENTED)
 
+class GiaoNhanDataAPI(APIView):
+    def get(self, request):
+        return Response({"message": "Chức năng đang được phát triển"}, status=status.HTTP_501_NOT_IMPLEMENTED)
+
 class PhieuGiaoNhanAPI(APIView):
     def post(self, request):
         # TODO: Validate và gọi GiaoNhanTKTService.tao_phieu_giao_nhan

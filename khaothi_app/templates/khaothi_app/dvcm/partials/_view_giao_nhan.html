@@ -2,8 +2,7 @@
 <div id="view-giao-nhan" class="view-section hidden-view w-full h-full animate-fade-in flex flex-col">
     <div class="flex justify-between items-end mb-6 border-b border-gray-200 pb-4">
         <div>
-            <h2 class="text-2xl font-bold text-blue-900 mb-1 flex items-center gap-2"><i data-lucide="arrow-right-left" class="w-6 h-6 text-blue-600"></i> Quản lý Giao nhận</h2>
-            <p class="text-sm text-gray-600">Giáo vụ Khoa: Phân phối bàn giao túi phách cho Giảng viên và trả kết quả về Tổ Khảo thí.</p>
+            <h2 class="text-2xl font-bold text-blue-900 flex items-center gap-2"><i data-lucide="arrow-right-left" class="w-6 h-6 text-blue-600"></i> Quản lý Giao nhận</h2>
         </div>
     </div>
 
@@ -57,7 +56,7 @@
                             <i data-lucide="x-circle" class="w-4 h-4"></i> TỪ CHỐI NHẬN
                         </button>
                         <button onclick="showDvcmGnKyNhanModal()" class="px-5 py-2 rounded font-bold text-white bg-green-600 hover:bg-green-700 flex items-center gap-1 shadow font-sans">
-                            <i data-lucide="file-signature" class="w-4 h-4"></i> KÝ ĐIỆN TỬ NHẬN BÀI
+                            <i data-lucide="check-circle" class="w-4 h-4"></i> XÁC NHẬN
                         </button>
                     </div>
                 </div>
@@ -147,7 +146,7 @@
     <!-- Modal: Ký nhận điện tử nội bộ cho DVCM -->
     <div id="modal-dvcm-gn-ky-nhan" class="hidden-view fixed inset-0 bg-black/60 z-[100] flex items-center justify-center animate-fade-in">
         <div class="bg-white rounded-xl shadow-2xl p-6 w-96 max-w-sm flex flex-col gap-4 border border-gray-100">
-            <h3 class="font-bold text-gray-800 text-base">Xác nhận Chữ ký điện tử nội bộ</h3>
+            <h3 class="font-bold text-gray-800 text-base">Xác nhận điện tử nội bộ</h3>
             <p class="text-xs text-gray-500 leading-relaxed" id="modal-dvcm-gn-ky-nhan-desc">Vui lòng nhập mật khẩu tài khoản của bạn để xác thực trách nhiệm thu hồi bài thi.</p>
             <div>
                 <input type="password" id="dvcm-gn-ky-nhan-pw" placeholder="Mật khẩu của bạn" class="w-full p-2.5 border rounded outline-none text-xs focus:border-[#9e1c22]" />

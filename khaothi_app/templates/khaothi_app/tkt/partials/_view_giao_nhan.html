@@ -1,74 +1,109 @@
 <div id="view-giao-nhan" class="view-section hidden-view w-full h-full animate-fade-in flex flex-col">
     <div class="flex justify-between items-end mb-6 border-b border-gray-200 pb-4">
         <div>
-            <h2 class="text-2xl font-bold text-blue-900 mb-1 flex items-center gap-2"><i data-lucide="arrow-right-left" class="w-6 h-6 text-blue-600"></i> Quản lý Giao nhận bài thi</h2>
-            <p class="text-sm text-gray-600">Bàn giao túi bài thi gốc cho Thư ký và nhận bàn giao túi phách từ Thư ký.</p>
+            <h2 class="text-2xl font-bold text-blue-900 mb-1 flex items-center gap-2"><i data-lucide="arrow-right-left"
+                    class="w-6 h-6 text-blue-600"></i> Quản lý Giao nhận bài thi</h2>
         </div>
     </div>
 
     <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex flex-1 min-h-[500px]">
+        <div class="w-64 bg-gray-50 border-r border-gray-200 p-4 flex flex-col gap-2 shrink-0">
+            <button id="tab-btn-tao" onclick="switchGiaoNhanTab('tao')"
+                class="text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 text-gray-600 hover:bg-gray-100 font-sans shadow-none">
+                <i data-lucide="send" class="w-4 h-4"></i> Tạo phiếu bàn giao
+            </button>
+            <button id="tab-btn-nhan" onclick="switchGiaoNhanTab('nhan')"
+                class="text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 text-gray-600 hover:bg-gray-100 font-sans shadow-none">
+                <i data-lucide="inbox" class="w-4 h-4"></i> Phiếu chờ nhận
+                <span id="badge-cho-nhan"
+                    class="ml-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full shadow-sm animate-pulse">1</span>
+            </button>
+            <button id="tab-btn-lich-su" onclick="switchGiaoNhanTab('lich-su')"
+                class="text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 text-gray-600 hover:bg-gray-100 font-sans shadow-none">
+                <i data-lucide="history" class="w-4 h-4"></i> Lịch sử phiếu giao nhận
+            </button>
+        </div>
+
         <div class="flex-1 p-6 overflow-y-auto bg-white relative">
             <!-- Tab: Tạo phiếu bàn giao -->
             <div id="tab-content-tao" class="animate-fade-in flex flex-col h-full">
-                <h3 class="font-bold text-lg text-gray-800 mb-4 border-b border-gray-100 pb-2">Khởi tạo phiếu bàn giao bài thi gốc</h3>
+                <h3 class="font-bold text-lg text-gray-800 mb-4 border-b border-gray-100 pb-2">Khởi tạo phiếu bàn giao
+                    bài thi gốc</h3>
                 <div class="flex flex-col lg:flex-row gap-8 flex-1">
-                    <!-- Cột bên trái: Các trường nhập liệu của biểu mẫu và nút Gửi -->
-                    <div class="w-full lg:w-[420px] flex flex-col gap-4 flex-shrink-0 border-r border-gray-100 lg:pr-6">
+                    <!-- Left Column: Form Fields and Submit Button -->
+                    <form id="form-tao-phieu" method="post" enctype="multipart/form-data" action="/api/tkt/phieu-giao-nhan/" class="w-full lg:w-[420px] flex flex-col gap-4 flex-shrink-0 border-r border-gray-100 lg:pr-6">
+                        {% csrf_token %}
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">1. Loại quy trình bàn giao</label>
-                            <select id="select-pbg-loai" onchange="handleGiaoNhanLoaiChange()" class="w-full p-2.5 border border-gray-300 rounded text-sm bg-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
-                                <option value="1">Loại 1: Tổ Khảo thí bàn giao bài gốc cho Thư ký làm phách</option>
-                                <option value="2">Loại 2: Tổ Khảo thí bàn giao túi bài (đã rọc phách) cho Giáo vụ Khoa</option>
-                                <option value="7">Loại 7: Tổ Khảo thí bàn giao bài thi chấm phúc khảo cho Giáo vụ Khoa</option>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">1. Loại quy trình bàn
+                                giao:</label>
+                            <select id="select-pbg-loai" name="loai_phieu" onchange="handleGiaoNhanLoaiChange()"
+                                class="w-full p-2.5 border border-gray-300 rounded text-sm bg-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
+                                <option value="1">Loại 1: Tổ Khảo thí bàn giao bài thi cho Thư ký chấm thi</option>
+                                <option value="2">Loại 2: Tổ Khảo thí bàn giao túi bài (đã rọc phách) cho Đơn vị chuyên
+                                    môn</option>
+                                <option value="7">Loại 4: Tổ Khảo thí bàn giao hồ sơ phúc khảo cho Đơn vị chuyên môn</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">2. Người tiếp nhận bàn giao</label>
-                            <select id="select-pbg-user" class="w-full p-2.5 border border-gray-300 rounded text-sm bg-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
-                                <option value="TK_KhaoThi01">Thư ký Chấm thi (TK_KhaoThi01)</option>
-                                <option value="GV_Khoa01">Giáo vụ Khoa (GV_Khoa01)</option>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">2. Người tiếp nhận bàn
+                                giao:</label>
+                            <select id="select-pbg-user" name="nguoi_nhan"
+                                class="w-full p-2.5 border border-gray-300 rounded text-sm bg-white outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
+                                <option value="1">Thư ký Chấm thi (TK_KhaoThi01)</option>
+                                <option value="2">Giáo vụ Khoa (GV_Khoa01)</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">3. Đính kèm biên bản sự cố từ phòng thi (nếu có)</label>
-                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-5 flex flex-col items-center justify-center bg-gray-50 text-gray-400 text-center hover:bg-gray-100 hover:border-blue-400 transition-colors cursor-pointer">
-                                <i data-lucide="upload-cloud" class="w-7 h-7 mb-1.5 text-blue-500"></i>
-                                <span class="text-xs font-bold text-gray-700">Tải biên bản, sự cố (.pdf, .jpg)</span>
-                            </div>
+                            <label for="{{ form.bien_ban_giao_nhan.id_for_label }}" class="block text-xs font-bold text-gray-600 uppercase mb-1">3. Đính kèm biên bản sự
+                                cố từ phòng thi (nếu có):</label>
+                            {{ form.bien_ban_giao_nhan }}
                         </div>
-                        <div class="bg-orange-50 text-orange-900 border border-orange-100 rounded p-3 text-xs leading-relaxed">
-                            <p class="font-bold mb-1 flex items-center gap-1"><i data-lucide="info" class="w-4 h-4 text-orange-700"></i> Xác thực điện tử hai bên:</p>
-                            <p>Khi phiếu được phát hành, bên nhận (Thư ký) sẽ kiểm đếm bài vật lý thực tế và ký chữ ký điện tử nội bộ để xác nhận tiếp quản trách nhiệm pháp lý.</p>
+                        <div
+                            class="bg-orange-50 text-orange-900 border border-orange-100 rounded p-3 text-xs leading-relaxed">
+                            <p class="font-bold mb-1 flex items-center gap-1"><i data-lucide="info"
+                                    class="w-4 h-4 text-orange-700"></i> Xác thực điện tử hai bên:</p>
+                            <p>Khi phiếu được phát hành, bên nhận (Thư ký) sẽ kiểm đếm bài vật lý thực tế và xác nhận
+                                điện tử nội bộ để nhận tiếp quản trách nhiệm pháp lý.</p>
                         </div>
-                        <button onclick="handleExecuteTaoPhieuBanGiaoGoc()" class="w-full bg-[#9e1c22] text-white font-bold py-3 rounded shadow hover:bg-red-800 flex justify-center items-center gap-2 text-sm transition-colors">
+                        <button type="submit"
+                            class="w-full bg-[#9e1c22] text-white font-bold py-3 rounded shadow hover:bg-red-800 flex justify-center items-center gap-2 text-sm transition-colors">
                             <i data-lucide="send" class="w-4 h-4"></i> PHÁT HÀNH PHIẾU BÀN GIAO GỐC
                         </button>
-                    </div>
+                    </form>
 
                     <!-- Right Column: Checkbox Selection List -->
                     <div class="flex-1 flex flex-col gap-3">
-                        <label class="block text-xs font-bold text-gray-600 uppercase">4. Chọn các phòng thi gốc cần bàn giao</label>
+                        <label class="block text-xs font-bold text-gray-600 uppercase">4. Chọn các phòng thi gốc cần bàn
+                            giao:</label>
                         <!-- Search & Filter Controls -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                             <div class="relative">
-                                <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-gray-400 pointer-events-none">
+                                <span
+                                    class="absolute inset-y-0 left-0 pl-2.5 flex items-center text-gray-400 pointer-events-none">
                                     <i data-lucide="search" class="w-3.5 h-3.5"></i>
                                 </span>
-                                <input type="text" id="gn-filter-search" oninput="filterGiaoNhanList()" placeholder="Tìm mã phòng, môn..." class="w-full pl-7 pr-2 py-1.5 border border-gray-300 rounded text-xs outline-none bg-white focus:border-[#9e1c22] transition-colors" />
+                                <input type="text" id="gn-filter-search" oninput="filterGiaoNhanList()"
+                                    placeholder="Tìm mã phòng, môn..."
+                                    class="w-full pl-7 pr-2 py-1.5 border border-gray-300 rounded text-xs outline-none bg-white focus:border-[#9e1c22] transition-colors" />
                             </div>
                             <div>
-                                <select id="gn-filter-subject" onchange="filterGiaoNhanList()" class="w-full p-1.5 border border-gray-300 rounded text-xs outline-none bg-white font-semibold text-gray-700 focus:border-[#9e1c22]">
+                                <select id="gn-filter-subject" onchange="filterGiaoNhanList()"
+                                    class="w-full p-1.5 border border-gray-300 rounded text-xs outline-none bg-white font-semibold text-gray-700 focus:border-[#9e1c22]">
                                     <option value="">Tất cả Học phần</option>
                                 </select>
                             </div>
                         </div>
-                        <div class="border border-gray-200 rounded-lg p-3 bg-gray-50 flex-1 overflow-y-auto min-h-[300px] grid grid-cols-1 md:grid-cols-2 gap-2.5 content-start" id="gn-list-phong-goc"></div>
+                        <div class="border border-gray-200 rounded-lg p-3 bg-gray-50 flex-1 overflow-y-auto min-h-[300px] grid grid-cols-1 md:grid-cols-2 gap-2.5 content-start"
+                            id="gn-list-phong-goc"></div>
                         <!-- Pagination Controls -->
-                        <div id="gn-pagination" class="flex justify-between items-center text-xs border-t pt-3 bg-white px-1">
+                        <div id="gn-pagination"
+                            class="flex justify-between items-center text-xs border-t pt-3 bg-white px-1">
                             <span id="gn-pagination-info" class="text-gray-500 font-medium">Trang 1 / 1</span>
                             <div class="flex gap-1.5">
-                                <button type="button" onclick="changeGiaoNhanPage(-1)" id="gn-btn-prev" class="px-3 py-1 bg-white border border-gray-300 rounded text-gray-700 font-semibold shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">Trước</button>
-                                <button type="button" onclick="changeGiaoNhanPage(1)" id="gn-btn-next" class="px-3 py-1 bg-white border border-gray-300 rounded text-gray-700 font-semibold shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">Sau</button>
+                                <button type="button" onclick="changeGiaoNhanPage(-1)" id="gn-btn-prev"
+                                    class="px-3 py-1 bg-white border border-gray-300 rounded text-gray-700 font-semibold shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">Trước</button>
+                                <button type="button" onclick="changeGiaoNhanPage(1)" id="gn-btn-next"
+                                    class="px-3 py-1 bg-white border border-gray-300 rounded text-gray-700 font-semibold shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">Sau</button>
                             </div>
                         </div>
                     </div>
@@ -77,39 +112,61 @@
 
             <!-- Tab: Phiếu chờ nhận -->
             <div id="tab-content-nhan" class="hidden-view animate-fade-in flex flex-col h-full">
-                <h3 class="font-bold text-lg text-gray-800 mb-4 border-b border-gray-100 pb-2">Phiếu nhận bàn giao túi phách/đầu phách từ Thư ký</h3>
+                <h3 class="font-bold text-lg text-gray-800 mb-4 border-b border-gray-100 pb-2">Phiếu nhận bàn giao túi
+                    phách/đầu phách từ Thư ký</h3>
                 <div id="gn-list-cho-nhan" class="space-y-4"></div>
 
-                <div id="gn-detail-nhan" class="hidden-view bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col absolute inset-6 z-10 animate-fade-in-up">
+                <div id="gn-detail-nhan"
+                    class="hidden-view bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col absolute inset-6 z-10 animate-fade-in-up">
                     <div class="bg-gray-50 p-4 border-b border-gray-200 flex justify-between items-center rounded-t-lg">
-                        <button onclick="hideGnDetailNhan()" class="text-sm text-gray-600 hover:text-[#9e1c22] font-bold flex items-center gap-1"><i data-lucide="arrow-left" class="w-4 h-4"></i> Quay lại</button>
-                        <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-bold border border-yellow-200 animate-pulse">Chờ Khảo thí ký nhận lại</span>
+                        <button onclick="hideGnDetailNhan()"
+                            class="text-sm text-gray-600 hover:text-[#9e1c22] font-bold flex items-center gap-1"><i
+                                data-lucide="arrow-left" class="w-4 h-4"></i> Quay lại</button>
+                        <span
+                            class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-bold border border-yellow-200 animate-pulse">Chờ
+                            Khảo thí xác nhận</span>
                     </div>
                     <div class="p-6 flex-1 overflow-y-auto">
-                        <h2 id="gn-detail-title" class="text-xl font-bold text-blue-900 mb-4">Chi tiết phiếu bàn giao</h2>
+                        <h2 id="gn-detail-title" class="text-xl font-bold text-blue-900 mb-4">Chi tiết phiếu bàn giao
+                        </h2>
                         <div class="grid grid-cols-2 gap-6 mb-6">
                             <div class="bg-gray-50 p-4 rounded border border-gray-200 text-sm space-y-1.5">
-                                <p><span class="text-gray-500 w-24 inline-block">Mã bàn giao:</span> <strong class="font-mono text-gray-800" id="gn-detail-id">PBG-2026-002</strong></p>
-                                <p><span class="text-gray-500 w-24 inline-block">Bên giao:</span> <strong id="gn-detail-giao">Thư ký (TK_KhaoThi01)</strong></p>
-                                <p><span class="text-gray-500 w-24 inline-block">Loại bàn giao:</span> <span class="text-blue-600 font-semibold" id="gn-detail-type">Trả phách & bài thi gốc (Loại 3)</span></p>
+                                <p><span class="text-gray-500 w-24 inline-block">Mã bàn giao:</span> <strong
+                                        class="font-mono text-gray-800" id="gn-detail-id">PBG-2026-002</strong></p>
+                                <p><span class="text-gray-500 w-24 inline-block">Bên giao:</span> <strong
+                                        id="gn-detail-giao">Thư ký (TK_KhaoThi01)</strong></p>
+                                <p><span class="text-gray-500 w-24 inline-block">Loại bàn giao:</span> <span
+                                        class="text-blue-600 font-semibold" id="gn-detail-type">Trả phách & bài thi gốc
+                                        (Loại 3)</span></p>
                             </div>
                             <div class="bg-gray-50 p-4 rounded border border-gray-200 text-sm">
                                 <p class="text-gray-500 mb-1">Tài liệu đính kèm:</p>
-                                <a id="gn-detail-attachment-link" href="#" target="_blank" class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 font-bold bg-white px-2 py-1.5 rounded border border-blue-100 shadow-sm transition"><i data-lucide="file-text" class="w-4 h-4"></i> <span id="gn-detail-attachment-name">Bien_Ban_Roc_Phach.pdf</span></a>
+                                <a id="gn-detail-attachment-link" href="#" target="_blank"
+                                    class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 font-bold bg-white px-2 py-1.5 rounded border border-blue-100 shadow-sm transition"><i
+                                        data-lucide="file-text" class="w-4 h-4"></i> <span
+                                        id="gn-detail-attachment-name">Bien_Ban_Roc_Phach.pdf</span></a>
                             </div>
                         </div>
                         <h3 class="font-bold text-gray-800 mb-2 text-sm">Danh sách các túi phách bàn giao thu hồi:</h3>
                         <table class="w-full text-left text-sm border">
-                            <thead class="bg-gray-100 text-gray-600"><tr><th class="px-4 py-2">Mã túi phách</th><th class="px-4 py-2">Học phần</th><th class="px-4 py-2 text-center">Số bài thực tế</th></tr></thead>
+                            <thead class="bg-gray-100 text-gray-600">
+                                <tr>
+                                    <th class="px-4 py-2">Mã túi phách</th>
+                                    <th class="px-4 py-2">Học phần</th>
+                                    <th class="px-4 py-2 text-center">Số bài thực tế</th>
+                                </tr>
+                            </thead>
                             <tbody id="gn-detail-table-tbody" class="divide-y divide-gray-100"></tbody>
                         </table>
                     </div>
                     <div class="bg-gray-50 p-4 border-t border-gray-200 rounded-b-lg flex justify-end gap-4">
-                        <button onclick="handleTuChoiNhanPhieuTra()" class="px-5 py-2 rounded font-bold text-red-600 bg-white border border-red-200 hover:bg-red-50 flex items-center gap-1 shadow-sm font-sans">
+                        <button onclick="handleTuChoiNhanPhieuTra()"
+                            class="px-5 py-2 rounded font-bold text-red-600 bg-white border border-red-200 hover:bg-red-50 flex items-center gap-1 shadow-sm font-sans">
                             <i data-lucide="x-circle" class="w-4 h-4"></i> TỪ CHỐI NHẬN
                         </button>
-                        <button onclick="showGnKyNhanModal()" class="px-5 py-2 rounded font-bold text-white bg-green-600 hover:bg-green-700 flex items-center gap-1 shadow font-sans">
-                            <i data-lucide="file-signature" class="w-4 h-4"></i> KÝ ĐIỆN TỬ NHẬN LẠI
+                        <button onclick="showGnKyNhanModal()"
+                            class="px-5 py-2 rounded font-bold text-white bg-green-600 hover:bg-green-700 flex items-center gap-1 shadow font-sans">
+                            <i data-lucide="check-circle" class="w-4 h-4"></i> XÁC NHẬN
                         </button>
                     </div>
                 </div>
@@ -117,7 +174,8 @@
 
             <!-- Tab: Lịch sử phiếu -->
             <div id="tab-content-lich-su" class="hidden-view animate-fade-in flex flex-col h-full">
-                <h3 class="font-bold text-lg text-gray-800 mb-4 border-b border-gray-100 pb-2">Nhật ký giao nhận bài thi và phách của Tổ Khảo thí</h3>
+                <h3 class="font-bold text-lg text-gray-800 mb-4 border-b border-gray-100 pb-2">Nhật ký giao nhận bài thi
+                    và phách của Tổ Khảo thí</h3>
                 <div class="overflow-x-auto flex-1">
                     <table class="w-full text-left text-sm">
                         <thead class="bg-gray-50 text-gray-600 border-b">

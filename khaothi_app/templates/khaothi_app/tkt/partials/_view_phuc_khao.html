@@ -1,59 +1,152 @@
-<div id="view-phuc-khao" class="view-section hidden-view animate-fade-in flex flex-col h-full max-w-5xl mx-auto">
-    <div class="mb-6 border-b border-gray-200 pb-4">
-        <h2 class="text-2xl font-bold text-blue-900 mb-1 flex items-center gap-2"><i data-lucide="inbox" class="text-blue-600"></i> Xử lý & Nhập điểm Đơn phúc khảo</h2>
-        <p class="text-sm text-gray-600">Rút bài thi ẩn danh chéo, in biên bản chấm phúc khảo và nhập điểm phúc khảo chốt.</p>
+<div id="view-phuc-khao" class="view-section hidden-view animate-fade-in flex flex-col h-full w-full space-y-4">
+    <div class="border-b border-gray-200 pb-3 flex justify-between items-center">
+        <div>
+            <h2 class="text-2xl font-bold text-blue-900 flex items-center gap-2"><i data-lucide="search-code" class="text-blue-600"></i> Tra cứu đơn phúc khảo</h2>
+        </div>
     </div>
 
-    <div class="flex gap-6 flex-1">
-        <!-- Danh sách đơn phúc khảo -->
-        <div class="w-2/5 bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col">
-            <div class="p-4 bg-gray-50 border-b border-gray-200 font-bold text-gray-700 text-xs uppercase flex justify-between items-center">
-                <span>Danh sách đơn chờ xử lý</span>
-                <div class="flex items-center gap-1.5">
-                    <button id="btn-select-pk" onclick="toggleSelectMode('pk')" class="bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 font-bold px-2.5 py-0.5 text-xs rounded transition-colors flex items-center gap-1.5 lowercase"><i data-lucide="check-square" class="w-3 h-3 text-gray-600"></i> <span class="capitalize">Chọn</span></button>
-                    <button id="btn-delete-all-pk" onclick="handleDeleteSelected('pk')" class="bg-red-600 hover:bg-red-700 text-white font-bold p-1 rounded transition-colors flex items-center justify-center hidden shadow-sm" title="Xóa các mục đã chọn"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
+    <!-- Bộ lọc đơn phúc khảo -->
+    <!-- Bộ lọc đơn phúc khảo -->
+    <div class="bg-white p-4 border border-gray-200 rounded-xl shadow-sm">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <h3 class="font-bold text-gray-800 flex items-center gap-2 text-sm"><i data-lucide="filter" class="w-4 h-4 text-blue-700"></i> Lọc và Tìm kiếm</h3>
+                <span id="pk-active-filters-text" class="text-xs text-gray-500 bg-gray-100 px-2.5 py-1 rounded-md border border-gray-200 hidden sm:inline-block">Đang tải...</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="relative w-72">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i data-lucide="search" class="w-4 h-4 text-gray-400"></i>
+                    </div>
+                    <input type="text" id="pk-filter-search" onkeyup="renderPhucKhaoList()" onkeydown="if(event.key==='Enter') renderPhucKhaoList()" placeholder="Tìm Mã đơn, MSV, Mã phách..." class="w-full border border-gray-300 bg-gray-50 rounded-lg pl-9 pr-4 py-2 text-sm font-medium outline-none focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all" />
+                </div>
+                <button id="btn-toggle-pk-filter" onclick="toggleAndApplyPkFilter()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer">
+                    <i data-lucide="filter" class="w-4 h-4"></i> Bộ lọc
+                </button>
+            </div>
+        </div>
+        
+        <div id="pk-advanced-filters" class="hidden grid grid-cols-5 gap-3 text-sm mt-4 pt-4 border-t border-gray-100">
+            <div>
+                <label class="block text-[11px] font-bold text-gray-500 mb-1">HỌC KỲ</label>
+                <select id="pk-filter-hoc-ky" class="w-full bg-gray-50 border border-gray-300 text-gray-700 rounded-lg px-3 py-2 font-medium outline-none hover:border-blue-400 focus:bg-white focus:border-blue-500 transition-colors cursor-pointer">
+                    <option value="">-- Tất cả Học kỳ --</option>
+                    <option value="HK1">Học kỳ I</option>
+                    <option value="HK2" selected>Học kỳ II</option>
+                    <option value="HK3">Học kỳ III</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-[11px] font-bold text-gray-500 mb-1">ĐỢT THI</label>
+                <select id="pk-filter-dot-thi" class="w-full bg-gray-50 border border-gray-300 text-gray-700 rounded-lg px-3 py-2 font-medium outline-none hover:border-blue-400 focus:bg-white focus:border-blue-500 transition-colors cursor-pointer">
+                    <option value="">-- Tất cả Đợt thi --</option>
+                    <option value="Đợt 1" selected>Đợt 1</option>
+                    <option value="Đợt 2">Đợt 2</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-[11px] font-bold text-gray-500 mb-1">HỌC PHẦN</label>
+                <select id="pk-filter-hoc-phan" class="w-full bg-gray-50 border border-gray-300 text-gray-700 rounded-lg px-3 py-2 font-medium outline-none hover:border-blue-400 focus:bg-white focus:border-blue-500 transition-colors cursor-pointer">
+                    <option value="">-- Tất cả Học phần --</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-[11px] font-bold text-gray-500 mb-1">TRẠNG THÁI</label>
+                <select id="pk-filter-status" onchange="renderPhucKhaoList()" class="w-full bg-gray-50 border border-gray-300 text-gray-700 rounded-lg px-3 py-2 font-medium outline-none hover:border-blue-400 focus:bg-white focus:border-blue-500 transition-colors cursor-pointer">
+                    <option value="">-- Tất cả Trạng thái --</option>
+                    <option value="ChuaRutBai">Chưa rút bài</option>
+                    <option value="DangXuLy">Đã rút bài / Đang xử lý</option>
+                    <option value="DaHoanThanh">Đã hoàn thành</option>
+                </select>
+            </div>
+            <div class="flex items-end">
+                <button onclick="renderPhucKhaoList()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg text-sm shadow flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+                    <i data-lucide="filter" class="w-4 h-4"></i> Lọc
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex gap-6 flex-1 min-h-0">
+        <!-- Danh sách đơn phúc khảo ( &) -->
+        <div class="w-[38%] bg-white border border-gray-200 rounded-xl shadow-sm flex flex-col overflow-hidden max-h-[calc(100vh-220px)]">
+            <div class="px-3.5 py-3 bg-gradient-to-r from-gray-50 to-white border-b border-gray-200 font-bold text-gray-800 text-xs uppercase flex justify-between items-center tracking-wide shrink-0">
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="pk-select-all" onclick="toggleSelectAllPk(this)" class="rounded text-blue-600 focus:ring-blue-500 cursor-pointer" title="Chọn tất cả để gộp bàn giao theo Khoa" />
+                    <span>Danh sách đơn</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="taoPhieuGiaoNhanHangLoat()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-2.5 py-1 rounded text-[11px] flex items-center gap-1 shadow-sm transition cursor-pointer" title="Rút phách & gộp nhiều đơn tạo 1 Phiếu Bàn giao cho Khoa/ĐVCM">
+                        <i data-lucide="package-plus" class="w-3.5 h-3.5"></i> Gộp Bàn Giao Đợt
+                    </button>
+                    <span id="pk-count-badge" class="bg-blue-600 text-white px-2.5 py-1 rounded-full font-bold text-[10px] shadow-sm tracking-widest">0 ĐƠN</span>
                 </div>
             </div>
-            <div class="p-4 space-y-3 overflow-y-auto flex-1 max-h-[400px]" id="pk-list-div"></div>
+            <div class="p-3 space-y-3 overflow-y-auto flex-1 bg-gray-50/30 custom-scrollbar" id="pk-list-div"></div>
         </div>
 
-        <!-- Bảng chấm phúc khảo ẩn danh -->
-        <div class="w-3/5 bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col">
-            <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
-                <span class="font-bold text-gray-700 text-xs uppercase">Bảng rút phách chấm chéo ẩn danh</span>
-                <span id="pk-active-mon" class="text-xs bg-blue-100 text-blue-800 border border-blue-200 px-2 py-0.5 rounded font-bold">Chưa chọn</span>
+        <!-- Chi tiết xử lý đơn & Bảng chấm phúc khảo ẩn danh -->
+        <div class="w-[62%] bg-white border border-gray-200 rounded-xl shadow-sm flex flex-col overflow-hidden max-h-[calc(100vh-220px)]">
+            <div class="px-5 py-3.5 bg-gradient-to-r from-gray-50 to-white border-b border-gray-200 flex justify-between items-center shrink-0">
+                <span class="font-bold text-gray-800 text-xs uppercase flex items-center gap-2 tracking-wide">
+                    <i data-lucide="layers" class="w-4 h-4 text-blue-600"></i> Bảng rút phách & Chấm chéo ẩn danh
+                </span>
+                <span id="pk-active-mon" class="text-xs bg-blue-50 text-blue-700 border border-blue-200/50 px-2.5 py-1 rounded-md font-bold shadow-sm">Chưa chọn</span>
             </div>
 
-            <div id="pk-empty-view" class="p-12 text-center text-gray-400 italic flex-1 flex flex-col justify-center items-center">
-                <i data-lucide="folder-open" class="w-10 h-10 mb-2 text-gray-300"></i>
-                Vui lòng chọn 1 đơn phúc khảo ở bảng trái để thực hiện quy trình.
+            <div id="pk-empty-view" class="p-12 text-center text-gray-400 italic flex-1 flex flex-col justify-center items-center bg-gray-50/50">
+                <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-sm border border-gray-100 mb-4 animate-bounce-slow">
+                    <i data-lucide="inbox" class="w-10 h-10 text-gray-300"></i>
+                </div>
+                <h4 class="text-gray-600 font-bold text-lg mb-1">Chưa chọn Đơn Phúc Khảo</h4>
+                <p class="text-sm">Vui lòng chọn 1 đơn từ danh sách bên trái để bắt đầu quy trình rút bài và chấm thi ẩn danh.</p>
             </div>
 
-            <div id="pk-process-view" class="hidden-view p-6 flex flex-col flex-1 justify-between">
+            <div id="pk-process-view" class="hidden-view p-6 flex flex-col flex-1 justify-between space-y-4 overflow-y-auto custom-scrollbar">
                 <div class="space-y-4">
-                    <div class="bg-red-50 text-red-800 p-3.5 rounded border border-red-100 text-xs leading-relaxed">
-                        🔒 <strong>Nguyên tắc ẩn danh phúc khảo:</strong> Hệ thống tự động truy vết phách gốc của sinh viên và hiển thị kèm theo <strong>3 bài thi ngẫu nhiên khác có điểm số gần nhất</strong>. Cán bộ chấm phúc khảo chéo chỉ làm việc trên mã phách để đảm bảo tính khách quan tối đa.
+                    <!-- Thông tin Túi bài thi gốc & Vị trí kho lưu vết bài thi cứng (Tích hợp Quản lý Túi bài thi) -->
+                    <div class="bg-blue-50 border border-blue-200 rounded p-3 text-xs space-y-2">
+                        <div class="flex justify-between items-center font-bold text-blue-900 border-b border-blue-200 pb-1.5">
+                            <span class="flex items-center gap-1"><i data-lucide="package-search" class="w-4 h-4 text-blue-700"></i> Thông tin Túi bài thi & Vị trí Lưu kho</span>
+                            <button id="pk-btn-rut-bai" onclick="confirmRutBaiThi()" class="bg-amber-600 hover:bg-amber-700 text-white px-2.5 py-1 rounded font-bold shadow text-[11px] flex items-center gap-1">
+                                <i data-lucide="check-square" class="w-3.5 h-3.5"></i> Xác nhận rút bài thi
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-gray-700">
+                            <div><strong>Mã túi bài gốc:</strong> <span id="pk-info-tui-bai" class="font-mono text-blue-800 font-semibold">--</span></div>
+                            <div><strong>Mã túi phách:</strong> <span id="pk-info-tui-phach" class="font-mono text-blue-800 font-semibold">--</span></div>
+                            <div><strong>Trạng thái:</strong> <span id="pk-info-trang-thai-rut" class="font-bold text-red-700">Chưa rút bài</span></div>
+                        </div>
                     </div>
 
-                    <table class="w-full text-left text-xs border border-gray-200 rounded">
-                        <thead class="bg-gray-50 text-gray-600 border-b">
-                            <tr>
-                                <th class="px-4 py-2">Mã phách</th>
-                                <th class="px-4 py-2 text-center w-28">Điểm cũ</th>
-                                <th class="px-4 py-2 text-center w-32">Nhập điểm mới</th>
-                            </tr>
-                        </thead>
-                        <tbody id="pk-tbody" class="divide-y divide-gray-100"></tbody>
-                    </table>
+                    <!-- Khu vực bảng nhập điểm (Chỉ hiện khi Đã trả bài) -->
+                    <div id="pk-score-input-section" class="hidden-view space-y-3">
+                        <h4 class="font-bold text-gray-800 text-sm border-b border-gray-100 pb-2">Nhập điểm Phúc khảo</h4>
+                        <table class="w-full text-left text-xs border border-gray-200 rounded">
+                            <thead class="bg-gray-50 text-gray-600 border-b">
+                                <tr>
+                                    <th class="px-4 py-2">Mã phách rút</th>
+                                    <th class="px-4 py-2 text-center w-28">Điểm thi cũ</th>
+                                    <th class="px-4 py-2 text-center w-36">Nhập điểm phúc khảo</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pk-tbody" class="divide-y divide-gray-100"></tbody>
+                        </table>
+                    </div>
                 </div>
 
-                <div class="flex gap-3 border-t pt-4 mt-6">
-                    <button onclick="handlePrintBiênBảnPhúcKhảo()" class="flex-1 bg-white border border-gray-300 text-gray-700 font-bold py-2.5 rounded hover:bg-gray-50 flex items-center justify-center gap-1">
-                        <i data-lucide="printer" class="w-4 h-4"></i> In biên bản
-                    </button>
-                    <button onclick="handleSavePhucKhaoPoint()" class="flex-1 bg-blue-900 text-white font-bold py-2.5 rounded shadow hover:bg-blue-800 flex items-center justify-center gap-1">
-                        <i data-lucide="check" class="w-4 h-4"></i> Xác nhận lưu điểm
-                    </button>
+                <div class="border-t pt-3 mt-4 space-y-2">
+                    <div id="pk-action-buttons" class="flex gap-3">
+                        <button id="pk-btn-in-bien-ban" onclick="inBienBanPhucKhao()" class="flex-1 bg-white border border-gray-300 text-gray-700 font-bold py-2 rounded hover:bg-gray-50 flex items-center justify-center gap-1 shadow-sm transition cursor-pointer">
+                            <i data-lucide="printer" class="w-4 h-4 text-blue-600"></i> In biên bản phúc khảo
+                        </button>
+                        <button id="pk-btn-luu-diem" onclick="handleSavePhucKhaoPoint()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg text-sm shadow flex items-center justify-center gap-1.5 transition cursor-pointer">
+                            <i data-lucide="save" class="w-4 h-4"></i> Lưu điểm
+                        </button>
+                    </div>
+                    <div id="pk-completed-notice" class="hidden-view bg-green-50 border border-green-200 text-green-800 text-xs font-semibold py-2 px-3 rounded-lg text-center flex items-center justify-center gap-1.5">
+                        <i data-lucide="check-circle-2" class="w-4 h-4 text-green-600"></i> Đơn đã hoàn tất phúc khảo & đã lưu hồ sơ
+                    </div>
                 </div>
             </div>
         </div>

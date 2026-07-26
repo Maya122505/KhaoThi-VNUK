@@ -493,6 +493,7 @@ class PhieuGiaoNhan(models.Model):
     loai_phieu = models.CharField(max_length=255)
     chu_ky_so = models.CharField(max_length=255, null=True, blank=True)
     tep_dinh_kem = models.CharField(max_length=255, null=True, blank=True)
+    bien_ban_giao_nhan = models.CharField(max_length=255, null=True, blank=True)
     log_xac_nhan = models.TextField(null=True, blank=True)
     trang_thai = models.CharField(max_length=50, default='ChoXacNhan')
 
@@ -618,3 +619,59 @@ class CauHinhPhucKhao(models.Model):
 
     def __str__(self):
         return self.ma_cau_hinh
+
+
+class QuyetToanThuLao(models.Model):
+    """
+    Quyết toán thù lao cho kỳ thi.
+    """
+    ma_quyet_toan = models.CharField(max_length=50, primary_key=True)
+    ky_thi = models.ForeignKey(KyThi, on_delete=models.CASCADE, related_name='quyet_toan_thu_lao', null=True, blank=True)
+    nguoi_duyet = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='quyet_toan_thu_lao_duyet', null=True, blank=True)
+    ngay_duyet = models.DateTimeField(null=True, blank=True)
+    tong_tien = models.DecimalField(max_digits=15, decimal_places=2, default=0.0)
+    trang_thai = models.CharField(max_length=50, default='ChoDuyet')
+
+    def __str__(self):
+        return self.ma_quyet_toan
+
+
+class CauHinhHeThong(models.Model):
+    """
+    Cấu hình cài đặt hệ thống.
+    """
+    key = models.CharField(max_length=100, primary_key=True)
+    value = models.TextField(null=True, blank=True)
+    nguoi_cap_nhat = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='cau_hinh_he_thong_cap_nhat', null=True, blank=True)
+    ngay_cap_nhat = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.key
+
+
+class CauHinhThoiGianDotThi(models.Model):
+    """
+    Cấu hình thời hạn/thời gian đợt thi cho các tác vụ nhập điểm, phúc khảo, nộp đề.
+    """
+    nam_hoc = models.CharField(max_length=20)
+    hoc_ky = models.CharField(max_length=20)
+    dot_thi = models.CharField(max_length=50)
+    tg_bat_dau_nhap = models.DateTimeField(null=True, blank=True)
+    tg_khoa_cong_nhap = models.DateTimeField(null=True, blank=True)
+    tg_cong_bo_diem = models.DateTimeField(null=True, blank=True)
+    tg_nop_de_thi = models.DateTimeField(null=True, blank=True)
+    tg_nhap_diem_tp = models.DateTimeField(null=True, blank=True)
+    tg_cau_hinh_trong_so = models.DateTimeField(null=True, blank=True)
+    tg_chot_dieu_kien_thi = models.DateTimeField(null=True, blank=True)
+    tg_chot_quy_doi = models.DateTimeField(null=True, blank=True)
+    tg_mo_nhan_don_pk = models.DateTimeField(null=True, blank=True)
+    tg_khoa_nhan_don_pk = models.DateTimeField(null=True, blank=True)
+    han_chot_cham_pk = models.DateTimeField(null=True, blank=True)
+    is_locked = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('nam_hoc', 'hoc_ky', 'dot_thi')
+
+    def __str__(self):
+        return f"{self.nam_hoc} - {self.hoc_ky} - {self.dot_thi}"
+

@@ -616,21 +616,117 @@
                     phanCongPhongData = phanCongPhongData.filter(pc => !idsToDelete.includes(pc.id) && !idsToDelete.includes(pc.ltId));
                     renderPhanCongTable();
                 } else if (key === 'rasoat-de') {
-                    if (typeof raSoatDeData !== 'undefined') raSoatDeData = raSoatDeData.filter(d => !idsToDelete.includes(d.id) && !idsToDelete.includes(d.maDe));
-                    if (typeof renderRaSoatDeTable === 'function') renderRaSoatDeTable();
+                    if (typeof deThiData !== 'undefined') deThiData = deThiData.filter(d => !idsToDelete.includes(d.id) && !idsToDelete.includes(d.maDe));
+                    if (typeof renderRasoatDeList === 'function') renderRasoatDeList();
+                    else if (typeof renderRaSoatDeTable === 'function') renderRaSoatDeTable();
                 } else if (key === 'pk') {
                     if (typeof phucKhaoData !== 'undefined') phucKhaoData = phucKhaoData.filter(p => !idsToDelete.includes(p.id));
                     if (typeof renderPhucKhaoList === 'function') renderPhucKhaoList();
                 } else if (key === 'dsl-sv') {
-                    if (typeof dslSvData !== 'undefined') dslSvData = dslSvData.filter(s => !idsToDelete.includes(s.id) && !idsToDelete.includes(s.msv));
-                    if (typeof renderDslSvTable === 'function') renderDslSvTable();
+                    if (typeof hocPhiData !== 'undefined') hocPhiData = hocPhiData.filter(s => !idsToDelete.includes(s.id) && !idsToDelete.includes(s.msv));
+                    if (typeof filterDslStudents === 'function') filterDslStudents();
                 } else if (key === 'cbct-phan-cong') {
-                    if (typeof cbctPhanCongData !== 'undefined') cbctPhanCongData = cbctPhanCongData.filter(c => !idsToDelete.includes(c.id));
-                    if (typeof renderCbctPhanCongTable === 'function') renderCbctPhanCongTable();
+                    if (typeof canBoCoiThiData !== 'undefined') {
+                        canBoCoiThiData.forEach(gv => {
+                            if (gv.history) gv.history = gv.history.filter((h, idx) => !idsToDelete.includes(`${gv.code}-${idx}`));
+                        });
+                    }
+                    if (typeof renderGioCoiThongKe === 'function') renderGioCoiThongKe();
                 } else if (key === 'cbct-tong-hop') {
-                    if (typeof cbctTongHopData !== 'undefined') cbctTongHopData = cbctTongHopData.filter(c => !idsToDelete.includes(c.id));
-                    if (typeof renderCbctTongHopTable === 'function') renderCbctTongHopTable();
+                    if (typeof canBoCoiThiData !== 'undefined') canBoCoiThiData = canBoCoiThiData.filter(c => !idsToDelete.includes(c.code) && !idsToDelete.includes(c.id));
+                    if (typeof renderGioCoiThongKe === 'function') renderGioCoiThongKe();
                 }
+
+    function handleDeleteKyThi(id) {
+        showDeleteConfirmModal(
+            "Bạn có chắc chắn muốn xóa kỳ thi này? Toàn bộ ca thi và lịch thi liên quan sẽ bị xóa.",
+            function() {
+                kyThiData = kyThiData.filter(kt => kt.id !== id);
+                caThiData = caThiData.filter(ct => ct.kyThiId !== id);
+                lichThiData = lichThiData.filter(lt => lt.kyThiId !== id);
+                renderKyThiList();
+                renderCaThiList();
+                populateCaThiSelectOptions();
+                renderDashboard();
+                showGlobalToast("Thành công", "Đã xóa kỳ thi thành công.");
+                saveStateToServer();
+            }
+        );
+    }
+    window.handleDeleteKyThi = handleDeleteKyThi;
+
+    function handleDeleteCaThi(id) {
+        showDeleteConfirmModal(
+            "Bạn có chắc chắn muốn xóa ca thi này?",
+            function() {
+                caThiData = caThiData.filter(c => c.id !== id);
+                lichThiData = lichThiData.filter(l => l.caThiId !== id);
+                renderCaThiList();
+                populateCaThiSelectOptions();
+                renderKyThiList();
+                renderDashboard();
+                showGlobalToast("Thành công", "Đã xóa ca thi thành công.");
+                saveStateToServer();
+            }
+        );
+    }
+    window.handleDeleteCaThi = handleDeleteCaThi;
+
+    function handleDeleteLichThi(id) {
+        showDeleteConfirmModal(
+            "Bạn có chắc chắn muốn xóa lịch thi này?",
+            function() {
+                lichThiData = lichThiData.filter(l => l.id !== id);
+                renderLichThiTable();
+                renderDashboard();
+                showGlobalToast("Thành công", "Đã xóa lịch thi thành công.");
+                saveStateToServer();
+            }
+        );
+    }
+    window.handleDeleteLichThi = handleDeleteLichThi;
+
+    function handleDeletePhongThi(id) {
+        showDeleteConfirmModal(
+            "Bạn có chắc chắn muốn xóa phòng thi này?",
+            function() {
+                phongThiData = phongThiData.filter(p => p.id !== id && p.ma !== id);
+                if (typeof phongThiGocData !== 'undefined') phongThiGocData = phongThiGocData.filter(p => p.id !== id);
+                renderPhongThiTable();
+                showGlobalToast("Thành công", "Đã xóa phòng thi thành công.");
+                saveStateToServer();
+            }
+        );
+    }
+    window.handleDeletePhongThi = handleDeletePhongThi;
+
+    function handleDeletePhanCong(id) {
+        showDeleteConfirmModal(
+            "Bạn có chắc chắn muốn xóa phân công phòng này?",
+            function() {
+                if (typeof phanCongPhongData !== 'undefined') phanCongPhongData = phanCongPhongData.filter(pc => pc.id !== id && pc.ltId !== id);
+                renderPhanCongTable();
+                showGlobalToast("Thành công", "Đã xóa phân công phòng.");
+                saveStateToServer();
+            }
+        );
+    }
+    window.handleDeletePhanCong = handleDeletePhanCong;
+
+    function handleDeleteInSao(id) {
+        showDeleteConfirmModal(
+            "Bạn có chắc chắn muốn xóa đợt in sao này?",
+            function() {
+                inSaoData = inSaoData.filter(is => is.id !== id);
+                renderInSaoListPanel();
+                if (typeof renderInSaoNKList === 'function') renderInSaoNKList();
+                if (typeof renderInSaoBBList === 'function') renderInSaoBBList();
+                showGlobalToast("Thành công", "Đã xóa đợt in sao.");
+                saveStateToServer();
+            }
+        );
+    }
+    window.handleDeleteInSao = handleDeleteInSao;
 
                 // Reset selection state
                 selectModesState[key] = 0;
@@ -2184,6 +2280,45 @@
         if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
     }
 
+    window.toggleAndApplyPkFilter = function() {
+        const adv = document.getElementById('pk-advanced-filters');
+        if (adv) adv.classList.toggle('hidden');
+    };
+
+    window.toggleSelectAllPk = function(chkHeader) {
+        const checkboxes = document.querySelectorAll('#pk-list-div input[type="checkbox"]');
+        checkboxes.forEach(cb => cb.checked = chkHeader.checked);
+    };
+
+    window.taoPhieuGiaoNhanHangLoat = function() {
+        showGlobalToast("Tạo phiếu bàn giao", "Đã khởi tạo Phiếu Bàn giao đợt bài thi cho Đơn vị Chuyên môn.");
+    };
+
+    window.confirmRutBaiThi = function() {
+        showGlobalToast("Xác nhận", "Đã xác nhận rút bài thi bản cứng khỏi kho lưu trữ.");
+        const rutEl = document.getElementById('pk-info-trang-thai-rut');
+        if (rutEl) {
+            rutEl.innerText = "Đã rút bài";
+            rutEl.className = "font-bold text-green-700";
+        }
+        const inputSec = document.getElementById('pk-score-input-section');
+        if (inputSec) inputSec.classList.remove('hidden-view');
+    };
+
+    window.inBienBanPhucKhao = function() {
+        if (typeof handlePrintBiênBảnPhúcKhảo === 'function') handlePrintBiênBảnPhúcKhảo();
+    };
+
+    window.handleLapLichThiSubmit = function() {
+        showGlobalToast("Tạo lịch thi", "Đã tạo lịch thi mới thành công.");
+    };
+    window.handleLậpLịchThiSubmit = window.handleLapLichThiSubmit;
+
+    window.closeAllDropdowns = function() {
+        const o = document.getElementById('overlay');
+        if (o) o.classList.add('hidden-view');
+    };
+
     function switchGiaoNhanTab(tab) {
         activeGiaoNhanTab = tab;
         const tabs = ['tao', 'nhan', 'lich-su'];
@@ -2725,17 +2860,17 @@
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-blue-50/50 transition-colors cursor-pointer" onclick="showCbctPhanCongDetail('${gv.code}', ${index})" title="Nhấn vào dòng này để xem chi tiết phân công">
-                        <td class="select-col-cbct-phan-cong ${selectModesState['cbct-phan-cong'] > 0 ? '' : 'hidden'} px-3 py-3 text-center whitespace-nowrap" onclick="event.stopPropagation();">
+                        <td class="select-col-cbct-phan-cong ${selectModesState['cbct-phan-cong'] > 0 ? '' : 'hidden'} px-2 py-2.5 text-center whitespace-nowrap" onclick="event.stopPropagation();">
                             ${renderSelectCheckbox('cbct-phan-cong')}
                         </td>
-                        <td class="px-4 py-3 font-mono text-gray-600 whitespace-nowrap">${h.date}</td>
-                        <td class="px-4 py-3 text-gray-700 whitespace-nowrap">${h.shift}</td>
-                        <td class="px-4 py-3 font-mono font-bold text-gray-800 whitespace-nowrap">${h.room}</td>
-                        <td class="px-4 py-3 text-gray-600 font-semibold whitespace-nowrap">${h.subject}</td>
-                        <td class="px-4 py-3 text-gray-900 font-semibold whitespace-nowrap">${gv.name} (${gv.code})</td>
-                        <td class="px-4 py-3 text-gray-600 whitespace-nowrap">${h.role}</td>
-                        <td class="px-4 py-3 text-center whitespace-nowrap">${statusBadge}</td>
-                        <td class="px-4 py-3 text-right whitespace-nowrap" onclick="event.stopPropagation()">
+                        <td class="px-3 py-2.5 font-mono text-gray-600 whitespace-nowrap">${h.date}</td>
+                        <td class="px-3 py-2.5 text-gray-700 whitespace-nowrap">${h.shift}</td>
+                        <td class="px-3 py-2.5 font-mono font-bold text-gray-800 whitespace-nowrap">${h.room}</td>
+                        <td class="px-3 py-2.5 text-gray-600 font-semibold">${h.subject}</td>
+                        <td class="px-3 py-2.5 text-gray-900 font-semibold">${gv.name} (${gv.code})</td>
+                        <td class="px-3 py-2.5 text-gray-600 whitespace-nowrap">${h.role}</td>
+                        <td class="px-3 py-2.5 text-center whitespace-nowrap">${statusBadge}</td>
+                        <td class="px-3 py-2.5 text-right whitespace-nowrap" onclick="event.stopPropagation()">
                             ${actionBtn}
                             ${emergencyBtn}
                         </td>

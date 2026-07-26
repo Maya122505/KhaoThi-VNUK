@@ -814,9 +814,27 @@
         document.getElementById('modal-chi-tiet-ldp').classList.add('hidden-view');
     }
 
-    // ==========================================================
-    // DUYỆT ĐIỂM, PHÚC KHẢO & THÙ LAO
-    // ==========================================================
+    function executeBatchDuyetDiem() {
+        const checkedList = document.querySelectorAll('.check-duyet-item:checked');
+        if (checkedList.length === 0) {
+            showGlobalToast("Thông báo", "Vui lòng chọn ít nhất 1 bảng điểm để phê duyệt!", "error");
+            return;
+        }
+        checkedList.forEach(cb => {
+            const id = cb.value;
+            const tui = tuiPhachData.find(x => x.id === id);
+            if (tui) {
+                tui.status = "Đã duyệt bảng điểm";
+                tui.approver = "Trưởng phòng";
+                tui.approvedAt = new Date().toLocaleString();
+            }
+        });
+        showGlobalToast("Thành công", `Đã phê duyệt ${checkedList.length} bảng điểm thành công.`);
+        saveStateToServer();
+        renderDuyetDiem();
+    }
+    window.executeBatchDuyetDiem = executeBatchDuyetDiem;
+
     function renderDuyetDiem() {
         const tbody = document.getElementById('duyet-diem-tbody');
         tbody.innerHTML = '';

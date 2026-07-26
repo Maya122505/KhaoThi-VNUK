@@ -1,45 +1,9 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cổng Thư ký Coi thi - VNUK</title>
-    <!-- Google Fonts & Tailwind -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        .hidden-view { display: none !important; }
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-    </style>
-</head>
-<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
+{% extends 'khaothi_app/_shared/base.html' %}
 
-    <!-- Header Navbar -->
-    <header class="bg-white px-8 py-4 flex justify-between items-center border-b-4 border-orange-500 shadow-sm z-10 relative">
-        <div class="flex items-center gap-4">
-            <div class="cursor-pointer" onclick="navigate('view-home')">
-                <img src="/static/khaothi_app/images/logo.png" alt="VNUK Logo" class="h-16 w-auto object-contain" />
-            </div>
-        </div>
-        <div class="flex flex-col gap-2 text-xs">
-            <div class="flex items-center bg-gray-100 p-2 rounded border border-gray-200 w-64 shadow-inner">
-                <i data-lucide="clipboard-list" class="w-4 h-4 text-gray-500 mr-2"></i>
-                <span class="text-sm font-bold text-[#9e1c22]">Thư ký Coi thi</span>
-            </div>
-            <div class="flex items-center bg-gray-100 p-2 rounded border border-gray-200 w-64 justify-between shadow-inner">
-                <div class="flex items-center">
-                    <i data-lucide="shield-check" class="w-4 h-4 text-gray-500 mr-2"></i>
-                    <span class="text-sm text-gray-500 font-mono font-bold">TK_CoiThi01</span>
-                </div>
-                <button onclick="window.location.href='/'" class="bg-gray-300 text-gray-700 text-xs px-3 py-1 font-bold rounded hover:bg-gray-400 transition-colors">ĐĂNG XUẤT</button>
-            </div>
-        </div>
-    </header>
+{% block title %}Cổng Thư ký Coi thi - VNUK{% endblock %}
+
+{% block content %}
+    {% include 'khaothi_app/_shared/_header.html' with actor_info='khaothi_app/tkcoithi/partials/_actor_info.html' %}
 
     <!-- Horizontal Tabs -->
     <nav class="bg-[#9e1c22] text-white px-8 flex relative z-50 shadow-md">
@@ -50,14 +14,7 @@
 
     <!-- Main Container -->
     <main class="flex-1 max-w-[1500px] mx-auto w-full p-6 relative">
-        <!-- Toast System -->
-        <div id="toast-global" class="hidden-view fixed bottom-6 right-6 text-white px-6 py-4 rounded shadow-xl flex items-center gap-3 animate-fade-in-up z-[200]">
-            <i id="toast-global-icon" class="w-5 h-5"></i>
-            <div>
-                <h4 class="font-bold text-xs" id="toast-global-title">Thành công</h4>
-                <p class="text-[10px] opacity-90" id="toast-global-msg"></p>
-            </div>
-        </div>
+        {% include 'khaothi_app/_shared/_toast.html' %}
 
         <!-- VIEW: GIÁM SÁT PHÒNG THI -->
         <div id="view-home" class="view-section animate-fade-in flex flex-col h-full">
@@ -185,8 +142,9 @@
             </div>
         </div>
     </main>
+{% endblock %}
 
-    <!-- Scripts Section -->
+{% block scripts %}
     <script>
     // Synced global variables
     let kyThiData = [];
@@ -212,24 +170,24 @@
             navigate('view-home');
         };
 
-        function initIcons() { lucide.createIcons(); }
+        function initIcons() { if (typeof lucide !== 'undefined') lucide.createIcons(); }
 
         async function loadStateFromServer() {
             try {
-            const res = await fetch('/api/get_state/');
+                const res = await fetch('/api/get_state/');
                 const data = await res.json();
 
-            kyThiData = data.kyThiData || [];
-            caThiData = data.caThiData || [];
-            lichThiData = data.lichThiData || [];
-            hocPhiData = data.hocPhiData || [];
-            lopThiDiemData = data.lopThiDiemData || [];
+                kyThiData = data.kyThiData || [];
+                caThiData = data.caThiData || [];
+                lichThiData = data.lichThiData || [];
+                hocPhiData = data.hocPhiData || [];
+                lopThiDiemData = data.lopThiDiemData || [];
                 
-                phongThiGocData = data.phongThiGocData;
-                tuiPhachData = data.tuiPhachData;
-                phieuGiaoNhanData = data.phieuGiaoNhanData;
-                canBoCoiThiData = data.canBoCoiThiData;
-                phucKhaoData = data.phucKhaoData;
+                phongThiGocData = data.phongThiGocData || [];
+                tuiPhachData = data.tuiPhachData || [];
+                phieuGiaoNhanData = data.phieuGiaoNhanData || [];
+                canBoCoiThiData = data.canBoCoiThiData || [];
+                phucKhaoData = data.phucKhaoData || [];
                 auditLogsData = data.auditLogsData || [];
                 isStateLoaded = true;
             } catch(e) {
@@ -270,18 +228,22 @@
 
             activeViewId = viewId;
             if(viewId === 'view-home') {
-                document.getElementById('nav-btn-home').className += " bg-red-800";
+                const btn = document.getElementById('nav-btn-home');
+                if (btn) btn.className += " bg-red-800";
                 renderPhongThi();
             } else if(viewId === 'view-thay-the') {
-                document.getElementById('nav-btn-thay-the').className += " bg-red-800";
+                const btn = document.getElementById('nav-btn-thay-the');
+                if (btn) btn.className += " bg-red-800";
             } else if(viewId === 'view-su-co') {
-                document.getElementById('nav-btn-su-co').className += " bg-red-800";
+                const btn = document.getElementById('nav-btn-su-co');
+                if (btn) btn.className += " bg-red-800";
             }
             initIcons();
         }
 
         function renderPhongThi() {
             const tbody = document.getElementById('phong-tbody');
+            if (!tbody) return;
             tbody.innerHTML = '';
 
             phongThiGocData.forEach(p => {
@@ -379,24 +341,26 @@
         function showGlobalToast(title, msg, type = 'success') {
             const toast = document.getElementById('toast-global');
             const icon = document.getElementById('toast-global-icon');
+            if (!toast) return;
             
             toast.className = "fixed bottom-6 right-6 text-white px-6 py-4 rounded shadow-xl flex items-center gap-3 animate-fade-in-up z-[200]";
             
             if (type === 'error') {
                 toast.classList.add('bg-red-600');
-                icon.setAttribute('data-lucide', 'alert-circle');
+                if (icon) icon.setAttribute('data-lucide', 'alert-circle');
             } else {
                 toast.classList.add('bg-green-600');
-                icon.setAttribute('data-lucide', 'check-circle-2');
+                if (icon) icon.setAttribute('data-lucide', 'check-circle-2');
             }
             
-            document.getElementById('toast-global-title').innerText = title;
-            document.getElementById('toast-global-msg').innerText = msg || '';
+            const tTitle = document.getElementById('toast-global-title');
+            const tMsg = document.getElementById('toast-global-msg');
+            if (tTitle) tTitle.innerText = title;
+            if (tMsg) tMsg.innerText = msg || '';
             toast.classList.remove('hidden-view');
             initIcons();
             
             setTimeout(() => toast.classList.add('hidden-view'), 4000);
         }
     </script>
-</body>
-</html>
+{% endblock %}
