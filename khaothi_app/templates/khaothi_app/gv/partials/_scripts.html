@@ -18,14 +18,14 @@
     let currentGvCode = "GV001";
     let activeTuiId = "";
 
-    // Bộ lưu trữ tạm thời cho việc nhập điểm
+    // Temp storage for scoring
     let tempScoring = {};
 
     window.onload = async function() {
         initIcons();
         await loadStateFromServer();
-        sessionStorage.removeItem('gv_activeViewId');
-        navigate('view-home');
+        const savedViewId = sessionStorage.getItem('gv_activeViewId');
+        navigate(savedViewId || 'view-home');
     };
 
     function initIcons() { lucide.createIcons(); }
@@ -40,7 +40,6 @@
             lichThiData = data.lichThiData || [];
             hocPhiData = data.hocPhiData || [];
             lopThiDiemData = data.lopThiDiemData || [];
-
             phongThiGocData = data.phongThiGocData;
             tuiPhachData = data.tuiPhachData;
             phieuGiaoNhanData = data.phieuGiaoNhanData;
@@ -91,6 +90,7 @@
         document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden-view'));
         const targetView = document.getElementById(viewId);
         if(targetView) targetView.classList.remove('hidden-view');
+        sessionStorage.setItem('gv_activeViewId', viewId);
 
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.classList.remove('bg-[#801418]', 'border-[#005691]', 'font-bold');
@@ -475,7 +475,7 @@
         const listIds = Array.from(checkedBoxes).map(cb => cb.value);
         const attName = selectedAttachmentFile ? selectedAttachmentFile.name : "bang_diem_da_ky.pdf";
 
-        phieuGiaoNhanData.unshift({
+        phieuGiaoNhanData.push({
             id: newPhieuId,
             type: "Giảng viên trả bài đã chấm cho Giáo vụ (Loại 1)",
             flow: `Giảng viên (${currentGvCode}) ➔ Đơn vị Chuyên môn`,
@@ -523,14 +523,14 @@
 
             tbody.innerHTML += `
                 <tr class="hover:bg-gray-50 transition-colors text-xs">
-                    <td class="px-6 py-4 font-mono font-semibold text-gray-700 whitespace-nowrap">${h.date}</td>
-                    <td class="px-6 py-4 text-gray-700 whitespace-nowrap">${h.shift}</td>
-                    <td class="px-6 py-4 font-bold text-red-900 whitespace-nowrap">${h.room}</td>
-                    <td class="px-6 py-4 font-semibold text-gray-800 whitespace-nowrap">${h.subject}</td>
-                    <td class="px-6 py-4 text-center font-medium whitespace-nowrap">${h.hours} giờ</td>
-                    <td class="px-6 py-4 text-gray-600 whitespace-nowrap">${h.role}</td>
-                    <td class="px-6 py-4 text-center whitespace-nowrap">${badge}</td>
-                    <td class="px-6 py-4 text-right whitespace-nowrap">${btn}</td>
+                    <td class="px-6 py-4 font-mono font-semibold text-gray-700">${h.date}</td>
+                    <td class="px-6 py-4 text-gray-700">${h.shift}</td>
+                    <td class="px-6 py-4 font-bold text-red-900">${h.room}</td>
+                    <td class="px-6 py-4 font-semibold text-gray-800">${h.subject}</td>
+                    <td class="px-6 py-4 text-center font-medium">${h.hours} giờ</td>
+                    <td class="px-6 py-4 text-gray-600">${h.role}</td>
+                    <td class="px-6 py-4 text-center">${badge}</td>
+                    <td class="px-6 py-4 text-right">${btn}</td>
                 </tr>
             `;
         });

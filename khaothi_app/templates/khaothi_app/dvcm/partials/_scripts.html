@@ -25,21 +25,14 @@
     // Simulated grades entry object storage on client
     let tempGradesData = {}; // key: phachId -> {pt1: num, pt2: num}
 
-    // Trạng thái mới cho Nhiệm vụ 3
-    let deThiData = [];
-
     window.onload = async function() {
         initIcons();
         await loadStateFromServer();
-        sessionStorage.removeItem('dvcm_activeViewId');
-        navigate('view-home');
+        const savedViewId = sessionStorage.getItem('dvcm_activeViewId');
+        navigate(savedViewId || 'view-home');
     };
 
     function initIcons() { lucide.createIcons(); }
-
-    window.changeGiaoNhanPage = function(delta) {
-        if (typeof renderGiaoNhan === 'function') renderGiaoNhan();
-    };
 
     async function loadStateFromServer() {
         try {
@@ -50,21 +43,7 @@
             caThiData = data.caThiData || [];
             lichThiData = data.lichThiData || [];
             hocPhiData = data.hocPhiData || [];
-            lopThiDiemData = data.lopThiDiemData || {};
-            const mockDeThiList = [
-                { id: "DT001", hocPhan: "Tiếng Anh GTQT 3", nguoiNop: "TS. Nguyễn Văn Anh", thoiGian: "08:30 10/08/2026", fileName: "De_Thi_Tieng_Anh_GTQT_3_ChinhThuc.docx", ghiChu: "Đề thi trắc nghiệm 60 phút, gồm 50 câu.", trangThai: "Chờ rà soát", nhanXet: "" },
-                { id: "DT002", hocPhan: "Quản trị dự án", nguoiNop: "ThS. Trần Thị Mai", thoiGian: "09:15 10/08/2026", fileName: "De_Thi_Quan_Tri_Du_An_Hocky3.pdf", ghiChu: "Đề thi tự luận 90 phút, 4 câu tình huống.", trangThai: "Chờ rà soát", nhanXet: "" },
-                { id: "DT003", hocPhan: "Nhập môn Lập trình", nguoiNop: "TS. Lê Hoàng Nam", thoiGian: "10:45 10/08/2026", fileName: "De_Thi_Nhap_Mon_Lap_Trinh_Python.pdf", ghiChu: "Thi thực hành lập trình 90 phút, 3 bài tập.", trangThai: "Chờ rà soát", nhanXet: "" },
-                { id: "DT004", hocPhan: "Kinh tế vĩ mô", nguoiNop: "PGS.TS. Vũ Thị Lan", thoiGian: "13:20 11/08/2026", fileName: "De_Thi_Kinh_Te_Vi_Mo_KyI.docx", ghiChu: "40 câu trắc nghiệm + 2 bài tập tính toán.", trangThai: "Chờ rà soát", nhanXet: "" },
-                { id: "DT005", hocPhan: "Cơ sở dữ liệu", nguoiNop: "ThS. Hoàng Văn Đức", thoiGian: "14:00 11/08/2026", fileName: "De_Thi_Co_So_Du_Lieu_SQL.pdf", ghiChu: "Thi tự luận + thực hành truy vấn SQL 75 phút.", trangThai: "Chờ rà soát", nhanXet: "" },
-                { id: "DT006", hocPhan: "Marketing căn bản", nguoiNop: "TS. Phạm Minh Tuấn", thoiGian: "15:30 11/08/2026", fileName: "De_Thi_Marketing_Can_Ban.pdf", ghiChu: "Đề thi 2 câu lý thuyết + 1 bài tập tình huống.", trangThai: "Chờ rà soát", nhanXet: "" },
-                { id: "DT007", hocPhan: "Tài chính doanh nghiệp", nguoiNop: "TS. Đỗ Hoàng Yến", thoiGian: "08:00 12/08/2026", fileName: "De_Thi_Tai_Chinh_Doanh_Nghiep.pdf", ghiChu: "Thi viết 90 phút, được dùng bảng số liệu.", trangThai: "Chờ rà soát", nhanXet: "" },
-                { id: "DT008", hocPhan: "Mạng máy tính", nguoiNop: "ThS. Ngô Quang Vinh", thoiGian: "09:40 12/08/2026", fileName: "De_Thi_Mang_May_Tinh_CCNA.docx", ghiChu: "Đề thi trắc nghiệm trên phần mềm 60 phút.", trangThai: "Chờ rà soát", nhanXet: "" },
-                { id: "DT009", hocPhan: "Xác suất thống kê", nguoiNop: "PGS.TS. Bùi Minh Triết", thoiGian: "11:00 12/08/2026", fileName: "De_Thi_Xac_Suat_Thong_Ke.pdf", ghiChu: "Thi tự luận 90 phút, gồm 5 bài tập.", trangThai: "Chờ rà soát", nhanXet: "" },
-                { id: "DT010", hocPhan: "Lập trình Web", nguoiNop: "ThS. Nguyễn Thị Thu", thoiGian: "14:15 12/08/2026", fileName: "De_Thi_Lap_Trinh_Web_Vite_Nextjs.pdf", ghiChu: "Thi thực hành xây dựng Web App 120 phút.", trangThai: "Chờ rà soát", nhanXet: "" }
-            ];
-            deThiData = (data.deThiData !== undefined && data.deThiData !== null && data.deThiData.length > 0) ? data.deThiData : mockDeThiList;
-
+            lopThiDiemData = data.lopThiDiemData || [];
             phongThiGocData = data.phongThiGocData;
             tuiPhachData = data.tuiPhachData;
             phieuGiaoNhanData = data.phieuGiaoNhanData;
@@ -91,8 +70,7 @@
                     tuiPhachData,
                     phieuGiaoNhanData,
                     canBoCoiThiData,
-                    phucKhaoData,
-                    deThiData
+                    phucKhaoData
                 })
             });
         } catch(e) {
@@ -104,6 +82,7 @@
         document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden-view'));
         const targetView = document.getElementById(viewId);
         if(targetView) targetView.classList.remove('hidden-view');
+        sessionStorage.setItem('dvcm_activeViewId', viewId);
 
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.classList.remove('bg-[#801418]', 'border-[#005691]', 'font-bold');
@@ -116,6 +95,7 @@
         if (viewId.includes('giao-nhan') || viewId.includes('nhan-bai') || viewId.includes('ban-giao-bai')) activeBtnId = 'nav-btn-giao-nhan';
         else if (viewId === 'view-phan-cong') activeBtnId = 'nav-btn-phan-cong';
         else if (viewId === 'view-nhap-tra-diem') activeBtnId = 'nav-btn-phe-duyet';
+        else if (viewId === 'view-de-thi') activeBtnId = 'nav-btn-de-thi';
 
         const activeBtn = document.getElementById(activeBtnId);
         if (activeBtn) {
@@ -132,9 +112,6 @@
             switchPhanCongSubTab('main');
         } else if(viewId === 'view-nhap-tra-diem') {
             renderNhapTraDiem();
-        } else if(viewId === 'view-de-thi') {
-            document.getElementById('nav-btn-de-thi').className += " bg-red-800";
-            switchTabDeThi('danh-sach');
         }
         initIcons();
     }
@@ -1204,8 +1181,6 @@
         populateGiaoNhanFilterSubjects(source, b => b.subjectName);
         giaoNhanSelectedIds.clear();
         filterGiaoNhanList();
-    
-        if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
     }
 
     let activeNhanPhieuId = null;
@@ -1415,7 +1390,7 @@
             flow = "Đơn vị Chuyên môn ➔ Tổ Khảo thí";
         }
 
-        phieuGiaoNhanData.unshift({
+        phieuGiaoNhanData.push({
             id: newPhieuId,
             type: typeText,
             flow: flow,
@@ -1746,7 +1721,7 @@
         });
 
         const pid = `PTD-${new Date().getFullYear()}-${String(phieuGiaoNhanData.length + 1).padStart(3, '0')}`;
-        phieuGiaoNhanData.unshift({
+        phieuGiaoNhanData.push({
             id: pid,
             type: `Trả điểm & file quét bài thi học phần (Loại 2)`,
             flow: `Đơn vị Chuyên môn (Khoa) ➔ Tổ Khảo thí`,
@@ -1785,154 +1760,5 @@
         initIcons();
 
         setTimeout(() => toast.classList.add('hidden-view'), 4000);
-    }
-    
-    // ==========================================================
-    // UC: QUẢN LÝ ĐỀ THI (DVCM)
-    // ==========================================================
-    function switchTabDeThi(tab) {
-        document.getElementById('de-thi-danh-sach-tab').classList.add('hidden-view');
-        document.getElementById('de-thi-nop-de-tab').classList.add('hidden-view');
-        
-        const btnDs = document.getElementById('btn-dt-tab-ds');
-        const btnNd = document.getElementById('btn-dt-tab-nd');
-        if(btnDs && btnNd) {
-            btnDs.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 text-gray-600 hover:bg-gray-100 font-sans shadow-none";
-            btnNd.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 text-gray-600 hover:bg-gray-100 font-sans shadow-none";
-        }
-
-        if (tab === 'danh-sach') {
-            document.getElementById('de-thi-danh-sach-tab').classList.remove('hidden-view');
-            if(btnDs) btnDs.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 bg-blue-100 text-blue-800 shadow-sm font-sans";
-            renderDeThiList();
-        } else {
-            document.getElementById('de-thi-nop-de-tab').classList.remove('hidden-view');
-            if(btnNd) btnNd.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 bg-blue-100 text-blue-800 shadow-sm font-sans";
-            renderDeThiList();
-        }
-    }
-
-    function handleNopDeThi() {
-        const hocPhan = document.getElementById('dt-hoc-phan').value.trim();
-        const fileInput = document.getElementById('dt-file');
-        const ghiChu = document.getElementById('dt-ghi-chu').value.trim();
-
-        if (!hocPhan || !fileInput.files.length) {
-            showGlobalToast("Lỗi nộp đề", "Vui lòng nhập tên học phần và tải tệp đề thi lên.", "error");
-            return;
-        }
-
-        const fileName = fileInput.files[0].name;
-        const extension = fileName.split('.').pop().toLowerCase();
-        if (!['pdf', 'docx', 'doc', 'zip'].includes(extension)) {
-            showGlobalToast("Tệp không hợp lệ", "Chỉ chấp nhận tệp định dạng PDF, DOCX, DOC, ZIP.", "error");
-            return;
-        }
-
-        const ma = "DT" + Date.now().toString().slice(-4);
-        const now = new Date();
-        const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} ${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()}`;
-        
-        deThiData.unshift({
-            id: ma,
-            hocPhan: hocPhan,
-            nguoiNop: "GV. Nguyễn Văn A", // Giả lập người nộp
-            thoiGian: timeStr,
-            fileName: fileName,
-            ghiChu: ghiChu,
-            trangThai: "Chờ rà soát",
-            nhanXet: ""
-        });
-
-        document.getElementById('dt-hoc-phan').value = '';
-        document.getElementById('dt-file').value = '';
-        document.getElementById('dt-file-name').innerText = 'Click để chọn tệp hoặc kéo thả tệp vào đây';
-        document.getElementById('dt-ghi-chu').value = '';
-
-        switchTabDeThi('danh-sach');
-        showGlobalToast("Thành công", `Đề thi môn ${hocPhan} đã được nộp lên hệ thống.`, "success");
-    
-        if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
-    }
-
-    function renderDeThiList() {
-        const tbody = document.getElementById('de-thi-tbody');
-        const nopTbody = document.getElementById('de-thi-nop-tbody');
-        
-        const html = deThiData.map(dt => {
-            let statusClass = "bg-gray-100 text-gray-700";
-            if (dt.trangThai === "Chờ rà soát") statusClass = "bg-yellow-100 text-yellow-700";
-            else if (dt.trangThai === "Đạt") statusClass = "bg-green-100 text-green-700";
-            else if (dt.trangThai === "Chờ chỉnh sửa") statusClass = "bg-red-100 text-red-700";
-
-            return `
-                <tr class="bg-white border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer" onclick="showDeThiDetail('${dt.id}')">
-                    <td class="px-4 py-3 font-bold">${dt.id}</td>
-                    <td class="px-4 py-3">${dt.hocPhan}</td>
-                    <td class="px-4 py-3">${dt.nguoiNop}</td>
-                    <td class="px-4 py-3 text-xs">${dt.thoiGian}</td>
-                    <td class="px-4 py-3 text-blue-600 font-medium hover:underline" onclick="event.stopPropagation();"><i data-lucide="file-text" class="w-4 h-4 inline mr-1"></i>${dt.fileName}</td>
-                    <td class="px-4 py-3">
-                        <span class="px-2 py-1 rounded-full text-[10px] font-bold ${statusClass}">${dt.trangThai}</span>
-                    </td>
-                    <td class="px-4 py-3 text-xs text-gray-600 max-w-[200px] truncate" title="${dt.nhanXet || '-'}">
-                        ${dt.nhanXet || '-'}
-                    </td>
-                </tr>
-            `;
-        }).join('') || `<tr><td colspan="7" class="text-center py-4 text-gray-500 text-xs italic">Bạn chưa nộp đề thi nào.</td></tr>`;
-        
-        if (tbody) tbody.innerHTML = html;
-
-        if (nopTbody) {
-            nopTbody.innerHTML = deThiData.map(dt => {
-                let statusClass = "bg-gray-100 text-gray-700";
-                if (dt.trangThai === "Chờ rà soát") statusClass = "bg-yellow-100 text-yellow-700";
-                else if (dt.trangThai === "Đạt") statusClass = "bg-green-100 text-green-700";
-                else if (dt.trangThai === "Chờ chỉnh sửa") statusClass = "bg-red-100 text-red-700";
-
-                return `
-                    <tr class="bg-white border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer" onclick="showDeThiDetail('${dt.id}')">
-                        <td class="px-3 py-2 font-bold">${dt.id}</td>
-                        <td class="px-3 py-2">${dt.hocPhan}</td>
-                        <td class="px-3 py-2">${dt.nguoiNop}</td>
-                        <td class="px-3 py-2 text-[10px]">${dt.thoiGian}</td>
-                        <td class="px-3 py-2 text-blue-600 hover:underline max-w-[120px] truncate" onclick="event.stopPropagation();" title="${dt.fileName}">${dt.fileName}</td>
-                        <td class="px-3 py-2">
-                            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${statusClass}">${dt.trangThai}</span>
-                        </td>
-                    </tr>
-                `;
-            }).join('') || `<tr><td colspan="6" class="text-center py-4 text-gray-500 text-xs italic">Chưa nộp đề thi nào.</td></tr>`;
-        }
-
-        initIcons();
-    }
-
-    function showDeThiDetail(id) {
-        const dt = deThiData.find(x => x.id === id);
-        if (!dt) return;
-
-        document.getElementById('dt-detail-id').innerText = dt.id;
-        
-        let statusClass = "bg-gray-100 text-gray-700";
-        if (dt.trangThai === "Chờ rà soát") statusClass = "bg-yellow-100 text-yellow-700";
-        else if (dt.trangThai === "Đạt") statusClass = "bg-green-100 text-green-700";
-        else if (dt.trangThai === "Chờ chỉnh sửa") statusClass = "bg-red-100 text-red-700";
-        
-        document.getElementById('dt-detail-status').innerHTML = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${statusClass}">${dt.trangThai}</span>`;
-        document.getElementById('dt-detail-subject').innerText = dt.hocPhan;
-        document.getElementById('dt-detail-submitter').innerText = dt.nguoiNop || "-";
-        document.getElementById('dt-detail-time').innerText = dt.thoiGian || "-";
-        document.getElementById('dt-detail-file-name').innerText = dt.fileName || "-";
-        document.getElementById('dt-detail-note').innerText = dt.ghiChu || "-";
-        document.getElementById('dt-detail-review').innerText = dt.nhanXet || "-";
-
-        document.getElementById('modal-detail-de-thi').classList.remove('hidden-view');
-        initIcons();
-    }
-
-    function closeDeThiDetail() {
-        document.getElementById('modal-detail-de-thi').classList.add('hidden-view');
     }
 </script>

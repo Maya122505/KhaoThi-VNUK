@@ -3,7 +3,8 @@ from django.contrib.auth.decorators import login_required
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from ..models import KyThi, CaThi, HocPhan, PhongThi, User, LichThi, DeThi, DotInSao, NhatKyInSao, BienBanGiamSatInSao, ChecklistInSao, AuditLog
+from django.utils import timezone
+from ..models import KyThi, CaThi, HocPhan, PhongThi, User, LichThi, DeThi, DotInSao, NhatKyInSao, BienBanGiamSatInSao, ChecklistInSao, AuditLog, DonPhucKhao, PhieuGiaoNhan
 from ..forms.forms_tkt import KyThiForm, CaThiForm, LapLichThiForm
 from ..services.services_tkt import DoiSoatTKTService, GiaoNhanTKTService
 
@@ -80,71 +81,289 @@ class CaThiAPI(APIView):
 class DanhSachDuThiAPI(APIView):
     def post(self, request):
         """
-        API để xử lý việc đồng bộ và lọc danh sách sinh viên đủ điều kiện thi.
+        API để lọc danh sách sinh viên đủ điều kiện thi theo học phần.
         """
+        from ..models import LopHocPhan, DanhSachThiSinh, SinhVien
         hoc_phan_id = request.data.get('hoc_phan_id')
-        # TODO: Gọi service để xử lý logic đồng bộ học phí và trả về danh sách
-        # fake_data = [
-        #     {'msv': 'SV001', 'name': 'Lê Văn Tám', 'class': '24CS01', 'debt': 0, 'eligible': True},
-        #     {'msv': 'SV003', 'name': 'Phạm Hồng Thái', 'class': '24CS01', 'debt': 15000000, 'eligible': False},
-        # ]
-        # return Response(fake_data)
-        return Response({"message": "Chức năng đang được phát triển"}, status=status.HTTP_501_NOT_IMPLEMENTED)
+        if not hoc_phan_id:
+            return Response({"error": "Vui lòng chọn học phần."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            lop_hps = LopHocPhan.objects.filter(hoc_phan__ma_hoc_phan=hoc_phan_id)
+            result = []
+            for lhp in lop_hps:
+                for sv in lhp.sinh_vien.all():
+                    result.append({
+                        'msv': sv.ma_sinh_vien,
+                        'name': sv.ho_ten,
+                        'class': lhp.ma_lop_hp,
+                        'eligible': True
+                    })
+            return Response(result)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class LichThiAPI(APIView):
     def get(self, request):
-        # TODO: Lấy danh sách lịch thi đã được tạo
-        return Response({"message": "Chức năng đang được phát triển"}, status=status.HTTP_501_NOT_IMPLEMENTED)
+        """Lấy danh sách lịch thi, có thể lọc theo kỳ thi."""
+        ky_thi_id = request.query_params.get('ky_thi_id')
+        queryset = LichThi.objects.select_related('lop_hp__hoc_phan', 'ca_thi', 'phong_thi', 'ky_thi')
+        if ky_thi_id:
+            queryset = queryset.filter(ky_thi_id=ky_thi_id)
+        
+        result = []
+        for lt in queryset.order_by('-ngay_thi'):
+            result.append({
+                "ma_lich_thi": lt.ma_lich_thi,
+                "ky_thi": lt.ky_thi.ten_ky_thi,
+                "hoc_phan": lt.lop_hp.hoc_phan.ten_hoc_phan if (lt.lop_hp and lt.lop_hp.hoc_phan) else "",
+                "ma_hoc_phan": lt.lop_hp.hoc_phan.ma_hoc_phan if (lt.lop_hp and lt.lop_hp.hoc_phan) else "",
+                "ca_thi": lt.ca_thi.ten_ca,
+                "phong_thi": lt.phong_thi.ten_phong if lt.phong_thi else "Chưa phân công",
+                "ngay_thi": str(lt.ngay_thi),
+                "so_luong_sv": lt.so_luong_sv,
+            })
+        return Response(result)
 
     def post(self, request):
         """Lập lịch thi cho một học phần vào một ca thi, phòng thi cụ thể."""
+        from ..models import LopHocPhan
         form = LapLichThiForm(request.data)
         if form.is_valid():
-            # TODO: Gọi service để xử lý việc lập lịch, kiểm tra xung đột
-            # service.lap_lich_thi(...)
-            return Response({"message": "Lập lịch thành công"}, status=status.HTTP_201_CREATED)
+            ca_thi = form.cleaned_data['ca_thi']
+            hoc_phan = form.cleaned_data['hoc_phan']
+            phong_thi = form.cleaned_data['phong_thi']
+
+            # Tìm lớp học phần liên kết
+            lop_hp = LopHocPhan.objects.filter(hoc_phan=hoc_phan).first()
+            if not lop_hp:
+                return Response({"error": "Không tìm thấy lớp học phần cho học phần này."}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Kiểm tra xung đột lịch
+            conflict = LichThi.objects.filter(
+                ngay_thi=ca_thi.ngay_thi,
+                ca_thi=ca_thi,
+                phong_thi=phong_thi
+            ).exists()
+            if conflict:
+                return Response({"error": "Phòng thi đã được sử dụng trong ca thi này."}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Tạo mã lịch thi
+            count = LichThi.objects.filter(ky_thi=ca_thi.ky_thi).count() + 1
+            ma_lich = f"LT-{ca_thi.ky_thi.ma_ky_thi}-{count:03d}"
+
+            so_luong = lop_hp.sinh_vien.count() if hasattr(lop_hp, 'sinh_vien') else 0
+            lt = LichThi.objects.create(
+                ma_lich_thi=ma_lich,
+                ky_thi=ca_thi.ky_thi,
+                lop_hp=lop_hp,
+                ca_thi=ca_thi,
+                phong_thi=phong_thi,
+                ngay_thi=ca_thi.ngay_thi,
+                so_luong_sv=so_luong
+            )
+
+            AuditLog.objects.create(
+                actor=request.user if request.user.is_authenticated else None,
+                action=f"Lập lịch thi {ma_lich} cho {hoc_phan.ten_hoc_phan} vào {ca_thi.ten_ca}."
+            )
+
+            return Response({"message": "Lập lịch thành công", "ma_lich_thi": ma_lich}, status=status.HTTP_201_CREATED)
         return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # Các API khác sẽ được xây dựng theo cấu trúc tương tự...
 
 class NhapDiemSBDAPI(APIView):
     def post(self, request):
-        # TODO: Validate bằng form và gọi DoiSoatTKTService.doi_soat_diem_lan_2
-        return Response({"message": "Chức năng đang được phát triển"}, status=status.HTTP_501_NOT_IMPLEMENTED)
+        """Đối soát điểm nhập lần 2 theo SBD."""
+        from ..models import DanhSachThiSinh
+        ma_lop_thi = request.data.get('ma_lop_thi')
+        du_lieu_diem = request.data.get('du_lieu_diem', {})
+
+        if not ma_lop_thi:
+            return Response({"error": "Vui lòng nhập mã lớp dự thi."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            result = DoiSoatTKTService.doi_soat_diem_lan_2(ma_lop_thi, du_lieu_diem)
+            if result:
+                return Response(result)
+            
+            # Fallback: trả danh sách thí sinh trong lịch thi
+            lich_this = LichThi.objects.filter(lop_hp__ma_lop_hp=ma_lop_thi)
+            ds = []
+            for lt in lich_this:
+                for ts in lt.danh_sach_thi_sinh.select_related('sinh_vien').all():
+                    ds.append({
+                        "sbd": ts.sbd,
+                        "ma_sv": ts.sinh_vien.ma_sinh_vien,
+                        "ho_ten": ts.sinh_vien.ho_ten,
+                        "diem_thi": getattr(ts, 'diem_thi', None),
+                    })
+            return Response({"danh_sach": ds, "message": "Tải danh sách thành công."})
+        except Exception as e:
+            return Response({"error": f"Lỗi đối soát điểm: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class NhapDiemPhachAPI(APIView):
     def post(self, request):
-        # TODO: Validate và gọi service
-        return Response({"message": "Chức năng đang được phát triển"}, status=status.HTTP_501_NOT_IMPLEMENTED)
+        """Đối soát điểm nhập lần 2 theo mã phách."""
+        from ..models import MaPhach
+        ma_tui_phach = request.data.get('ma_tui_phach')
+        mat_khau = request.data.get('mat_khau')
+        du_lieu_diem = request.data.get('du_lieu_diem', {})
+
+        if not ma_tui_phach:
+            return Response({"error": "Vui lòng nhập mã túi phách."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Xác thực túi phách
+            from ..models import TuiPhach
+            tui = TuiPhach.objects.filter(ma_tui=ma_tui_phach).first()
+            if not tui:
+                return Response({"error": "Không tìm thấy túi phách."}, status=status.HTTP_404_NOT_FOUND)
+
+            # Lấy danh sách mã phách trong túi
+            ma_phach_list = MaPhach.objects.filter(tui_phach=tui).select_related('thi_sinh__sinh_vien')
+            ds = []
+            for mp in ma_phach_list:
+                ts = mp.thi_sinh
+                ds.append({
+                    "ma_phach": mp.ma_phach,
+                    "sbd": ts.sbd if ts else "",
+                    "ho_ten": ts.sinh_vien.ho_ten if (ts and ts.sinh_vien) else "",
+                    "diem_thi": ts.diem_thi if ts else None,
+                })
+            return Response({"danh_sach": ds, "message": "Tải danh sách thành công."})
+        except Exception as e:
+            return Response({"error": f"Lỗi: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class DonPhucKhaoAPI(APIView):
     def get(self, request):
-        # TODO: Lấy danh sách đơn phúc khảo
-        return Response({"message": "Chức năng đang được phát triển"}, status=status.HTTP_501_NOT_IMPLEMENTED)
+        """Lấy danh sách đơn phúc khảo."""
+        from ..services.services_tkt import PhucKhaoService
+        from ..serializers import DonPhucKhaoSerializer
+
+        trang_thai = request.query_params.get('trang_thai')
+        search = request.query_params.get('search')
+        queryset = PhucKhaoService.lay_danh_sach_don(trang_thai=trang_thai, search=search)
+        serializer = DonPhucKhaoSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        """Tạo đơn phúc khảo mới."""
+        from ..services.services_tkt import PhucKhaoService
+        try:
+            don = PhucKhaoService.tao_don_phuc_khao(
+                ma_don=request.data.get('ma_don', f"PK-{int(timezone.now().timestamp())}"),
+                ma_sinh_vien=request.data.get('ma_sinh_vien'),
+                ma_phach_str=request.data.get('ma_phach'),
+                ma_lich_thi=request.data.get('ma_lich_thi'),
+                ly_do=request.data.get('ly_do', ''),
+                diem_goc=request.data.get('diem_goc'),
+            )
+            return Response({"message": "Tạo đơn phúc khảo thành công.", "ma_don": don.ma_don}, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 class DonPhucKhaoDetailAPI(APIView):
     def put(self, request, pk):
-        # TODO: Cập nhật điểm phúc khảo
-        return Response({"message": "Chức năng đang được phát triển"}, status=status.HTTP_501_NOT_IMPLEMENTED)
+        """Cập nhật điểm phúc khảo."""
+        from ..services.services_tkt import PhucKhaoService
+        try:
+            action = request.data.get('action')
+            if action == 'phe_duyet':
+                don = PhucKhaoService.phe_duyet_phuc_khao(
+                    ma_don=pk,
+                    nguoi_duyet_user=request.user if request.user.is_authenticated else None
+                )
+                return Response({"message": "Phê duyệt phúc khảo thành công."})
+            else:
+                don = PhucKhaoService.luu_diem_phuc_khao(
+                    ma_don=pk,
+                    diem_1=request.data.get('diem_phuc_khao_1'),
+                    diem_2=request.data.get('diem_phuc_khao_2'),
+                    diem_cuoi=request.data.get('diem_phuc_khao_cuoi'),
+                    trang_thai=request.data.get('trang_thai', 'DaXuLy'),
+                )
+                return Response({"message": "Cập nhật điểm phúc khảo thành công."})
+        except DonPhucKhao.DoesNotExist:
+            return Response({"error": "Không tìm thấy đơn phúc khảo."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 class GiaoNhanDataAPI(APIView):
     def get(self, request):
-        return Response({"message": "Chức năng đang được phát triển"}, status=status.HTTP_501_NOT_IMPLEMENTED)
+        """Lấy dữ liệu giao nhận: phiếu giao nhận + danh sách users."""
+        from ..models import PhieuGiaoNhan
+        from ..serializers import PhieuGiaoNhanSerializer
+
+        phieu_list = PhieuGiaoNhan.objects.select_related('nguoi_giao', 'nguoi_nhan').prefetch_related('chi_tiet').order_by('-ngay_giao')
+        serializer = PhieuGiaoNhanSerializer(phieu_list, many=True)
+        users = [{"id": u.id, "username": u.username, "full_name": u.full_name or u.username} for u in User.objects.all()]
+        return Response({"phieu_list": serializer.data, "users": users})
 
 class PhieuGiaoNhanAPI(APIView):
     def post(self, request):
-        # TODO: Validate và gọi GiaoNhanTKTService.tao_phieu_giao_nhan
-        return Response({"message": "Chức năng đang được phát triển"}, status=status.HTTP_501_NOT_IMPLEMENTED)
+        """Tạo phiếu giao nhận mới."""
+        try:
+            nguoi_giao = request.user if request.user.is_authenticated else User.objects.filter(role='tkt').first()
+            if not nguoi_giao:
+                return Response({"error": "Không xác định được người giao."}, status=status.HTTP_400_BAD_REQUEST)
+            
+            phieu = GiaoNhanTKTService.tao_phieu_giao_nhan(
+                nguoi_giao=nguoi_giao,
+                data=request.data.copy(),
+                files=request.FILES
+            )
+            return Response({"message": "Tạo phiếu giao nhận thành công.", "ma_phieu": phieu.ma_phieu}, status=status.HTTP_201_CREATED)
+        except ValueError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": f"Lỗi tạo phiếu: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class XacNhanPhieuAPI(APIView):
     def post(self, request, pk):
-        # TODO: Gọi GiaoNhanTKTService.xac_nhan_nhan_phieu
-        return Response({"message": "Chức năng đang được phát triển"}, status=status.HTTP_501_NOT_IMPLEMENTED)
+        """Xác nhận đã nhận phiếu giao nhận."""
+        try:
+            nguoi_xac_nhan = request.user if request.user.is_authenticated else None
+            if not nguoi_xac_nhan:
+                return Response({"error": "Bạn cần đăng nhập để xác nhận."}, status=status.HTTP_401_UNAUTHORIZED)
+            
+            phieu = GiaoNhanTKTService.xac_nhan_nhan_phieu(
+                ma_phieu=pk,
+                nguoi_xac_nhan=nguoi_xac_nhan
+            )
+            return Response({"message": "Xác nhận nhận phiếu thành công."})
+        except PermissionError as e:
+            return Response({"error": str(e)}, status=status.HTTP_403_FORBIDDEN)
+        except ValueError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except PhieuGiaoNhan.DoesNotExist:
+            return Response({"error": "Không tìm thấy phiếu giao nhận."}, status=status.HTTP_404_NOT_FOUND)
 
 class CanBoCoiThiAPI(APIView):
     def get(self, request):
-        # TODO: Lấy danh sách cán bộ coi thi và lịch sử coi thi của họ
-        return Response({"message": "Chức năng đang được phát triển"}, status=status.HTTP_501_NOT_IMPLEMENTED)
+        """Lấy danh sách cán bộ coi thi và phân công."""
+        from ..models import PhanCongCoiThi, GiangVien
+        from ..serializers import PhanCongCoiThiSerializer, GiangVienSerializer
+
+        ky_thi_id = request.query_params.get('ky_thi_id')
+        
+        # Danh sách giảng viên
+        giang_vien = GiangVien.objects.all()
+        gv_serializer = GiangVienSerializer(giang_vien, many=True)
+
+        # Danh sách phân công
+        pc_query = PhanCongCoiThi.objects.select_related('can_bo', 'lich_thi__ca_thi', 'lich_thi__phong_thi')
+        if ky_thi_id:
+            pc_query = pc_query.filter(lich_thi__ky_thi_id=ky_thi_id)
+        pc_serializer = PhanCongCoiThiSerializer(pc_query, many=True)
+
+        return Response({
+            "giang_vien": gv_serializer.data,
+            "phan_cong": pc_serializer.data,
+        })
+
+
 
 
 class PhongThiAPI(APIView):

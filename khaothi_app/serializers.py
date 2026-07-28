@@ -33,7 +33,7 @@ class LichThiSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LichThi
-        fields = ['ma_lich_thi', 'lop_hp', 'ten_hoc_phan', 'ca_thi', 'phong_thi', 'ngay_thi', 'so_luong_sv', 'trang_thai_bai_thi']
+        fields = ['ma_lich_thi', 'lop_hp', 'ten_hoc_phan', 'ca_thi', 'phong_thi', 'ngay_thi', 'so_luong_sv']
 
 class TuiBaiThiSerializer(serializers.ModelSerializer):
     lich_thi = LichThiSerializer(read_only=True)

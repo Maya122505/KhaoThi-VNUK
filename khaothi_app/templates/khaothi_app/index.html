@@ -27,10 +27,14 @@
 
     <!-- Header Navbar -->
     <header class="bg-white px-8 py-4 flex justify-between items-center border-b-4 border-orange-500 shadow-sm relative">
-        <div class="flex items-center gap-4">
-            <a href="/">
-                <img src="/static/khaothi_app/images/logo.png" alt="VNUK Logo" class="h-16 w-auto object-contain" />
-            </a>
+        <div class="flex items-center gap-6 cursor-pointer" onclick="window.location.href='/'">
+            <!-- Logo -->
+            <img src="/static/khaothi_app/images/logo_vnuk.png?v=2" alt="Logo VNUK" class="h-16 w-auto object-contain select-none shrink-0">
+            <!-- Text -->
+            <div class="flex flex-col justify-center">
+                <h2 class="text-2xl font-black text-[#9e1c22] tracking-wide leading-none uppercase" style="font-family: 'Inter', sans-serif;">ĐẠI HỌC ĐÀ NẴNG</h2>
+                <h2 class="text-lg font-black text-[#9e1c22] tracking-wide leading-none mt-2.5 uppercase" style="font-family: 'Inter', sans-serif;">VIỆN NGHIÊN CỨU VÀ ĐÀO TẠO VIỆT - ANH</h2>
+            </div>
         </div>
         <div class="text-xs text-gray-500 flex items-center gap-2 font-mono">
             <i data-lucide="server" class="w-4 h-4 text-[#9e1c22]"></i>
@@ -39,7 +43,7 @@
     </header>
 
     <!-- Main Content -->
-    <main class="max-w-[1500px] mx-auto w-full px-6 py-12 flex-1 flex flex-col justify-center">
+    <main class="max-w-[1400px] mx-auto w-full px-6 py-12 flex-1 flex flex-col justify-center">
         <div class="text-center mb-12">
             <h2 class="text-4xl font-black text-slate-900 mb-3 tracking-tight">
                 CỔNG GIAO DỊCH KHẢO THÍ ĐIỆN TỬ
@@ -57,7 +61,7 @@
                     <h3 class="text-base font-extrabold text-slate-900 group-hover:text-[#9e1c22] transition-colors leading-snug">Tổ Khảo thí (VNUK)</h3>
                 </div>
                 <div class="flex items-center gap-2 text-xs font-bold text-[#9e1c22] group-hover:translate-x-1.5 transition-transform pt-4">
-                    Đăng nhập Cổng <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    Đăng nhập <i data-lucide="arrow-right" class="w-4 h-4"></i>
                 </div>
             </a>
 
@@ -70,7 +74,7 @@
                     <h3 class="text-base font-extrabold text-slate-900 group-hover:text-blue-600 transition-colors leading-snug">Thư ký Chấm thi</h3>
                 </div>
                 <div class="flex items-center gap-2 text-xs font-bold text-blue-600 group-hover:translate-x-1.5 transition-transform pt-4">
-                    Đăng nhập Cổng <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    Đăng nhập <i data-lucide="arrow-right" class="w-4 h-4"></i>
                 </div>
             </a>
 
@@ -83,7 +87,7 @@
                     <h3 class="text-base font-extrabold text-slate-900 group-hover:text-purple-600 transition-colors leading-snug">Lãnh đạo phòng Khảo thí</h3>
                 </div>
                 <div class="flex items-center gap-2 text-xs font-bold text-purple-600 group-hover:translate-x-1.5 transition-transform pt-4">
-                    Đăng nhập Cổng <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    Đăng nhập <i data-lucide="arrow-right" class="w-4 h-4"></i>
                 </div>
             </a>
 
@@ -96,7 +100,7 @@
                     <h3 class="text-base font-extrabold text-slate-900 group-hover:text-emerald-600 transition-colors leading-snug">Đơn vị Chuyên môn</h3>
                 </div>
                 <div class="flex items-center gap-2 text-xs font-bold text-emerald-600 group-hover:translate-x-1.5 transition-transform pt-4">
-                    Đăng nhập Cổng <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    Đăng nhập <i data-lucide="arrow-right" class="w-4 h-4"></i>
                 </div>
             </a>
 
@@ -109,7 +113,7 @@
                     <h3 class="text-base font-extrabold text-slate-900 group-hover:text-amber-600 transition-colors leading-snug">Giảng viên / CB Chấm thi</h3>
                 </div>
                 <div class="flex items-center gap-2 text-xs font-bold text-amber-600 group-hover:translate-x-1.5 transition-transform pt-4">
-                    Đăng nhập Cổng <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    Đăng nhập <i data-lucide="arrow-right" class="w-4 h-4"></i>
                 </div>
             </a>
 
@@ -122,7 +126,7 @@
                     <h3 class="text-base font-extrabold text-slate-900 group-hover:text-sky-600 transition-colors leading-snug">Thư ký Coi thi</h3>
                 </div>
                 <div class="flex items-center gap-2 text-xs font-bold text-sky-600 group-hover:translate-x-1.5 transition-transform pt-4">
-                    Đăng nhập Cổng <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    Đăng nhập <i data-lucide="arrow-right" class="w-4 h-4"></i>
                 </div>
             </a>
 
@@ -135,12 +139,13 @@
                     <h3 class="text-base font-extrabold text-slate-900 group-hover:text-slate-700 transition-colors leading-snug">Chuyên viên Hệ thống</h3>
                 </div>
                 <div class="flex items-center gap-2 text-xs font-bold text-slate-700 group-hover:translate-x-1.5 transition-transform pt-4">
-                    Đăng nhập Cổng <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    Đăng nhập <i data-lucide="arrow-right" class="w-4 h-4"></i>
                 </div>
             </a>
         </div>
     </main>
 
+    <!-- Footer -->
     {% include 'khaothi_app/_shared/_footer.html' %}
 
     <script>

@@ -2,46 +2,35 @@
 <div id="view-home" class="view-section animate-fade-in flex flex-col h-full">
     <div class="flex justify-between items-end border-b border-gray-200 pb-4 mb-6">
         <div>
-            <h2 class="text-2xl font-bold text-blue-900 mb-1 flex items-center gap-2"><i data-lucide="layout-dashboard" class="text-blue-600"></i> Bảng giám sát của Lãnh đạo phòng</h2>
-            <p class="text-sm text-gray-600">Giám sát tiến độ tổ chức kỳ thi, duyệt bảng điểm chính thức và phê duyệt các văn bản pháp lý.</p>
+            <h2 class="text-2xl font-bold text-blue-900 flex items-center gap-2"><i data-lucide="layout-dashboard" class="text-blue-600"></i> Bảng giám sát của Trưởng phòng</h2>
         </div>
     </div>
 
     <!-- Counters -->
-    <div class="grid grid-cols-2 md:grid-cols-6 gap-3 mb-8 text-xs font-sans">
-        <div class="bg-white rounded-lg p-3.5 border border-l-4 border-l-red-700 shadow-sm flex flex-col cursor-pointer hover:shadow-md transition-shadow" onclick="navigate('view-duyet-lich-thi')">
-            <div class="text-gray-500 text-xs font-bold uppercase tracking-wide">Lịch thi chờ duyệt</div>
-            <div class="text-2xl font-black text-red-800 mt-2" id="count-lich-cho">0</div>
-            <span class="text-[11px] text-red-600 font-semibold mt-1">Kế hoạch ca & phòng</span>
+    <div class="grid grid-cols-4 gap-6 mb-8 text-xs font-sans">
+        <div class="bg-white rounded-lg p-5 border border-l-4 border-l-purple-600 shadow-sm flex flex-col">
+            <div class="text-gray-500 text-xs font-bold uppercase tracking-wide">Bảng điểm cần phê duyệt</div>
+            <div class="text-3xl font-black text-gray-800 mt-2" id="count-diem-cho">1</div>
+            <span class="text-xs text-purple-600 font-semibold mt-2">Bảng điểm đối soát lần 2 đã hoàn tất</span>
         </div>
-        <div class="bg-white rounded-lg p-3.5 border border-l-4 border-l-blue-700 shadow-sm flex flex-col cursor-pointer hover:shadow-md transition-shadow" onclick="navigate('view-duyet-danh-sach-thi')">
-            <div class="text-gray-500 text-xs font-bold uppercase tracking-wide">Danh sách thi chờ duyệt</div>
-            <div class="text-2xl font-black text-blue-800 mt-2" id="count-ds-cho">0</div>
-            <span class="text-[11px] text-blue-600 font-semibold mt-1">SV đủ ĐK / cấm thi</span>
+        <div class="bg-white rounded-lg p-5 border border-l-4 border-l-indigo-600 shadow-sm flex flex-col">
+            <div class="text-gray-500 text-xs font-bold uppercase tracking-wide">Hồ sơ phúc khảo chờ duyệt</div>
+            <div class="text-3xl font-black text-gray-800 mt-2" id="count-pk-cho">2</div>
+            <span class="text-xs text-indigo-600 font-semibold mt-2">Cần duyệt điểm số phúc khảo cuối</span>
         </div>
-        <div class="bg-white rounded-lg p-3.5 border border-l-4 border-l-amber-600 shadow-sm flex flex-col cursor-pointer hover:shadow-md transition-shadow" onclick="navigate('view-duyet-de-thi')">
-            <div class="text-gray-500 text-xs font-bold uppercase tracking-wide">Đề thi chờ duyệt</div>
-            <div class="text-2xl font-black text-amber-800 mt-2" id="count-de-cho">0</div>
-            <span class="text-[11px] text-amber-600 font-semibold mt-1">Đề thi đã rà soát</span>
+        <div class="bg-white rounded-lg p-5 border border-l-4 border-l-pink-600 shadow-sm flex flex-col">
+            <div class="text-gray-500 text-xs font-bold uppercase tracking-wide">Quyết toán giờ trực thi</div>
+            <div class="text-3xl font-black text-gray-800 mt-2" id="count-thu-lao-cho">1</div>
+            <span class="text-xs text-pink-600 font-semibold mt-2">Thống kê ca coi thi chờ phê duyệt chi trả</span>
         </div>
-        <div class="bg-white rounded-lg p-3.5 border border-l-4 border-l-purple-600 shadow-sm flex flex-col cursor-pointer hover:shadow-md transition-shadow" onclick="navigate('view-duyet-diem')">
-            <div class="text-gray-500 text-xs font-bold uppercase tracking-wide">Bảng điểm cần duyệt</div>
-            <div class="text-2xl font-black text-purple-800 mt-2" id="count-diem-cho">0</div>
-            <span class="text-[11px] text-purple-600 font-semibold mt-1">Đối soát lần 2</span>
-        </div>
-        <div class="bg-white rounded-lg p-3.5 border border-l-4 border-l-indigo-600 shadow-sm flex flex-col cursor-pointer hover:shadow-md transition-shadow" onclick="navigate('view-duyet-phuc-khao')">
-            <div class="text-gray-500 text-xs font-bold uppercase tracking-wide">Phúc khảo chờ duyệt</div>
-            <div class="text-2xl font-black text-indigo-800 mt-2" id="count-pk-cho">0</div>
-            <span class="text-[11px] text-indigo-600 font-semibold mt-1">Duyệt điểm phúc khảo</span>
-        </div>
-        <div class="bg-white rounded-lg p-3.5 border border-l-4 border-l-pink-600 shadow-sm flex flex-col cursor-pointer hover:shadow-md transition-shadow" onclick="navigate('view-duyet-thu-lao')">
-            <div class="text-gray-500 text-xs font-bold uppercase tracking-wide">Thù lao coi thi</div>
-            <div class="text-2xl font-black text-pink-800 mt-2" id="count-thu-lao-cho">0</div>
-            <span class="text-[11px] text-pink-600 font-semibold mt-1">Quyết toán giờ trực</span>
+        <div class="bg-white rounded-lg p-5 border border-l-4 border-l-green-600 shadow-sm flex flex-col">
+            <div class="text-gray-500 text-xs font-bold uppercase tracking-wide">Túi phách đã an toàn</div>
+            <div class="text-3xl font-black text-gray-800 mt-2" id="count-tui-khoa">0</div>
+            <span class="text-xs text-green-600 font-semibold mt-2">Đã được thư ký niêm phong bảo mật</span>
         </div>
     </div>
 
-    <!-- Danh sách rút gọn các tác vụ chờ phê duyệt -->
+    <!-- Tasks for approval list shortcut -->
     <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6 text-xs">
         <h3 class="font-bold text-gray-800 mb-4 pb-2 border-b">Hành động cần phê duyệt nhanh</h3>
         <div class="flex flex-col gap-3" id="quick-action-list">

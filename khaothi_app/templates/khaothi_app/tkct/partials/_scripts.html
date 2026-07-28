@@ -1685,31 +1685,6 @@
         if (m) m.classList.add('hidden-view'); 
     }
 
-    function hideGnSimulateReceiveModal() {
-        const m = document.getElementById('modal-gn-ky-nhan-simulate');
-        if (m) m.classList.add('hidden-view');
-    }
-    window.hideGnSimulateReceiveModal = hideGnSimulateReceiveModal;
-
-    function confirmGnSimulateReceiveExecute() {
-        hideGnSimulateReceiveModal();
-        const phieu = phieuGiaoNhanData.find(x => (x.id === activeNhanPhieuId || x.ma_phieu === activeNhanPhieuId));
-        if (phieu) {
-            phieu.status = "Đã hoàn tất";
-            phieu.trang_thai = "DaHoanTat";
-        }
-        hideGnDetailNhan();
-        showGlobalToast("Thành công", "Đã giả lập xác nhận bàn giao.");
-        saveStateToServer();
-        renderGiaoNhan();
-    }
-    window.confirmGnSimulateReceiveExecute = confirmGnSimulateReceiveExecute;
-
-    window.changeGiaoNhanPage = function(delta) {
-        giaoNhanCurrentPage += delta;
-        renderGiaoNhan();
-    };
-
     window.showGnDetailNhan = showGnDetailNhan;
     window.hideGnDetailNhan = hideGnDetailNhan;
     window.handleTuChoiNhanPhieuGoc = handleTuChoiNhanPhieuGoc;

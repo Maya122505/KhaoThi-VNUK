@@ -8,15 +8,15 @@
                 <p class="text-xs text-gray-500 mt-1">Đơn giá áp dụng: 100,000 VND / giờ coi thi. Yêu cầu toàn bộ lịch trình phải được Giảng viên xác nhận trước khi trình duyệt.</p>
             </div>
             <div class="flex gap-2">
-                <button id="btn-duyet-thulao-action" onclick="showDuyetModal('thulao', 'TL-HK3', 'Báo cáo Quyết toán Thù lao Coi thi Học kỳ III')" class="bg-[#9e1c22] hover:bg-red-800 text-white font-bold px-4 py-2 rounded text-xs shadow flex items-center gap-1.5 transition-colors">
-                    <i data-lucide="check" class="w-4 h-4"></i> PHÊ DUYỆT THÙ LAO
+                <button id="btn-duyet-thulao-action" onclick="showDuyetModal('thulao', 'Báo cáo Quyết toán Thù lao coi thi')" class="bg-indigo-700 hover:bg-indigo-800 text-white font-bold px-4 py-2 rounded text-xs shadow flex items-center gap-1.5 font-sans">
+                    <i data-lucide="check-circle" class="w-4 h-4"></i> PHÊ DUYỆT
                 </button>
             </div>
         </div>
         <div id="thulao-status-stamp" class="mb-4"></div>
-        <div class="overflow-y-auto max-h-[420px] border border-gray-200 rounded-lg shadow-sm">
+        <div class="overflow-x-auto">
             <table class="w-full text-left text-xs border-collapse">
-                <thead class="bg-gray-100 text-gray-700 font-bold border-b sticky top-0 z-10 bg-gray-100 shadow-xs">
+                <thead class="bg-gray-100 text-gray-700 font-bold border-b">
                     <tr>
                         <th class="px-4 py-2.5">Mã GV</th>
                         <th class="px-4 py-2.5">Họ tên Cán bộ coi thi</th>
@@ -27,7 +27,7 @@
                     </tr>
                 </thead>
                 <tbody id="duyet-thulao-tbody" class="divide-y divide-gray-100 font-sans">
-                    <!-- Được điền tự động bằng JavaScript -->
+                    <!-- Filled by JS -->
                 </tbody>
             </table>
         </div>
