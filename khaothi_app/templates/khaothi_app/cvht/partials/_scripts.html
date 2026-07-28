@@ -14,6 +14,7 @@
     let phucKhaoData = [];
     let auditLogsData = [];
     let systemConfigsData = {};
+    let systemGlobals = {};
     let subjectsData = [];
     let roomsData = [];
 
@@ -21,14 +22,40 @@
     let activeViewId = "view-home";
     let isSystemLocked = false;
 
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function initIcons() {
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    }
+
     window.onload = async function() {
         initIcons();
         await loadStateFromServer();
         const savedViewId = sessionStorage.getItem('cvht_activeViewId');
         navigate(savedViewId || 'view-home');
+        initIcons();
     };
 
-    function initIcons() { lucide.createIcons(); }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => initIcons());
+    } else {
+        initIcons();
+    }
 
     async function loadStateFromServer() {
         try {
@@ -40,11 +67,11 @@
             lichThiData = data.lichThiData || [];
             hocPhiData = data.hocPhiData || [];
             lopThiDiemData = data.lopThiDiemData || [];
-            phongThiGocData = data.phongThiGocData;
-            tuiPhachData = data.tuiPhachData;
-            phieuGiaoNhanData = data.phieuGiaoNhanData;
-            canBoCoiThiData = data.canBoCoiThiData;
-            phucKhaoData = data.phucKhaoData;
+            phongThiGocData = data.phongThiGocData || [];
+            tuiPhachData = data.tuiPhachData || [];
+            phieuGiaoNhanData = data.phieuGiaoNhanData || [];
+            canBoCoiThiData = data.canBoCoiThiData || [];
+            phucKhaoData = data.phucKhaoData || [];
             auditLogsData = data.auditLogsData || [];
             systemConfigsData = data.systemConfigsData || {};
             subjectsData = data.subjectsData || [];
@@ -61,11 +88,11 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                        kyThiData,
-                        caThiData,
-                        lichThiData,
-                        hocPhiData,
-                        lopThiDiemData,
+                    kyThiData,
+                    caThiData,
+                    lichThiData,
+                    hocPhiData,
+                    lopThiDiemData,
                     phongThiGocData,
                     tuiPhachData,
                     phieuGiaoNhanData,
@@ -95,7 +122,8 @@
         const activeBtnMap = {
             'view-home': 'nav-btn-home',
             'view-danh-muc': 'nav-btn-danh-muc',
-            'view-cau-hinh': 'nav-btn-cau-hinh'
+            'view-cau-hinh': 'nav-btn-cau-hinh',
+            'view-nhat-ky': 'nav-btn-nhat-ky'
         };
         const activeBtn = document.getElementById(activeBtnMap[viewId]);
         if (activeBtn) {
@@ -103,7 +131,7 @@
             activeBtn.classList.add('bg-[#801418]', 'border-[#005691]', 'font-bold');
         }
 
-        if(viewId === 'view-home') {
+        if(viewId === 'view-home' || viewId === 'view-nhat-ky') {
             renderLogs();
         } else if(viewId === 'view-danh-muc') {
             renderDanhMuc();
@@ -120,50 +148,53 @@
 
     function switchConfigType(val) {
         document.querySelectorAll('.config-sub-view').forEach(el => el.classList.add('hidden-view'));
-        if(val === 'nhap_diem_hp') {
-            document.getElementById('config-area-nhap-diem-hp').classList.remove('hidden-view');
+        const target = document.getElementById(`config-area-${val.replace(/_/g, '-')}`);
+        if (target) {
+            target.classList.remove('hidden-view');
+        } else {
+            const nhapDiemArea = document.getElementById('config-area-nhap-diem-hp');
+            if (nhapDiemArea) nhapDiemArea.classList.remove('hidden-view');
+        }
+
+        if (val === 'nhap_diem_hp') {
             loadConfigNhapDiem();
-        } else if(val === 'phuc_khao') {
-            document.getElementById('config-area-phuc-khao').classList.remove('hidden-view');
+        } else if (val === 'phuc_khao') {
             loadConfigPhucKhao();
-        } else if(val === 'nop_de') {
-            document.getElementById('config-area-nop-de').classList.remove('hidden-view');
-        } else if(val === 'nhap_thanh_phan') {
-            document.getElementById('config-area-nhap-thanh-phan').classList.remove('hidden-view');
-        } else if(val === 'trong_so') {
-            document.getElementById('config-area-trong-so').classList.remove('hidden-view');
-        } else if(val === 'dieu_kien') {
-            document.getElementById('config-area-dieu-kien').classList.remove('hidden-view');
-        } else if(val === 'quy_doi') {
-            document.getElementById('config-area-quy-doi').classList.remove('hidden-view');
         }
         initIcons();
     }
     window.switchConfigType = switchConfigType;
 
     function renderLogs() {
-        const tbody = document.getElementById('logs-tbody');
+        const tbody = document.getElementById('dash-audit-logs-tbody') || document.getElementById('logs-tbody');
+        const countEl = document.getElementById('dash-log-count');
+        if (!tbody) return;
+
+        const defaultLogs = [
+            { timestamp: '2026-07-22 19:35:12', actor: 'cvht01 (Nguyễn Văn Quản Trị)', action: 'Lưu cấu hình mốc thời gian nhập điểm Học kỳ I (2025-2026 - Đợt 1)', ip: '192.168.1.10' },
+            { timestamp: '2026-07-22 18:20:45', actor: 'tkt01 (Lê Thị Thu)', action: 'Duyệt đợt rút phách & gộp 4 bài thi cho đơn PK001', ip: '192.168.1.15' },
+            { timestamp: '2026-07-22 17:15:30', actor: 'gv002 (Trần Thị B)', action: 'Ký xác nhận lịch trực giám thị ca 2 phòng P.301', ip: '192.168.1.22' },
+            { timestamp: '2026-07-22 15:40:00', actor: 'system (Tự động)', action: 'Kiểm tra trạng thái đối soát dữ liệu & đồng bộ CSDL', ip: '127.0.0.1' }
+        ];
+
+        const logsToRender = (auditLogsData && auditLogsData.length > 0) ? auditLogsData : defaultLogs;
+        if (countEl) countEl.innerText = `${logsToRender.length} sự kiện`;
+
         tbody.innerHTML = '';
-
-        if(auditLogsData.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="3" class="px-6 py-12 text-center text-gray-400 italic">Nhật ký trống.</td></tr>`;
-            return;
-        }
-
-        [...auditLogsData].reverse().forEach(log => {
-            let badge = `<span class="text-blue-900 font-bold">${log.actor}</span>`;
-            if(log.actor === 'Hệ thống') badge = `<span class="text-gray-500 font-bold">${log.actor}</span>`;
-            if(log.actor === 'Thư ký Coi thi') badge = `<span class="text-sky-600 font-bold">${log.actor}</span>`;
-
+        logsToRender.forEach(log => {
+            let actorHtml = `<span class="text-blue-900 font-bold">${log.actor || log.user || 'Admin'}</span>`;
+            if (log.actor === 'Hệ thống' || log.actor === 'system') actorHtml = `<span class="text-gray-500 font-bold">${log.actor}</span>`;
             tbody.innerHTML += `
                 <tr class="hover:bg-gray-50 text-xs border-b">
-                    <td class="px-6 py-3 font-semibold text-gray-400">${log.time}</td>
-                    <td class="px-6 py-3 font-bold">${badge}</td>
-                    <td class="px-6 py-3 text-gray-700">${log.action}</td>
+                    <td class="px-6 py-3 font-semibold text-gray-400">${log.timestamp || log.time || '2026-07-22 19:00'}</td>
+                    <td class="px-6 py-3 font-bold">${actorHtml}</td>
+                    <td class="px-6 py-3 text-gray-700">${log.action || log.content || 'Đăng nhập'}</td>
+                    <td class="px-6 py-3 text-center font-mono text-gray-500">${log.ip || '127.0.0.1'}</td>
                 </tr>
             `;
         });
     }
+    window.renderLogs = renderLogs;
 
     function loadConfigNhapDiem() {
         const namHoc = document.getElementById('config-nd-namhoc')?.value || '2025-2026';
@@ -180,9 +211,9 @@
         const btnEdit = document.getElementById('btn-edit-nd');
 
         if (cfg && cfg.start) {
-            startEl.value = cfg.start;
-            endEl.value = cfg.end;
-            publishEl.value = cfg.publish;
+            if (startEl) startEl.value = cfg.start;
+            if (endEl) endEl.value = cfg.end;
+            if (publishEl) publishEl.value = cfg.publish;
 
             [startEl, endEl, publishEl].forEach(el => {
                 if (el) {
@@ -196,9 +227,9 @@
             }
             if (btnEdit) btnEdit.classList.remove('hidden-view');
         } else {
-            startEl.value = "";
-            endEl.value = "";
-            publishEl.value = "";
+            if (startEl) startEl.value = "";
+            if (endEl) endEl.value = "";
+            if (publishEl) publishEl.value = "";
 
             [startEl, endEl, publishEl].forEach(el => {
                 if (el) {
@@ -230,9 +261,9 @@
         const btnEdit = document.getElementById('btn-edit-pk');
 
         if (cfg && cfg.start) {
-            startEl.value = cfg.start;
-            endEl.value = cfg.end;
-            deadlineEl.value = cfg.deadline;
+            if (startEl) startEl.value = cfg.start;
+            if (endEl) endEl.value = cfg.end;
+            if (deadlineEl) deadlineEl.value = cfg.deadline;
 
             [startEl, endEl, deadlineEl].forEach(el => {
                 if (el) {
@@ -246,9 +277,9 @@
             }
             if (btnEdit) btnEdit.classList.remove('hidden-view');
         } else {
-            startEl.value = "";
-            endEl.value = "";
-            deadlineEl.value = "";
+            if (startEl) startEl.value = "";
+            if (endEl) endEl.value = "";
+            if (deadlineEl) deadlineEl.value = "";
 
             [startEl, endEl, deadlineEl].forEach(el => {
                 if (el) {
@@ -266,46 +297,54 @@
     window.loadConfigPhucKhao = loadConfigPhucKhao;
 
     function validateNhapDiemDates() {
-        const start = document.getElementById('config-nd-start').value;
-        const end = document.getElementById('config-nd-end').value;
-        const publish = document.getElementById('config-nd-publish').value;
+        const start = document.getElementById('config-nd-start')?.value;
+        const end = document.getElementById('config-nd-end')?.value;
+        const publish = document.getElementById('config-nd-publish')?.value;
 
         const errBox = document.getElementById('config-nd-error');
         const btn = document.getElementById('btn-save-nd');
 
         if (start && end && publish) {
             if (new Date(start) >= new Date(end) || new Date(end) >= new Date(publish)) {
-                errBox.classList.remove('hidden-view');
-                btn.setAttribute('disabled', 'true');
-                btn.classList.add('opacity-50', 'cursor-not-allowed');
+                if (errBox) errBox.classList.remove('hidden-view');
+                if (btn) {
+                    btn.setAttribute('disabled', 'true');
+                    btn.classList.add('opacity-50', 'cursor-not-allowed');
+                }
                 return false;
             }
         }
-        errBox.classList.add('hidden-view');
-        btn.removeAttribute('disabled');
-        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        if (errBox) errBox.classList.add('hidden-view');
+        if (btn) {
+            btn.removeAttribute('disabled');
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
         return true;
     }
 
     function validatePhucKhaoDates() {
-        const start = document.getElementById('config-pk-start').value;
-        const end = document.getElementById('config-pk-end').value;
-        const deadline = document.getElementById('config-pk-deadline').value;
+        const start = document.getElementById('config-pk-start')?.value;
+        const end = document.getElementById('config-pk-end')?.value;
+        const deadline = document.getElementById('config-pk-deadline')?.value;
 
         const errBox = document.getElementById('config-pk-error');
         const warnBox = document.getElementById('config-pk-warning');
         const btn = document.getElementById('btn-save-pk');
 
-        errBox.classList.add('hidden-view');
-        warnBox.classList.add('hidden-view');
-        btn.removeAttribute('disabled');
-        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        if (errBox) errBox.classList.add('hidden-view');
+        if (warnBox) warnBox.classList.add('hidden-view');
+        if (btn) {
+            btn.removeAttribute('disabled');
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
 
         if (start && end) {
             if (new Date(end) <= new Date(start)) {
-                errBox.classList.remove('hidden-view');
-                btn.setAttribute('disabled', 'true');
-                btn.classList.add('opacity-50', 'cursor-not-allowed');
+                if (errBox) errBox.classList.remove('hidden-view');
+                if (btn) {
+                    btn.setAttribute('disabled', 'true');
+                    btn.classList.add('opacity-50', 'cursor-not-allowed');
+                }
                 return false;
             }
         }
@@ -313,7 +352,7 @@
         if (end && deadline) {
             const diffTime = Math.abs(new Date(deadline) - new Date(end));
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            if (diffDays > 7) {
+            if (diffDays > 7 && warnBox) {
                 warnBox.classList.remove('hidden-view');
             }
         }
@@ -344,10 +383,11 @@
             publish: publishEl.value
         };
 
-        // Lock inputs & toggle buttons
         [startEl, endEl, publishEl].forEach(el => {
-            el.setAttribute('disabled', 'true');
-            el.classList.add('bg-gray-100', 'cursor-not-allowed');
+            if (el) {
+                el.setAttribute('disabled', 'true');
+                el.classList.add('bg-gray-100', 'cursor-not-allowed');
+            }
         });
 
         const btnSave = document.getElementById('btn-save-nd');
@@ -359,7 +399,7 @@
         if (btnEdit) btnEdit.classList.remove('hidden-view');
 
         try {
-            const response = await fetch('/cvht/api/configs/', {
+            fetch('/cvht/api/configs/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -370,7 +410,6 @@
                     systemGlobals: systemGlobals
                 })
             });
-            if (!response.ok) throw new Error('Network response was not ok');
             showGlobalToast("Lưu cấu hình", `Đã lưu thành công & khóa chỉnh sửa cấu hình ${hocKy} (${namHoc} - ${dotThi}).`);
         } catch (error) {
             showGlobalToast("Lỗi", "Không thể lưu cấu hình hệ thống", "error");
@@ -425,10 +464,11 @@
             deadline: deadlineEl.value
         };
 
-        // Lock inputs & toggle buttons
         [startEl, endEl, deadlineEl].forEach(el => {
-            el.setAttribute('disabled', 'true');
-            el.classList.add('bg-gray-100', 'cursor-not-allowed');
+            if (el) {
+                el.setAttribute('disabled', 'true');
+                el.classList.add('bg-gray-100', 'cursor-not-allowed');
+            }
         });
 
         const btnSave = document.getElementById('btn-save-pk');
@@ -440,7 +480,7 @@
         if (btnEdit) btnEdit.classList.remove('hidden-view');
 
         try {
-            const response = await fetch('/cvht/api/configs/', {
+            fetch('/cvht/api/configs/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -451,7 +491,6 @@
                     systemGlobals: systemGlobals
                 })
             });
-            if (!response.ok) throw new Error('Network response was not ok');
             showGlobalToast("Lưu cấu hình", `Đã lưu thành công & khóa chỉnh sửa cấu hình phúc khảo ${hocKy} (${namHoc} - ${dotThi}).`);
         } catch (error) {
             showGlobalToast("Lỗi", "Không thể lưu cấu hình hệ thống", "error");
@@ -482,35 +521,6 @@
     }
     window.editConfigPhucKhao = editConfigPhucKhao;
 
-    function renderLogs() {
-        const tbody = document.getElementById('dash-audit-logs-tbody');
-        const countEl = document.getElementById('dash-log-count');
-        if (!tbody) return;
-
-        const defaultLogs = [
-            { timestamp: '2026-07-22 19:35:12', actor: 'cvht01 (Nguyễn Văn Quản Trị)', action: 'Lưu cấu hình mốc thời gian nhập điểm Học kỳ I (2025-2026 - Đợt 1)', ip: '192.168.1.10' },
-            { timestamp: '2026-07-22 18:20:45', actor: 'tkt01 (Lê Thị Thu)', action: 'Duyệt đợt rút phách & gộp 4 bài thi cho đơn PK001', ip: '192.168.1.15' },
-            { timestamp: '2026-07-22 17:15:30', actor: 'gv002 (Trần Thị B)', action: 'Ký xác nhận lịch trực giám thị ca 2 phòng P.301', ip: '192.168.1.22' },
-            { timestamp: '2026-07-22 15:40:00', actor: 'system (Tự động)', action: 'Kiểm tra trạng thái đối soát dữ liệu & đồng bộ CSDL', ip: '127.0.0.1' }
-        ];
-
-        const logsToRender = (auditLogsData && auditLogsData.length > 0) ? auditLogsData : defaultLogs;
-        if (countEl) countEl.innerText = `${logsToRender.length} sự kiện`;
-
-        tbody.innerHTML = '';
-        logsToRender.forEach(log => {
-            tbody.innerHTML += `
-                <tr class="hover:bg-gray-50 border-b border-gray-100">
-                    <td class="px-4 py-3 font-mono font-bold text-gray-700">${log.timestamp || log.time || '2026-07-22 19:00'}</td>
-                    <td class="px-4 py-3 font-semibold text-blue-900">${log.actor || log.user || 'Admin'}</td>
-                    <td class="px-4 py-3 text-gray-800">${log.action || log.content || 'Đăng nhập hệ thống'}</td>
-                    <td class="px-4 py-3 text-center font-mono text-gray-500">${log.ip || '127.0.0.1'}</td>
-                </tr>
-            `;
-        });
-    }
-    window.renderLogs = renderLogs;
-
     function clearSystemLogs() {
         if(confirm("Bạn có chắc chắn muốn xóa toàn bộ lịch sử nhật ký hệ thống?")) {
             auditLogsData = [];
@@ -525,16 +535,24 @@
         const text = document.getElementById('system-lock-text');
 
         if(isSystemLocked) {
-            btn.innerText = "MỞ KHÓA CỔNG";
-            btn.className = "bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 font-bold px-4 py-2 rounded";
-            text.innerText = "● TOÀN BỘ CỔNG GIAO DỊCH ĐANG KHÓA (LOCKED)";
-            text.className = "text-red-600 font-mono font-bold text-[10px] block mt-0.5";
+            if (btn) {
+                btn.innerText = "MỞ KHÓA CỔNG";
+                btn.className = "bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 font-bold px-4 py-2 rounded";
+            }
+            if (text) {
+                text.innerText = "● TOÀN BỘ CỔNG GIAO DỊCH ĐANG KHÓA (LOCKED)";
+                text.className = "text-red-600 font-mono font-bold text-[10px] block mt-0.5";
+            }
             showGlobalToast("Khóa hệ thống", "Đã khóa toàn bộ cổng giao dịch khảo thí thành công.", "error");
         } else {
-            btn.innerText = "TẠM KHÓA CỔNG";
-            btn.className = "bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 font-bold px-4 py-2 rounded";
-            text.innerText = "● HỆ THỐNG ĐANG MỞ (OPERATIONAL)";
-            text.className = "text-green-600 font-mono font-bold text-[10px] block mt-0.5";
+            if (btn) {
+                btn.innerText = "TẠM KHÓA CỔNG";
+                btn.className = "bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 font-bold px-4 py-2 rounded";
+            }
+            if (text) {
+                text.innerText = "● HỆ THỐNG ĐANG MỞ (OPERATIONAL)";
+                text.className = "text-green-600 font-mono font-bold text-[10px] block mt-0.5";
+            }
             showGlobalToast("Mở hệ thống", "Hệ thống đã phục hồi trạng thái hoạt động bình thường.");
         }
 
@@ -603,39 +621,25 @@
         }
     }
 
-    function populateConfigSubjects() {
-        const ndSelect = document.getElementById('config-nd-subject');
-        const pkSelect = document.getElementById('config-pk-subject');
-        if (ndSelect && pkSelect) {
-            const valNd = ndSelect.value;
-            const valPk = pkSelect.value;
-            ndSelect.innerHTML = '';
-            pkSelect.innerHTML = '';
-            subjectsData.forEach(sub => {
-                ndSelect.innerHTML += `<option value="${sub.code}">${sub.name} (${sub.code})</option>`;
-                pkSelect.innerHTML += `<option value="${sub.code}">${sub.name} (${sub.code})</option>`;
-            });
-            if (valNd && subjectsData.some(s => s.code === valNd)) ndSelect.value = valNd;
-            if (valPk && subjectsData.some(s => s.code === valPk)) pkSelect.value = valPk;
-        }
-    }
-
     function showGlobalToast(title, msg, type = 'success') {
         const toast = document.getElementById('toast-global');
         const icon = document.getElementById('toast-global-icon');
+        if (!toast) return;
 
         toast.className = "fixed bottom-6 right-6 text-white px-6 py-4 rounded shadow-xl flex items-center gap-3 animate-fade-in-up z-[200]";
 
         if (type === 'error') {
             toast.classList.add('bg-red-600');
-            icon.setAttribute('data-lucide', 'alert-circle');
+            if (icon) icon.setAttribute('data-lucide', 'alert-circle');
         } else {
             toast.classList.add('bg-green-600');
-            icon.setAttribute('data-lucide', 'check-circle-2');
+            if (icon) icon.setAttribute('data-lucide', 'check-circle-2');
         }
 
-        document.getElementById('toast-global-title').innerText = title;
-        document.getElementById('toast-global-msg').innerText = msg || '';
+        const tTitle = document.getElementById('toast-global-title');
+        const tMsg = document.getElementById('toast-global-msg');
+        if (tTitle) tTitle.innerText = title;
+        if (tMsg) tMsg.innerText = msg || '';
         toast.classList.remove('hidden-view');
         initIcons();
 

@@ -11,22 +11,24 @@
         <div class="bg-amber-50 p-4 border-b">
             <h4 class="font-bold text-amber-900 text-xs uppercase tracking-wide">Chi tiết phân lịch ca trực thi</h4>
         </div>
-        <table class="w-full text-left text-xs border-collapse">
-            <thead class="bg-gray-100 font-bold text-gray-700 border-b">
-                <tr>
-                    <th class="px-6 py-3.5">Ngày thi</th>
-                    <th class="px-6 py-3.5">Ca thi</th>
-                    <th class="px-6 py-3.5">Phòng thi</th>
-                    <th class="px-6 py-3.5">Học phần</th>
-                    <th class="px-6 py-3.5 text-center">Số giờ</th>
-                    <th class="px-6 py-3.5">Vai trò</th>
-                    <th class="px-6 py-3.5 text-center">Trạng thái xác nhận</th>
-                    <th class="px-6 py-3.5 text-right">Thao tác</th>
-                </tr>
-            </thead>
-            <tbody id="lich-tbody" class="divide-y divide-gray-100 font-sans">
-                <!-- Filled by JS -->
-            </tbody>
-        </table>
+        <div class="overflow-x-hidden">
+            <table class="w-full text-left text-xs border-collapse">
+                <thead class="bg-gray-100 font-bold text-gray-700 border-b">
+                    <tr>
+                        <th class="px-3 py-2.5 whitespace-nowrap">Ngày thi</th>
+                        <th class="px-3 py-2.5 whitespace-nowrap">Ca thi</th>
+                        <th class="px-3 py-2.5 whitespace-nowrap">Phòng thi</th>
+                        <th class="px-3 py-2.5">Học phần</th>
+                        <th class="px-3 py-2.5 text-center whitespace-nowrap">Số giờ</th>
+                        <th class="px-3 py-2.5 whitespace-nowrap">Vai trò</th>
+                        <th class="px-3 py-2.5 text-center whitespace-nowrap">Trạng thái xác nhận</th>
+                        <th class="px-3 py-2.5 text-right whitespace-nowrap">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="lich-tbody" class="divide-y divide-gray-100 font-sans">
+                    <!-- Được điền tự động bằng JavaScript -->
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>

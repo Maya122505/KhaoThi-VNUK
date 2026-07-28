@@ -13,14 +13,16 @@ urlpatterns = [
     path('giao-nhan/', views_tkt.giao_nhan_view, name='giao_nhan'),
     path('can-bo-coi-thi/', views_tkt.can_bo_coi_thi_view, name='can_bo_coi_thi'),
 
-    # 2. API Endpoints for TKT actor
+    # 2. Các API Endpoints dành cho vai trò Tổ Khảo thí (TKT)
     # API cho Kỳ thi và Ca thi
     path('api/ky-thi/', views_tkt.KyThiAPI.as_view(), name='api_ky_thi'),
     path('api/ca-thi/', views_tkt.CaThiAPI.as_view(), name='api_ca_thi'),
 
-    # API cho Lập lịch thi
+    # API cho Lập lịch thi và phòng thi
     path('api/danh-sach-du-thi/', views_tkt.DanhSachDuThiAPI.as_view(), name='api_danh_sach_du_thi'),
     path('api/lich-thi/', views_tkt.LichThiAPI.as_view(), name='api_lich_thi'),
+    path('api/phong-thi/', views_tkt.PhongThiAPI.as_view(), name='api_phong_thi'),
+    path('api/phan-cong-phong/', views_tkt.PhanCongPhongAPI.as_view(), name='api_phan_cong_phong'),
 
     # API cho Nhập điểm
     path('api/nhap-diem/sbd/', views_tkt.NhapDiemSBDAPI.as_view(), name='api_nhap_diem_sbd'),
@@ -37,4 +39,9 @@ urlpatterns = [
     
     # API cho Quản lý Cán bộ coi thi
     path('api/can-bo-coi-thi/', views_tkt.CanBoCoiThiAPI.as_view(), name='api_can_bo_coi_thi'),
+
+    # API cho In sao & Giám sát đề thi
+    path('api/dot-in-sao/', views_tkt.DotInSaoAPI.as_view(), name='api_dot_in_sao'),
+    path('api/nhat-ky-in-sao/', views_tkt.NhatKyInSaoAPI.as_view(), name='api_nhat_ky_in_sao'),
+    path('api/xac-nhan-giam-sat/', views_tkt.XacNhanGiamSatAPI.as_view(), name='api_xac_nhan_giam_sat'),
 ]

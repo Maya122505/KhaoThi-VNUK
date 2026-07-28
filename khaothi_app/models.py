@@ -1,25 +1,14 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.utils import timezone
-
 
 # ===================================================================
-# 0. ABSTRACT MIXINS: Tái sử dụng cho Audit Timestamps
-# ===================================================================
-
-class TimestampMixin(models.Model):
-    """Abstract mixin tự động thêm created_at và updated_at cho mọi model kế thừa."""
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ngày tạo")
-    updated_at = models.DateTimeField(auto_now=True, verbose_name="Cập nhật lần cuối")
-
-    class Meta:
-        abstract = True
-
-# ===================================================================
-# 1. CORE MODELS: Người dùng và Phân quyền
+# 1. MODELS: Người dùng và Phân quyền
 # ===================================================================
 
 class User(AbstractUser):
+    """
+    Mở rộng model User mặc định của Django để thêm vai trò.
+    """
     ROLE_CHOICES = (
         ('tkt', 'Tổ Khảo thí'),
         ('tkct', 'Thư ký Chấm thi'),
@@ -36,6 +25,9 @@ class User(AbstractUser):
 
 
 class Khoa(models.Model):
+    """
+    Khoa / Đơn vị quản lý chuyên môn trong trường. VD: CNTT, QTKD.
+    """
     ma_khoa = models.CharField(max_length=50, primary_key=True)
     ten_khoa = models.CharField(max_length=255)
 
@@ -43,26 +35,14 @@ class Khoa(models.Model):
         return self.ten_khoa
 
 
-class BoMon(models.Model):
-    """Bộ môn trực thuộc Khoa (VD: Bộ môn CNTT, Bộ môn Khoa học Máy tính)"""
-    ma_bo_mon = models.CharField(max_length=50, primary_key=True)
-    ten_bo_mon = models.CharField(max_length=255)
-    khoa = models.ForeignKey(Khoa, on_delete=models.CASCADE, related_name='bo_mon')
-
-    class Meta:
-        verbose_name = "Bộ môn"
-        verbose_name_plural = "Bộ môn"
-
-    def __str__(self):
-        return f"{self.ten_bo_mon} ({self.khoa.ten_khoa})"
-
-
 class GiangVien(models.Model):
+    """
+    Thông tin hồ sơ cá nhân của Giảng viên/Cán bộ, liên kết 1-1 với tài khoản User.
+    """
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='giang_vien_profile', null=True, blank=True)
     ma_giang_vien = models.CharField(max_length=50, primary_key=True)
     ho_ten = models.CharField(max_length=255)
     khoa = models.ForeignKey(Khoa, on_delete=models.PROTECT, related_name='giang_vien', null=True, blank=True)
-    bo_mon = models.ForeignKey(BoMon, on_delete=models.SET_NULL, related_name='giang_vien', null=True, blank=True)
     sdt = models.CharField(max_length=20, null=True, blank=True)
 
     def __str__(self):
@@ -70,11 +50,15 @@ class GiangVien(models.Model):
 
 
 class NhanVien(models.Model):
+    """
+    Thông tin hồ sơ cá nhân của cán bộ hành chính hệ thống (TKT, LDP, DVCM, TKCT, v.v.).
+    Liên kết 1-1 với tài khoản User.
+    """
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='nhan_vien_profile', null=True, blank=True)
     ma_nhan_vien = models.CharField(max_length=50, primary_key=True)
     ho_ten = models.CharField(max_length=255)
-    don_vi = models.CharField(max_length=255, null=True, blank=True)
-    khoa = models.ForeignKey(Khoa, on_delete=models.PROTECT, related_name='nhan_vien', null=True, blank=True)
+    don_vi = models.CharField(max_length=255, null=True, blank=True)  # VD: Phòng Khảo thí
+    khoa = models.ForeignKey(Khoa, on_delete=models.PROTECT, related_name='nhan_vien', null=True, blank=True)  # VD: Khoa CNTT
     sdt = models.CharField(max_length=20, null=True, blank=True)
 
     def __str__(self):
@@ -86,6 +70,9 @@ class NhanVien(models.Model):
 # ===================================================================
 
 class LopHanhChinh(models.Model):
+    """
+    Lớp hành chính của sinh viên. VD: 24CS01.
+    """
     ma_lop = models.CharField(max_length=50, primary_key=True)
     ten_lop = models.CharField(max_length=255)
     nganh = models.CharField(max_length=255, null=True, blank=True)
@@ -95,6 +82,9 @@ class LopHanhChinh(models.Model):
 
 
 class SinhVien(models.Model):
+    """
+    Thông tin sinh viên và tình trạng công nợ học phí/đủ điều kiện.
+    """
     ma_sinh_vien = models.CharField(max_length=50, primary_key=True)
     ho_ten = models.CharField(max_length=255)
     lop_hanh_chinh = models.ForeignKey(LopHanhChinh, on_delete=models.PROTECT, related_name='sinh_vien', null=True, blank=True)
@@ -109,44 +99,42 @@ class SinhVien(models.Model):
 # 3. EXAMINATION STRUCTURE MODELS: Cấu trúc kỳ thi, học phần, lịch thi
 # ===================================================================
 
-class KyThi(TimestampMixin):
-    STATUS_CHOICES = (
-        ('MoiTao', 'Mới tạo'),
-        ('DangDienRa', 'Đang diễn ra'),
-        ('DaPheDuyet', 'Đã phê duyệt'),
-        ('DaKetThuc', 'Đã kết thúc'),
-    )
+class KyThi(models.Model):
+    """
+    Thông tin về một kỳ thi lớn. VD: Thi cuối kỳ HK III 2025-2026.
+    """
     ma_ky_thi = models.CharField(max_length=50, primary_key=True)
     ten_ky_thi = models.CharField(max_length=255, verbose_name="Tên Kỳ thi")
     nam_hoc = models.CharField(max_length=20, verbose_name="Năm học")
     hoc_ky = models.CharField(max_length=20, verbose_name="Học kỳ")
-    trang_thai = models.CharField(max_length=50, choices=STATUS_CHOICES, default='MoiTao')
+    trang_thai = models.CharField(max_length=50, default='DangDienRa')
     dot_thi = models.CharField(max_length=50, blank=True, null=True)
     mo_ta = models.TextField(blank=True, null=True)
     ngay_bat_dau = models.DateField(verbose_name="Ngày bắt đầu", null=True, blank=True)
     ngay_ket_thuc = models.DateField(verbose_name="Ngày kết thúc", null=True, blank=True)
-    
-    nguoi_tao = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='ky_thi_da_tao', null=True, blank=True, verbose_name="Người tạo")
-    nguoi_phe_duyet = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='ky_thi_da_phe_duyet', null=True, blank=True)
-    ngay_phe_duyet = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.ten_ky_thi
 
 
 class HocPhan(models.Model):
+    """
+    Thông tin học phần/môn học.
+    """
     ma_hoc_phan = models.CharField(max_length=50, primary_key=True)
     ma_hp = models.CharField(max_length=50, null=True, blank=True)
     ten_hoc_phan = models.CharField(max_length=255, verbose_name="Tên Học phần")
     so_tin_chi = models.PositiveIntegerField(default=3)
     khoa = models.ForeignKey(Khoa, on_delete=models.PROTECT, related_name='hoc_phan', null=True, blank=True)
-    bo_mon = models.ForeignKey(BoMon, on_delete=models.SET_NULL, related_name='hoc_phan', null=True, blank=True)
 
     def __str__(self):
         return f"{self.ten_hoc_phan} ({self.ma_hoc_phan})"
 
 
 class LopHocPhan(models.Model):
+    """
+    Lớp học phần thực tế mở trong học kỳ.
+    """
     ma_lop_hp = models.CharField(max_length=50, primary_key=True)
     hoc_phan = models.ForeignKey(HocPhan, on_delete=models.CASCADE, related_name='lop_hoc_phan')
     hoc_ky = models.CharField(max_length=20)
@@ -154,12 +142,13 @@ class LopHocPhan(models.Model):
     giang_vien = models.ForeignKey(GiangVien, on_delete=models.SET_NULL, null=True, blank=True, related_name='lop_hoc_phan')
 
     def __str__(self):
-        if self.hoc_phan and self.hoc_phan.ten_hoc_phan:
-            return f"{self.hoc_phan.ten_hoc_phan} ({self.ma_lop_hp})"
         return self.ma_lop_hp
 
 
 class LopHocPhanSinhVien(models.Model):
+    """
+    Danh sách sinh viên học lớp học phần.
+    """
     lop_hp = models.ForeignKey(LopHocPhan, on_delete=models.CASCADE, related_name='sinh_vien_lien_ket')
     sinh_vien = models.ForeignKey(SinhVien, on_delete=models.CASCADE, related_name='lop_hp_lien_ket')
     is_eligible = models.BooleanField(default=True)
@@ -168,7 +157,10 @@ class LopHocPhanSinhVien(models.Model):
         unique_together = ('lop_hp', 'sinh_vien')
 
 
-class CaThi(TimestampMixin):
+class CaThi(models.Model):
+    """
+    Một ca thi cụ thể trong kỳ thi.
+    """
     ma_ca_thi = models.CharField(max_length=50, primary_key=True)
     ky_thi = models.ForeignKey(KyThi, on_delete=models.CASCADE, related_name='ca_thi', null=True, blank=True)
     ten_ca = models.CharField(max_length=100, verbose_name="Tên Ca thi")
@@ -182,41 +174,41 @@ class CaThi(TimestampMixin):
 
 
 class PhongThi(models.Model):
+    """
+    Phòng thi vật lý chuẩn bị cho thi.
+    """
     ma_phong = models.CharField(max_length=50, primary_key=True)
     ten_phong = models.CharField(max_length=255)
     loai_phong = models.CharField(max_length=50, null=True, blank=True)
     suc_chua = models.PositiveIntegerField(default=0)
     vi_tri = models.CharField(max_length=255, null=True, blank=True)
-    trang_thai = models.CharField(max_length=50, default='KhaDung')
+    trang_thai = models.CharField(max_length=50, default='Khả dụng')
     ghi_chu = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return self.ten_phong
 
 
-class LichThi(TimestampMixin):
+class LichThi(models.Model):
+    """
+    Lịch thi chi tiết ghép Lớp học phần + Ca thi + Phòng thi.
+    """
     ma_lich_thi = models.CharField(max_length=50, primary_key=True)
     ky_thi = models.ForeignKey(KyThi, on_delete=models.CASCADE, related_name='lich_thi')
     lop_hp = models.ForeignKey(LopHocPhan, on_delete=models.CASCADE, related_name='lich_thi', null=True, blank=True)
     ca_thi = models.ForeignKey(CaThi, on_delete=models.CASCADE, related_name='lich_thi')
-    phong_thi = models.ForeignKey(PhongThi, on_delete=models.CASCADE, related_name='lich_thi')
+    phong_thi = models.ForeignKey(PhongThi, on_delete=models.CASCADE, related_name='lich_thi', null=True, blank=True)
     ngay_thi = models.DateField()
     so_luong_sv = models.PositiveIntegerField(default=0)
-    
-    STATUS_CHOICES = (
-        ('ChuaNhanBai', 'Chưa nhận bài'),
-        ('DaNhanBai', 'Đã nhận bài'),
-        ('DaBanGiao', 'Đã bàn giao cho Thư ký'),
-        ('DaLamPhach', 'Đã làm phách'),
-        ('DaTraVe', 'Đã trả về từ Thư ký'),
-    )
-    trang_thai_bai_thi = models.CharField(max_length=50, choices=STATUS_CHOICES, default='ChuaNhanBai')
 
     def __str__(self):
         return self.ma_lich_thi
 
 
 class DanhSachThiSinh(models.Model):
+    """
+    Danh sách thí sinh chi tiết được xếp vào từng phòng thi.
+    """
     lich_thi = models.ForeignKey(LichThi, on_delete=models.CASCADE, related_name='danh_sach_thi_sinh')
     sinh_vien = models.ForeignKey(SinhVien, on_delete=models.CASCADE, related_name='lich_thi_tham_gia')
     sbd = models.CharField(max_length=50)
@@ -231,20 +223,24 @@ class DanhSachThiSinh(models.Model):
 # 4. COI THI MODELS: Công tác coi thi & vi phạm
 # ===================================================================
 
-class PhanCongCoiThi(TimestampMixin):
+class PhanCongCoiThi(models.Model):
+    """
+    Phân công cán bộ coi thi, tích hợp thống kê giờ thực tế.
+    """
     lich_thi = models.ForeignKey(LichThi, on_delete=models.CASCADE, related_name='phan_cong_coi_thi')
     can_bo = models.ForeignKey(GiangVien, on_delete=models.CASCADE, related_name='phan_cong_coi_thi')
     vai_tro = models.CharField(max_length=100)
     actual_hours = models.DecimalField(max_digits=4, decimal_places=2, default=2.0)
-    price_per_hour = models.DecimalField(max_digits=10, decimal_places=2, default=100000.0)
     is_confirmed = models.BooleanField(default=False)
-    ngay_xac_nhan = models.DateTimeField(null=True, blank=True, verbose_name="Ngày xác nhận")
 
     class Meta:
         unique_together = ('lich_thi', 'can_bo')
 
 
-class BienBanViPham(TimestampMixin):
+class BienBanViPham(models.Model):
+    """
+    Lập biên bản vi phạm quy chế thi của sinh viên tại phòng thi.
+    """
     lich_thi = models.ForeignKey(LichThi, on_delete=models.CASCADE, related_name='bien_ban_vi_pham')
     sinh_vien = models.ForeignKey(SinhVien, on_delete=models.CASCADE, related_name='bien_ban_vi_pham')
     noi_dung = models.TextField()
@@ -259,7 +255,10 @@ class BienBanViPham(TimestampMixin):
 # 5. DE THI & IN SAO MODELS: Quản lý Đề thi và Đợt in sao
 # ===================================================================
 
-class DeThi(TimestampMixin):
+class DeThi(models.Model):
+    """
+    Quản lý Đề thi của học phần.
+    """
     ma_de_thi = models.CharField(max_length=50, primary_key=True)
     hoc_phan = models.ForeignKey(HocPhan, on_delete=models.CASCADE, related_name='de_thi')
     trang_thai = models.CharField(max_length=50, default='MoiTao')
@@ -269,6 +268,9 @@ class DeThi(TimestampMixin):
 
 
 class NopDeThi(models.Model):
+    """
+    Lịch sử giảng viên nộp đề thi.
+    """
     de_thi = models.ForeignKey(DeThi, on_delete=models.CASCADE, related_name='nop_de_thi')
     nguoi_nop = models.ForeignKey(User, on_delete=models.PROTECT, related_name='de_thi_da_nop')
     thoi_gian_nop = models.DateTimeField(auto_now_add=True)
@@ -276,82 +278,160 @@ class NopDeThi(models.Model):
 
 
 class RaSoatDeThi(models.Model):
+    """
+    Nhật ký rà soát chất lượng đề thi của DVCM/Tổ Khảo thí.
+    """
     de_thi = models.ForeignKey(DeThi, on_delete=models.CASCADE, related_name='ra_soat_de_thi')
     nguoi_rao_soat = models.ForeignKey(User, on_delete=models.PROTECT, related_name='de_thi_da_rao_soat')
     ket_qua = models.TextField()
     ghi_chu = models.TextField(null=True, blank=True)
 
 
-class DotInSao(TimestampMixin):
+class DotInSao(models.Model):
+    """
+    Đợt in sao đề thi phục vụ cho các ca thi.
+    """
     ma_dot_in_sao = models.CharField(max_length=50, primary_key=True)
-    de_thi = models.ForeignKey(DeThi, on_delete=models.CASCADE, related_name='dot_in_sao')
-    thoi_gian = models.DateTimeField()
+    ky_thi = models.ForeignKey(KyThi, on_delete=models.PROTECT, related_name='dot_in_sao')
+    ca_thi = models.ForeignKey(CaThi, on_delete=models.PROTECT, related_name='dot_in_sao', null=True, blank=True)
+    phong_thi = models.ForeignKey(PhongThi, on_delete=models.PROTECT, related_name='dot_in_sao', null=True, blank=True)
+    hoc_phan = models.ForeignKey(HocPhan, on_delete=models.PROTECT, related_name='dot_in_sao', null=True, blank=True)
+    nguoi_tao = models.ForeignKey(User, on_delete=models.PROTECT, related_name='dot_in_sao_da_tao')
+    ngay_tao = models.DateTimeField(auto_now_add=True)
+    thoi_gian_in_sao = models.DateTimeField(null=True, blank=True, verbose_name='Thời gian in sao dự kiến')
+    noi_in_sao = models.CharField(max_length=255, null=True, blank=True)
     so_luong_ban_in = models.PositiveIntegerField(default=0)
-    trang_thai = models.CharField(max_length=50, default='ChuaIn')
+    can_bo_giam_sat = models.ForeignKey(User, on_delete=models.PROTECT, related_name='dot_in_sao_duoc_giam_sat', null=True, blank=True)
+    ghi_chu = models.TextField(null=True, blank=True)
+    trang_thai = models.CharField(
+        max_length=50, 
+        default='ChoCapNhat',
+        choices=[
+            ('ChoCapNhat', 'Chờ cập nhật nhật ký'), 
+            ('DaCapNhat', 'Đã cập nhật nhật ký (Chờ xác nhận)'), 
+            ('HoanTat', 'Hoàn tất'), 
+            ('CanXuLyLai', 'Cần xử lý lại'),
+            ('TuChoi', 'Từ chối xác nhận')
+        ]
+    )
+
+    def __str__(self):
+        return self.ma_dot_in_sao
 
 
 class NhatKyInSao(models.Model):
-    dot_in_sao = models.ForeignKey(DotInSao, on_delete=models.CASCADE, related_name='nhat_ky')
-    thoi_gian = models.DateTimeField(auto_now_add=True)
-    nguoi_thuc_hien = models.ForeignKey(User, on_delete=models.PROTECT, related_name='nhat_ky_in_sao_thuc_hien')
-    nguoi_giam_sat = models.ForeignKey(User, on_delete=models.PROTECT, related_name='nhat_ky_in_sao_giam_sat')
-    so_ban_in = models.PositiveIntegerField(default=0)
+    """
+    Nhật ký thực hiện in sao và giám sát.
+    """
+    dot_in_sao = models.OneToOneField(DotInSao, on_delete=models.CASCADE, related_name='nhat_ky')
+    thoi_gian_thuc_hien = models.DateTimeField(verbose_name='Thời gian thực hiện in sao')
+    ngay_cap_nhat = models.DateTimeField(auto_now_add=True)
+    nguoi_thuc_hien = models.ForeignKey(User, on_delete=models.PROTECT, related_name='nhat_ky_in_sao_da_lam')
+    nguoi_giam_sat = models.ForeignKey(User, on_delete=models.PROTECT, related_name='nhat_ky_in_sao_da_giam_sat')
+    so_luong_in_thuc_te = models.PositiveIntegerField(default=0)
+    so_luong_niem_phong = models.PositiveIntegerField(default=0)
     ghi_chu = models.TextField(null=True, blank=True)
-    bien_ban_file = models.CharField(max_length=255, null=True, blank=True)
+    
+    # Kết quả kiểm tra chất lượng đề sau in sao
+    ket_qua_kiem_tra = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True,
+        choices=[('Khop', 'Khớp'), ('KhongKhop', 'Không khớp')]
+    )
+    nguoi_kiem_tra = models.ForeignKey(User, on_delete=models.PROTECT, related_name='nhat_ky_in_sao_da_kiem_tra', null=True, blank=True)
+    thoi_gian_kiem_tra = models.DateTimeField(null=True, blank=True)
+    ghi_chu_kiem_tra = models.TextField(null=True, blank=True)
+
+
+class ChecklistInSao(models.Model):
+    """
+    Danh sách checklist chi tiết từng học phần/nhóm đề hoặc tiêu chí chất lượng thuộc đợt in sao.
+    """
+    LOAI_MUC_CHOICES = (
+        ('NhomDe', 'Nhóm đề / Học phần'),
+        ('TieuChi', 'Tiêu chí chất lượng'),
+    )
+    dot_in_sao = models.ForeignKey(DotInSao, on_delete=models.CASCADE, related_name='danh_sach_checklist')
+    ma_muc = models.CharField(max_length=50)
+    ten_muc = models.CharField(max_length=255, verbose_name="Tên học phần / Tiêu chí checklist")
+    nhom_de = models.CharField(max_length=100, null=True, blank=True, verbose_name="Nhóm đề")
+    hoc_phan = models.ForeignKey(HocPhan, on_delete=models.PROTECT, related_name='checklist_in_sao', null=True, blank=True)
+    loai_muc = models.CharField(max_length=20, choices=LOAI_MUC_CHOICES, default='NhomDe')
+    so_luong_can_in = models.PositiveIntegerField(default=0)
+    so_luong_da_in = models.PositiveIntegerField(default=0)
+    so_luong_niem_phong = models.PositiveIntegerField(default=0)
+    da_dat = models.BooleanField(default=False, verbose_name="Đạt tiêu chí chất lượng")
+    thoi_gian_thuc_hien = models.DateTimeField(null=True, blank=True)
+    trang_thai = models.CharField(
+        max_length=50,
+        default='ChuaIn',
+        choices=[('ChuaIn', 'Chưa in'), ('DaInXong', 'Đã in xong')]
+    )
+    ghi_chu = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.dot_in_sao.ma_dot_in_sao} - {self.ten_muc}"
+
+
+class BienBanGiamSatInSao(models.Model):
+    """
+    Biên bản giám sát đợt in sao đề thi.
+    """
+    dot_in_sao = models.OneToOneField(DotInSao, on_delete=models.CASCADE, related_name='bien_ban_giam_sat')
+    trang_thai = models.CharField(
+        max_length=50,
+        default='ChoXacNhan',
+        choices=[
+            ('ChoXacNhan', 'Chờ xác nhận'),
+            ('DaXacNhan', 'Đã xác nhận'),
+            ('TuChoi', 'Từ chối xác nhận')
+        ]
+    )
+    nguoi_xac_nhan = models.ForeignKey(User, on_delete=models.PROTECT, related_name='bien_ban_giam_sat_da_ky', null=True, blank=True)
+    nhan_xet_giam_sat = models.TextField(null=True, blank=True, verbose_name='Ý kiến nhận xét giám sát')
+    chu_ky_so = models.TextField(null=True, blank=True, verbose_name='Chuỗi chữ ký số xác nhận')
+    ngay_xac_nhan = models.DateTimeField(null=True, blank=True)
+    ghi_chu = models.TextField(null=True, blank=True)
 
 
 # ===================================================================
 # 6. GRADING PROCESS MODELS: Quy trình làm phách & Chấm thi
 # ===================================================================
 
-class TuiBaiThi(TimestampMixin):
+class TuiBaiThi(models.Model):
+    """
+    Túi bài thi gốc thu hồi từ phòng thi (LichThi) trước khi dọc phách.
+    """
     ma_tui_bai = models.CharField(max_length=50, primary_key=True)
     lich_thi = models.OneToOneField(LichThi, on_delete=models.CASCADE, related_name='tui_bai_thi')
     so_luong_bai = models.PositiveIntegerField(default=0)
-    trang_thai = models.CharField(max_length=50, default='DaThuHoi')
+    trang_thai = models.CharField(max_length=50, default='DaThuHoi') # DaThuHoi, DaDocPhach
 
     def __str__(self):
         return self.ma_tui_bai
 
 
-class TuiPhach(TimestampMixin):
-    STATUS_CHOICES = (
-        ('MoiTao', 'Mới tạo'),
-        ('DaGiaoDVCM', 'Đã giao cho ĐVCM'),
-        ('DangCham', 'Đang chấm'),
-        ('ChoKhopDiem', 'Chờ khớp điểm'),
-        ('DaKhopDiem', 'Đã khớp điểm'),
-        ('DaTraVeTKT', 'Đã trả về TKT'),
-        ('DaDoiChieu', 'Đã đối chiếu hợp lệ'),
-        ('KhoaDaPheDuyet', 'Khoa đã phê duyệt'),
-        ('DaDuyetBangDiem', 'Đã duyệt bảng điểm (LĐP)'),
-        ('DaKhoa', 'Đã khóa phách'),
-    )
+class TuiPhach(models.Model):
+    """
+    Một túi phách (bài thi đã dọc phách) giao cho Giám khảo chấm.
+    Được tạo ra từ một túi bài thi gốc.
+    """
     ma_tui = models.CharField(max_length=50, primary_key=True)
-    hoc_phan = models.ForeignKey(HocPhan, on_delete=models.CASCADE, related_name='tui_phach', null=True, blank=True)
-    ky_thi = models.ForeignKey('KyThi', on_delete=models.SET_NULL, related_name='tui_phach', null=True, blank=True, verbose_name="Kỳ thi")
+    ca_thi = models.ForeignKey(CaThi, on_delete=models.CASCADE, related_name='tui_phach', null=True, blank=True)
+    tui_bai_thi = models.ForeignKey(TuiBaiThi, on_delete=models.SET_NULL, null=True, blank=True, related_name='tui_phach')
     so_luong_bai = models.PositiveIntegerField(default=0)
     mat_khau_khoa = models.CharField(max_length=128, null=True, blank=True)
-    trang_thai = models.CharField(max_length=50, choices=STATUS_CHOICES, default='MoiTao')
-
-    # Phê duyệt cấp Khoa (ĐVCM)
-    nguoi_duyet_khoa = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='tui_phach_khoa_duyet', null=True, blank=True, verbose_name="Người duyệt cấp Khoa")
-    ngay_duyet_khoa = models.DateTimeField(null=True, blank=True, verbose_name="Ngày duyệt cấp Khoa")
-
-    # Phê duyệt cấp Lãnh đạo phòng (LĐP)
-    nguoi_duyet_diem = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='tui_phach_da_duyet', null=True, blank=True, verbose_name="Người duyệt cấp LĐP")
-    ngay_duyet_diem = models.DateTimeField(null=True, blank=True, verbose_name="Ngày duyệt cấp LĐP")
-
-    class Meta:
-        indexes = [
-            models.Index(fields=['trang_thai'], name='idx_tuiphach_trangthai'),
-        ]
+    trang_thai = models.CharField(max_length=50, default='MoiTao')
 
     def __str__(self):
         return self.ma_tui
 
 
-class MaPhach(TimestampMixin):
+class MaPhach(models.Model):
+    """
+    Liên kết mã phách bí mật với Thí sinh trong phòng thi và Túi phách.
+    """
     ma_phach = models.CharField(max_length=50, primary_key=True)
     tui_phach = models.ForeignKey(TuiPhach, on_delete=models.CASCADE, related_name='danh_sach_phach')
     thi_sinh = models.OneToOneField(DanhSachThiSinh, on_delete=models.CASCADE, related_name='ma_phach', null=True, blank=True)
@@ -361,47 +441,41 @@ class MaPhach(TimestampMixin):
         return self.ma_phach
 
 
-class DiemThi(TimestampMixin):
+class DiemThi(models.Model):
+    """
+    Lưu điểm chi tiết các lần chấm của Giám khảo trên mã phách (Tách biệt hoàn toàn).
+    """
     ma_phach = models.ForeignKey(MaPhach, on_delete=models.CASCADE, related_name='diem_thi')
     lan_cham = models.PositiveIntegerField()
     diem = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
     can_bo = models.ForeignKey(GiangVien, on_delete=models.PROTECT, related_name='diem_thi_da_cham')
-    nguoi_nhap = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='diem_thi_da_nhap', null=True, blank=True, verbose_name="Người nhập điểm")
 
     class Meta:
         unique_together = ('ma_phach', 'lan_cham')
 
 
-class DoiSoatDiem(TimestampMixin):
+class DoiSoatDiem(models.Model):
+    """
+    Đối soát điểm nhập giữa các lần chấm để tìm chênh lệch.
+    """
     ma_phach = models.OneToOneField(MaPhach, on_delete=models.CASCADE, primary_key=True, related_name='doi_soat')
     diem_lan_1 = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
     diem_lan_2 = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
     chenh_lech = models.DecimalField(max_digits=4, decimal_places=2, default=0.0)
-    diem_cuoi_cung = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True, verbose_name="Điểm cuối cùng")
-    nguoi_doi_soat = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='doi_soat_da_thuc_hien', null=True, blank=True, verbose_name="Người đối soát")
-    ngay_doi_soat = models.DateTimeField(null=True, blank=True, verbose_name="Ngày đối soát")
     trang_thai = models.CharField(max_length=50, default='ChuaDoiSoat')
 
 
-class PhanCongChamThi(TimestampMixin):
-    LOAI_PHAN_CONG_CHOICES = (
-        ('ChamChinh', 'Chấm thi chính'),
-        ('PhucKhao', 'Chấm phúc khảo'),
-    )
-    tui_phach = models.ForeignKey(TuiPhach, on_delete=models.CASCADE, related_name='phan_cong_cham', null=True, blank=True)
-    don_phuc_khao = models.ForeignKey('DonPhucKhao', on_delete=models.CASCADE, related_name='phan_cong_cham', null=True, blank=True)
+class PhanCongChamThi(models.Model):
+    """
+    Phân công cán bộ chấm thi độc lập cho từng túi phách.
+    """
+    tui_phach = models.ForeignKey(TuiPhach, on_delete=models.CASCADE, related_name='phan_cong_cham')
     giang_vien = models.ForeignKey(GiangVien, on_delete=models.CASCADE, related_name='phan_cong_cham')
-    loai_phan_cong = models.CharField(max_length=50, choices=LOAI_PHAN_CONG_CHOICES, default='ChamChinh', verbose_name="Loại phân công")
-    vai_tro = models.CharField(max_length=50)
+    vai_tro = models.CharField(max_length=50) # VD: Grader 1, Grader 2
     trang_thai = models.CharField(max_length=50, default='ChuaCham')
-    ngay_phan_cong = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     class Meta:
-        verbose_name = "Phân công Chấm thi"
-        verbose_name_plural = "Phân công Chấm thi"
-
-    def __str__(self):
-        return f"{self.giang_vien} - {self.loai_phan_cong} ({self.vai_tro})"
+        unique_together = ('tui_phach', 'giang_vien', 'vai_tro')
 
 
 # ===================================================================
@@ -409,46 +483,28 @@ class PhanCongChamThi(TimestampMixin):
 # ===================================================================
 
 class PhieuGiaoNhan(models.Model):
-    LOAI_PHIEU_CHOICES = (
-        ('TKT_TO_TKCT', 'TKT bàn giao bài thi gốc cho Thư ký'),
-        ('TKCT_TO_TKT', 'Thư ký trả bài thi (đã rọc phách) về TKT'),
-        ('TKT_TO_DVCM', 'TKT bàn giao túi phách cho ĐVCM'),
-        ('DVCM_TO_GV', 'ĐVCM bàn giao túi phách cho Giảng viên'),
-        ('GV_TO_DVCM', 'Giảng viên trả túi phách (đã chấm) cho ĐVCM'),
-        ('DVCM_TO_TKT', 'ĐVCM trả túi phách (đã có điểm) về TKT'),
-        ('TKT_TO_PK', 'TKT bàn giao hồ sơ phúc khảo cho ĐVCM'),
-    )
-    STATUS_CHOICES = (
-        ('ChoXacNhan', 'Chờ xác nhận'),
-        ('DaXacNhan', 'Đã xác nhận'),
-        ('DaHoanTat', 'Đã hoàn tất'),
-        ('DaHuy', 'Đã hủy'),
-    )
+    """
+    Lưu vết phiếu bàn giao và log lịch sử ký xác nhận số.
+    """
     ma_phieu = models.CharField(max_length=50, primary_key=True)
     nguoi_giao = models.ForeignKey(User, on_delete=models.PROTECT, related_name='phieu_giao_set')
     nguoi_nhan = models.ForeignKey(User, on_delete=models.PROTECT, related_name='phieu_nhan_set')
     ngay_giao = models.DateTimeField(auto_now_add=True)
-    loai_phieu = models.CharField(max_length=50, choices=LOAI_PHIEU_CHOICES)
-    bien_ban_giao_nhan = models.FileField(upload_to='bien_ban_giao_nhan/', null=True, blank=True, verbose_name="Biên bản giao nhận (đã ký)")
+    loai_phieu = models.CharField(max_length=255)
+    chu_ky_so = models.CharField(max_length=255, null=True, blank=True)
+    tep_dinh_kem = models.CharField(max_length=255, null=True, blank=True)
+    bien_ban_giao_nhan = models.CharField(max_length=255, null=True, blank=True)
     log_xac_nhan = models.TextField(null=True, blank=True)
-    trang_thai = models.CharField(max_length=50, choices=STATUS_CHOICES, default='ChoXacNhan')
-    ghi_chu = models.TextField(null=True, blank=True, verbose_name="Ghi chú")
-
-    # Trường xác nhận bên nhận
-    nguoi_xac_nhan = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='phieu_xac_nhan_set', null=True, blank=True, verbose_name="Người xác nhận")
-    ngay_xac_nhan = models.DateTimeField(null=True, blank=True, verbose_name="Ngày xác nhận")
-    updated_at = models.DateTimeField(auto_now=True, verbose_name="Cập nhật lần cuối")
-
-    class Meta:
-        indexes = [
-            models.Index(fields=['loai_phieu', 'trang_thai'], name='idx_pgn_loai_tt'),
-        ]
+    trang_thai = models.CharField(max_length=50, default='ChoXacNhan')
 
     def __str__(self):
         return self.ma_phieu
 
 
 class ChiTietGiaoNhan(models.Model):
+    """
+    Chi tiết đính kèm của Phiếu bàn giao (hỗ trợ cả Túi phách và Phòng thi gốc).
+    """
     phieu = models.ForeignKey(PhieuGiaoNhan, on_delete=models.CASCADE, related_name='chi_tiet')
     tui_phach = models.ForeignKey(TuiPhach, on_delete=models.CASCADE, related_name='giao_nhan_chi_tiet', null=True, blank=True)
     lich_thi = models.ForeignKey(LichThi, on_delete=models.CASCADE, related_name='giao_nhan_chi_tiet', null=True, blank=True)
@@ -460,38 +516,26 @@ class ChiTietGiaoNhan(models.Model):
 # ===================================================================
 
 class DonPhucKhao(models.Model):
+    """
+    Đơn phúc khảo bài thi của sinh viên.
+    """
     ma_don = models.CharField(max_length=50, primary_key=True)
     sinh_vien = models.ForeignKey(SinhVien, on_delete=models.CASCADE, related_name='don_phuc_khao')
-    hoc_phan = models.ForeignKey(HocPhan, on_delete=models.SET_NULL, related_name='don_phuc_khao', null=True, blank=True)
     lich_thi = models.ForeignKey(LichThi, on_delete=models.CASCADE, related_name='don_phuc_khao', null=True, blank=True)
     ma_phach = models.ForeignKey(MaPhach, on_delete=models.CASCADE, related_name='don_phuc_khao', null=True, blank=True)
-
-    # FK workflow: liên kết với túi bài thi gốc & túi phách
-    tui_bai_thi = models.ForeignKey(TuiBaiThi, on_delete=models.SET_NULL, related_name='don_phuc_khao', null=True, blank=True, verbose_name="Túi bài thi gốc")
-    tui_phach = models.ForeignKey(TuiPhach, on_delete=models.SET_NULL, related_name='don_phuc_khao', null=True, blank=True, verbose_name="Túi phách liên quan")
-
     diem_goc = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
     diem_phuc_khao_1 = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
     diem_phuc_khao_2 = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
     diem_phuc_khao_cuoi = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
-    ly_do = models.TextField(blank=True, default='')
+    ly_do = models.TextField()
     file_bien_ban = models.CharField(max_length=255, null=True, blank=True)
     trang_thai = models.CharField(max_length=50, default='ChoXuLy')
-    nguoi_duyet = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='duyet_phuc_khao', null=True, blank=True)
-    ngay_tao = models.DateTimeField(auto_now_add=True, null=True, blank=True)
-    ngay_duyet = models.DateTimeField(null=True, blank=True)
-    ngay_rut_bai = models.DateTimeField(null=True, blank=True, verbose_name="Ngày rút bài thi")
-    ngay_hoan_thanh = models.DateTimeField(null=True, blank=True, verbose_name="Ngày hoàn thành PK")
-    updated_at = models.DateTimeField(auto_now=True, verbose_name="Cập nhật lần cuối")
-
-    class Meta:
-        indexes = [
-            models.Index(fields=['trang_thai'], name='idx_donpk_trangthai'),
-        ]
-
 
 
 class CauHinhDiemHocPhan(models.Model):
+    """
+    Cấu hình trọng số và hạn đóng/mở cổng nhập điểm học phần.
+    """
     hoc_phan = models.ForeignKey(HocPhan, on_delete=models.CASCADE, related_name='cau_hinh_diem')
     ten_cot_diem = models.CharField(max_length=255)
     trong_so = models.DecimalField(max_digits=5, decimal_places=2)
@@ -503,6 +547,9 @@ class CauHinhDiemHocPhan(models.Model):
 
 
 class DiemThanhPhan(models.Model):
+    """
+    Bảng điểm thành phần chi tiết của sinh viên.
+    """
     sinh_vien = models.ForeignKey(SinhVien, on_delete=models.CASCADE, related_name='diem_thanh_phan')
     lop_hp = models.ForeignKey(LopHocPhan, on_delete=models.CASCADE, related_name='diem_thanh_phan')
     cau_hinh = models.ForeignKey(CauHinhDiemHocPhan, on_delete=models.CASCADE, related_name='diem_thanh_phan')
@@ -517,12 +564,39 @@ class DiemThanhPhan(models.Model):
 # ===================================================================
 
 class AuditLog(models.Model):
+    """
+    Nhật ký hệ thống, chỉ ghi (Append-only) phục vụ giám sát kỹ thuật.
+    """
     timestamp = models.DateTimeField(auto_now_add=True)
     actor = models.ForeignKey(User, on_delete=models.PROTECT, related_name='audit_logs')
     action = models.TextField()
     ip_address = models.CharField(max_length=50, null=True, blank=True)
 
 
+class AppState(models.Model):
+    """
+    Model lưu trữ trạng thái đồng bộ JSON toàn cục cho toàn bộ hệ thống (Để tương thích ngược).
+    """
+    key = models.CharField(default='global_state', max_length=50, unique=True)
+    phong_thi_goc = models.TextField(default='[]')
+    tui_phach = models.TextField(default='[]')
+    phieu_giao_nhan = models.TextField(default='[]')
+    can_bo_coi_thi = models.TextField(default='[]')
+    phuc_khao = models.TextField(default='[]')
+    audit_logs = models.TextField(default='[]')
+    system_configs = models.TextField(default='{}')
+    ky_thi = models.TextField(default='[]')
+    ca_thi = models.TextField(default='[]')
+    lich_thi = models.TextField(default='[]')
+    hoc_phi = models.TextField(default='[]')
+    lop_thi_diem = models.TextField(default='{}')
+    danh_sach_thi_data = models.TextField(default='[]')
+
+    def __str__(self):
+        return f"AppState - {self.key}"
+
+
+# Giữ lại các model phiên bản cấu hình ban đầu để tương thích ngược nếu có views gọi import
 class PhienBanCotDiem(models.Model):
     ma_phien_ban = models.CharField(max_length=50, primary_key=True)
     ten_phien_ban = models.CharField(max_length=255)
@@ -534,29 +608,6 @@ class PhienBanCotDiem(models.Model):
 
     def __str__(self):
         return self.ten_phien_ban
-
-
-class QuyetToanThuLao(TimestampMixin):
-    ma_quyet_toan = models.CharField(max_length=50, primary_key=True)
-    ky_thi = models.ForeignKey(KyThi, on_delete=models.CASCADE, related_name='quyet_toan_thu_lao')
-    tong_so_ca = models.PositiveIntegerField(default=0)
-    tong_so_gio = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    tong_tien = models.DecimalField(max_digits=15, decimal_places=2, default=0)
-    nguoi_duyet = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    ngay_duyet = models.DateTimeField(null=True, blank=True)
-    
-    def __str__(self):
-        return self.ma_quyet_toan
-
-
-class CauHinhHeThong(models.Model):
-    key = models.CharField(max_length=100, primary_key=True)
-    value = models.TextField(blank=True, null=True)
-    nguoi_cap_nhat = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    ngay_cap_nhat = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return self.key
 
 
 class CauHinhPhucKhao(models.Model):
@@ -571,42 +622,57 @@ class CauHinhPhucKhao(models.Model):
         return self.ma_cau_hinh
 
 
-class CauHinhThoiGianDotThi(models.Model):
-    """Cấu hình mốc thời gian Nhập điểm, Công bố điểm & Phúc khảo theo Năm học - Học kỳ - Đợt thi (Đã chuẩn hóa & Liên kết CSDL)"""
-    ky_thi = models.ForeignKey(KyThi, on_delete=models.CASCADE, null=True, blank=True, related_name='cau_hinh_thoi_gian', verbose_name="Kỳ thi liên kết")
-    nam_hoc = models.CharField(max_length=20, db_index=True, verbose_name="Năm học")
-    hoc_ky = models.CharField(max_length=20, db_index=True, verbose_name="Học kỳ")
-    dot_thi = models.CharField(max_length=20, db_index=True, verbose_name="Đợt thi")
+class QuyetToanThuLao(models.Model):
+    """
+    Quyết toán thù lao cho kỳ thi.
+    """
+    ma_quyet_toan = models.CharField(max_length=50, primary_key=True)
+    ky_thi = models.ForeignKey(KyThi, on_delete=models.CASCADE, related_name='quyet_toan_thu_lao', null=True, blank=True)
+    nguoi_duyet = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='quyet_toan_thu_lao_duyet', null=True, blank=True)
+    ngay_duyet = models.DateTimeField(null=True, blank=True)
+    tong_tien = models.DecimalField(max_digits=15, decimal_places=2, default=0.0)
+    trang_thai = models.CharField(max_length=50, default='ChoDuyet')
 
-    # Mốc thời gian Nhập & Công bố điểm
-    tg_bat_dau_nhap = models.DateTimeField(null=True, blank=True, verbose_name="Bắt đầu nhập điểm")
-    tg_khoa_cong_nhap = models.DateTimeField(null=True, blank=True, verbose_name="Khóa cổng nhập điểm")
-    tg_cong_bo_diem = models.DateTimeField(null=True, blank=True, verbose_name="Tự động công bố điểm")
+    def __str__(self):
+        return self.ma_quyet_toan
 
-    # Mốc thời gian Phúc khảo
-    tg_mo_nhan_don_pk = models.DateTimeField(null=True, blank=True, verbose_name="Mở cổng nhận đơn PK")
-    tg_khoa_nhan_don_pk = models.DateTimeField(null=True, blank=True, verbose_name="Khóa cổng nhận đơn PK")
-    han_chot_cham_pk = models.DateTimeField(null=True, blank=True, verbose_name="Hạn chốt chấm PK")
 
-    # Mốc thời gian bổ sung CVHT
-    tg_nop_de_thi = models.DateTimeField(null=True, blank=True, verbose_name="Hạn nộp đề thi")
-    tg_nhap_diem_tp = models.DateTimeField(null=True, blank=True, verbose_name="Hạn nhập điểm thành phần")
-    tg_cau_hinh_trong_so = models.DateTimeField(null=True, blank=True, verbose_name="Hạn cấu hình trọng số")
-    tg_chot_dieu_kien_thi = models.DateTimeField(null=True, blank=True, verbose_name="Hạn chốt điều kiện dự thi")
-    tg_chot_quy_doi = models.DateTimeField(null=True, blank=True, verbose_name="Hạn chốt quy đổi")
-
-    is_locked = models.BooleanField(default=False, db_index=True, verbose_name="Khóa chỉnh sửa")
+class CauHinhHeThong(models.Model):
+    """
+    Cấu hình cài đặt hệ thống.
+    """
+    key = models.CharField(max_length=100, primary_key=True)
+    value = models.TextField(null=True, blank=True)
+    nguoi_cap_nhat = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='cau_hinh_he_thong_cap_nhat', null=True, blank=True)
     ngay_cap_nhat = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.key
+
+
+class CauHinhThoiGianDotThi(models.Model):
+    """
+    Cấu hình thời hạn/thời gian đợt thi cho các tác vụ nhập điểm, phúc khảo, nộp đề.
+    """
+    nam_hoc = models.CharField(max_length=20)
+    hoc_ky = models.CharField(max_length=20)
+    dot_thi = models.CharField(max_length=50)
+    tg_bat_dau_nhap = models.DateTimeField(null=True, blank=True)
+    tg_khoa_cong_nhap = models.DateTimeField(null=True, blank=True)
+    tg_cong_bo_diem = models.DateTimeField(null=True, blank=True)
+    tg_nop_de_thi = models.DateTimeField(null=True, blank=True)
+    tg_nhap_diem_tp = models.DateTimeField(null=True, blank=True)
+    tg_cau_hinh_trong_so = models.DateTimeField(null=True, blank=True)
+    tg_chot_dieu_kien_thi = models.DateTimeField(null=True, blank=True)
+    tg_chot_quy_doi = models.DateTimeField(null=True, blank=True)
+    tg_mo_nhan_don_pk = models.DateTimeField(null=True, blank=True)
+    tg_khoa_nhan_don_pk = models.DateTimeField(null=True, blank=True)
+    han_chot_cham_pk = models.DateTimeField(null=True, blank=True)
+    is_locked = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ('nam_hoc', 'hoc_ky', 'dot_thi')
-        indexes = [
-            models.Index(fields=['nam_hoc', 'hoc_ky', 'dot_thi'], name='idx_cauhinh_nam_hk_dot'),
-            models.Index(fields=['is_locked'], name='idx_cauhinh_locked'),
-        ]
-        ordering = ['-nam_hoc', 'hoc_ky', 'dot_thi']
-        verbose_name = "Cấu hình Thời gian Đợt thi"
-        verbose_name_plural = "Cấu hình Thời gian Đợt thi"
 
     def __str__(self):
         return f"{self.nam_hoc} - {self.hoc_ky} - {self.dot_thi}"
+

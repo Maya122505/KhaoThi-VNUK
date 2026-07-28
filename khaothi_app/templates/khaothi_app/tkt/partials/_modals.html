@@ -7,19 +7,19 @@
         </div>
         <div class="p-6 flex flex-col gap-4 text-xs font-sans">
             <div>
-                <label class="block font-bold text-gray-700 mb-1">Cán bộ hiện tại cần thay đổi:</label>
+                <label class="block font-bold text-gray-700 mb-1">Cán bộ hiện tại cần thay đổi</label>
                 <input type="text" id="emergency-old-gv" disabled class="w-full p-2 border bg-gray-50 rounded font-bold text-gray-800 outline-none" />
             </div>
             <div>
-                <label class="block font-bold text-gray-700 mb-1">Mã Giảng viên thay thế:</label>
+                <label class="block font-bold text-gray-700 mb-1">Mã Giảng viên thay thế</label>
                 <input type="text" id="emergency-new-code" placeholder="Ví dụ: GV005" oninput="autocompleteEmergencyGvName()" class="w-full p-2 border rounded font-mono font-bold uppercase focus:border-red-700 outline-none" />
             </div>
             <div>
-                <label class="block font-bold text-gray-700 mb-1">Họ tên Giảng viên thay thế:</label>
+                <label class="block font-bold text-gray-700 mb-1">Họ tên Giảng viên thay thế</label>
                 <input type="text" id="emergency-new-name" disabled placeholder="Tên cán bộ tự động tải..." class="w-full p-2 border bg-gray-50 rounded font-bold text-gray-800 outline-none" />
             </div>
             <div>
-                <label class="block font-bold text-gray-700 mb-1">Lý do thay đổi khẩn cấp:</label>
+                <label class="block font-bold text-gray-700 mb-1">Lý do thay đổi khẩn cấp</label>
                 <textarea id="emergency-reason" rows="3" placeholder="Nhập lý do thay đổi khẩn cấp..." class="w-full p-2 border rounded outline-none focus:border-red-700"></textarea>
             </div>
         </div>
@@ -30,12 +30,69 @@
     </div>
 </div>
 
+<!-- Modal: Chi tiết phân công coi thi -->
+<div id="modal-cbct-phan-cong-detail" class="hidden-view fixed inset-0 bg-black/60 z-[100] flex items-center justify-center animate-fade-in">
+    <div class="bg-white rounded-lg shadow-xl max-w-lg w-full overflow-hidden animate-fade-in-down flex flex-col">
+        <div class="bg-gray-100 text-gray-800 p-4 border-b border-gray-200 flex justify-between items-center rounded-t-lg">
+            <h3 class="font-bold text-sm flex items-center gap-2">
+                <i data-lucide="info" class="w-4 h-4 text-gray-500"></i> CHI TIẾT PHÂN CÔNG COI THI
+            </h3>
+            <button onclick="hideCbctPhanCongDetailModal()" class="text-gray-500 hover:text-gray-700 transition">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        <div class="p-6 flex flex-col gap-4 text-xs font-sans">
+            <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                <div>
+                    <span class="text-gray-500 block text-[11px] mb-0.5">Học phần / Môn thi</span>
+                    <strong id="cbct-detail-subject" class="text-sm text-gray-900 font-bold">--</strong>
+                </div>
+                <div id="cbct-detail-status-badge"></div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <div>
+                    <span class="text-gray-500 block mb-0.5">Cán bộ coi thi:</span>
+                    <strong id="cbct-detail-gv-name" class="text-gray-800 font-semibold block text-xs">--</strong>
+                    <span id="cbct-detail-gv-code" class="text-gray-500 font-mono text-[11px]">--</span>
+                </div>
+                <div>
+                    <span class="text-gray-500 block mb-0.5">Vai trò phân công:</span>
+                    <strong id="cbct-detail-role" class="text-gray-800 font-semibold block">--</strong>
+                </div>
+                <div>
+                    <span class="text-gray-500 block mb-0.5">Ngày thi & Ca thi:</span>
+                    <strong id="cbct-detail-datetime" class="text-gray-800 font-semibold block">--</strong>
+                </div>
+                <div>
+                    <span class="text-gray-500 block mb-0.5">Phòng thi:</span>
+                    <strong id="cbct-detail-room" class="text-gray-900 font-mono font-bold block text-sm">--</strong>
+                </div>
+                <div>
+                    <span class="text-gray-500 block mb-0.5">Số giờ coi thi:</span>
+                    <strong id="cbct-detail-hours" class="text-gray-800 font-semibold block">--</strong>
+                </div>
+                <div>
+                    <span class="text-gray-500 block mb-0.5">Đơn vị / Khoa:</span>
+                    <strong id="cbct-detail-donvi" class="text-gray-800 font-semibold block">--</strong>
+                </div>
+            </div>
+        </div>
+        <div class="bg-gray-50 p-4 border-t flex justify-between items-center text-xs">
+            <div class="flex gap-2" id="cbct-detail-action-buttons">
+                <!-- Action buttons populated dynamically -->
+            </div>
+            <button onclick="hideCbctPhanCongDetailModal()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded font-bold transition">Đóng</button>
+        </div>
+    </div>
+</div>
+
 <!-- Modal: Chi tiết giờ coi thi của Giảng viên -->
 <div id="modal-gc-details" class="hidden-view fixed inset-0 bg-black/60 z-[100] flex items-center justify-center animate-fade-in">
     <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full overflow-hidden animate-fade-in-down flex flex-col max-h-[85vh]">
-        <div class="bg-[#9e1c22] text-white p-4 flex justify-between items-center rounded-t-lg">
-            <h3 class="font-bold text-sm flex items-center gap-1.5"><i data-lucide="clock" class="w-4 h-4"></i> LỊCH SỬ CHI TIẾT GIỜ COI THI</h3>
-            <button onclick="hideGioCoiDetailsModal()" class="text-white hover:text-gray-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+        <div class="bg-gray-50 border-b border-gray-200 p-4 flex justify-between items-center">
+            <h3 class="font-bold text-lg text-gray-800 flex items-center gap-2"><i data-lucide="clock" class="w-5 h-5 text-gray-500"></i> LỊCH SỬ CHI TIẾT GIỜ COI THI</h3>
+            <button onclick="hideGioCoiDetailsModal()" class="text-gray-400 hover:text-gray-600"><i data-lucide="x" class="w-5 h-5"></i></button>
         </div>
         <div class="p-6 flex-1 overflow-y-auto font-sans text-xs">
             <div class="bg-gray-50 border border-gray-200 rounded p-4 mb-4 grid grid-cols-2 gap-4">
@@ -62,12 +119,12 @@
                     </tr>
                 </thead>
                 <tbody id="gc-detail-table-tbody" class="divide-y divide-gray-100">
-                    <!-- Filled by JS -->
+                    <!-- Được điền tự động bằng JavaScript -->
                 </tbody>
             </table>
         </div>
         <div class="bg-gray-50 p-4 border-t flex justify-end gap-2">
-            <button onclick="hideGioCoiDetailsModal()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded font-bold">Đóng</button>
+            <button onclick="hideGioCoiDetailsModal()" class="bg-[#9e1c22] text-white font-bold py-2 px-4 rounded hover:bg-red-800 transition-colors">Đóng</button>
         </div>
     </div>
 </div>
@@ -75,35 +132,71 @@
 <!-- Modals & Overlay -->
 <div id="overlay" class="hidden-view fixed inset-0 z-40 bg-black/0" onclick="closeAllDropdowns()"></div>
 
-<!-- Modal: Xác nhận điện tử nhận bài gốc/trả bài -->
+<!-- Modal: Ký nhận điện tử nhận bài gốc/trả bài -->
 <div id="modal-gn-ky-nhan" class="hidden-view fixed inset-0 bg-black/60 z-[100] flex items-center justify-center animate-fade-in">
     <div class="bg-white rounded-lg shadow-xl max-w-md w-full overflow-hidden animate-fade-in-down flex flex-col">
-        <div class="bg-green-600 p-4 text-white font-bold text-lg flex items-center gap-2"><i data-lucide="check-circle" class="w-5 h-5"></i> Xác nhận điện tử</div>
+        <div class="bg-green-600 p-4 text-white font-bold text-lg flex items-center gap-2"><i data-lucide="file-signature" class="w-5 h-5"></i> Ký xác nhận điện tử</div>
         <div class="p-6">
-            <p class="text-gray-700 text-xs mb-4 bg-green-50 text-green-800 p-3 rounded border border-green-100 font-sans">Hệ thống tiến hành xác nhận gắn kèm mã định danh cá nhân và nhãn thời gian thực của Tổ Khảo thí.</p>
-            <label class="block text-xs font-bold text-gray-700 mb-1 font-sans">Nhập mật khẩu xác thực (mặc định: 123456):</label>
+            <p class="text-gray-700 text-xs mb-4 bg-green-50 text-green-800 p-3 rounded border border-green-100 font-sans">Hệ thống tiến hành đóng con dấu điện tử gắn kèm mã định danh cá nhân và nhãn thời gian thực của Tổ Khảo thí.</p>
+            <label class="block text-xs font-bold text-gray-700 mb-1 font-sans">Nhập mật khẩu chữ ký điện tử</label>
             <input id="gn-ky-nhan-pw" type="password" placeholder="••••••••" class="w-full px-4 py-3 border border-gray-300 rounded text-center text-lg tracking-widest outline-none focus:border-green-600 mb-2" />
             <p id="gn-ky-nhan-error" class="hidden-view text-red-600 text-xs font-bold text-center animate-shake font-sans">Mật khẩu không chính xác! Hãy kiểm tra lại</p>
             <div class="flex gap-3 mt-4">
                 <button onclick="hideGnKyNhanModal()" class="flex-1 bg-gray-100 text-gray-700 font-bold py-2.5 rounded hover:bg-gray-200 font-sans">Hủy bỏ</button>
-                <button onclick="confirmKyNhanPhieuExecute()" class="flex-1 bg-green-600 text-white font-bold py-2.5 rounded shadow hover:bg-green-700 font-sans">XÁC NHẬN HOÀN TẤT</button>
+                <button onclick="confirmKyNhanPhieuExecute()" class="flex-1 bg-green-600 text-white font-bold py-2.5 rounded shadow hover:bg-green-700 font-sans">XÁC NHẬN KÝ CHỐT</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal: Giả lập Thư ký xác nhận -->
+<!-- Modal: Ký xác nhận biên bản in sao -->
+<div id="modal-is-ky-xac-nhan" class="hidden-view fixed inset-0 bg-black/60 z-[100] flex items-center justify-center animate-fade-in">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full overflow-hidden animate-fade-in-down flex flex-col">
+        <div class="bg-gray-50 border-b border-gray-200 p-4 flex justify-between items-center">
+            <h3 class="font-bold text-lg text-gray-800 flex items-center gap-2"><i data-lucide="edit" class="w-5 h-5 text-gray-500"></i>Xác nhận biên bản giám sát</h3>
+            <button onclick="hideIsKyXacNhanModal()" class="text-gray-400 hover:text-gray-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <div class="p-6 font-sans text-xs space-y-4 text-left">
+            <input type="hidden" id="ky-xn-is-id" />
+            <div class="bg-red-50 text-[#9e1c22] p-3 rounded border border-red-100 text-xs leading-relaxed font-sans font-semibold">
+                <strong>Thông tin đợt in sao:</strong>
+                <ul class="list-disc list-inside mt-1.5 space-y-0.5 font-normal text-gray-700">
+                    <li>Mã đợt: <span id="ky-xn-is-code" class="font-bold text-[#9e1c22]"></span></li>
+                    <li>Học phần: <span id="ky-xn-is-subject" class="font-semibold text-gray-900"></span></li>
+                    <li>Bản in thực tế: <span id="ky-xn-is-qty" class="font-bold text-gray-900"></span> bản</li>
+                </ul>
+            </div>
+            
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1 uppercase font-sans">Ý KIẾN NHẬN XÉT CỦA GIÁM SÁT</label>
+                <textarea id="ky-xn-is-nhan-xet" rows="2" placeholder="Nhập nhận xét về quá trình in sao và niêm phong..." class="w-full p-2 border border-gray-300 rounded text-sm focus:border-red-800 outline-none"></textarea>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1 uppercase font-sans">NHẬP MẬT KHẨU XÁC NHẬN</label>
+                <input id="ky-xn-is-pw" type="password" placeholder="••••••••" class="w-full px-4 py-2 border border-gray-300 rounded text-center text-lg tracking-widest outline-none focus:border-red-800 font-sans" />
+                <p id="ky-xn-is-error" class="hidden-view text-red-600 text-xs font-bold text-center mt-1.5 animate-shake font-sans">Mật khẩu xác nhận không chính xác! Hãy kiểm tra lại</p>
+            </div>
+        </div>
+        <div class="bg-gray-50 p-4 border-t flex justify-end gap-2 rounded-b-lg">
+            <button onclick="hideIsKyXacNhanModal()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded font-bold">Hủy</button>
+            <button onclick="confirmIsKyXacNhanExecute()" class="bg-[#9e1c22] hover:bg-red-800 text-white px-4 py-2 rounded font-bold shadow">Xác nhận</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Giả lập Thư ký ký nhận -->
 <div id="modal-gn-ky-nhan-simulate" class="hidden-view fixed inset-0 bg-black/60 z-[100] flex items-center justify-center animate-fade-in flex flex-col">
     <div class="bg-white rounded-lg shadow-xl max-w-md w-full overflow-hidden animate-fade-in-down">
-        <div class="bg-blue-600 p-4 text-white font-bold text-lg flex items-center gap-2"><i data-lucide="check-circle" class="w-5 h-5"></i> Giả lập Thư ký xác nhận</div>
+        <div class="bg-blue-600 p-4 text-white font-bold text-lg flex items-center gap-2"><i data-lucide="file-signature" class="w-5 h-5"></i> Giả lập Thư ký ký nhận</div>
         <div class="p-6">
-            <p class="text-gray-700 text-xs mb-4 bg-blue-50 text-blue-800 p-3 rounded border border-blue-100 font-sans">Bên nhận (Thư ký) kiểm đếm bài thực tế và nhập mật khẩu để xác nhận tiếp quản.</p>
-            <label class="block text-xs font-bold text-gray-700 mb-1 font-sans">Nhập mật khẩu xác thực Thư ký (mặc định: 123456):</label>
+            <p class="text-gray-700 text-xs mb-4 bg-blue-50 text-blue-800 p-3 rounded border border-blue-100 font-sans">Bên nhận (Thư ký) kiểm đếm bài thực tế và nhập mật khẩu để ký nhận tiếp quản.</p>
+            <label class="block text-xs font-bold text-gray-700 mb-1 font-sans">Nhập mật khẩu chữ ký điện tử Thư ký</label>
             <input id="gn-ky-nhan-simulate-pw" type="password" placeholder="••••••••" class="w-full px-4 py-3 border border-gray-300 rounded text-center text-lg tracking-widest outline-none focus:border-blue-600 mb-2" />
             <p id="gn-ky-nhan-simulate-error" class="hidden-view text-red-600 text-xs font-bold text-center animate-shake font-sans">Mật khẩu không chính xác! Hãy kiểm tra lại</p>
             <div class="flex gap-3 mt-4">
                 <button onclick="hideGnSimulateReceiveModal()" class="flex-1 bg-gray-100 text-gray-700 font-bold py-2.5 rounded hover:bg-gray-200 font-sans">Hủy bỏ</button>
-                <button onclick="confirmGnSimulateReceiveExecute()" class="flex-1 bg-blue-600 text-white font-bold py-2.5 rounded shadow hover:bg-blue-700 font-sans">XÁC NHẬN HOÀN TẤT</button>
+                <button onclick="confirmGnSimulateReceiveExecute()" class="flex-1 bg-blue-600 text-white font-bold py-2.5 rounded shadow hover:bg-blue-700 font-sans">XÁC NHẬN KÝ CHỐT</button>
             </div>
         </div>
     </div>
@@ -151,6 +244,513 @@
         <div class="p-4 bg-gray-50 flex justify-end gap-3 shrink-0">
             <button onclick="hidePkPrintModal()" class="bg-gray-200 text-gray-700 px-5 py-2 rounded font-bold text-sm hover:bg-gray-300">Đóng</button>
             <button onclick="executeBrowserPrint()" class="bg-[#9e1c22] text-white px-5 py-2 rounded font-bold text-sm hover:bg-red-800 flex items-center gap-1 shadow"><i data-lucide="printer" class="w-4 h-4"></i> In biên bản PDF</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Chi tiết Kỳ thi -->
+<div id="modal-ky-thi-detail" class="hidden-view fixed inset-0 bg-black/60 z-[100] flex items-center justify-center animate-fade-in">
+    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full overflow-hidden animate-fade-in-down flex flex-col max-h-[85vh]">
+        <div class="bg-[#9e1c22] text-white p-4 flex justify-between items-center rounded-t-lg">
+            <h3 class="font-bold text-sm flex items-center gap-1.5"><i data-lucide="award" class="w-4 h-4"></i> CHI TIẾT KỲ THI</h3>
+            <button onclick="hideKyThiDetailModal()" class="text-white hover:text-gray-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <div class="p-6 flex-1 overflow-y-auto font-sans text-xs space-y-4">
+            <div class="bg-gray-50 border border-gray-200 rounded p-4 grid grid-cols-2 gap-4">
+                <div>
+                    <p class="text-gray-500 font-semibold mb-0.5">Tên kỳ thi:</p>
+                    <strong class="text-sm text-gray-800" id="mkt-name">--</strong>
+                </div>
+                <div>
+                    <p class="text-gray-500 font-semibold mb-0.5">Mã kỳ thi:</p>
+                    <strong class="text-sm text-gray-800 font-mono" id="mkt-id">--</strong>
+                </div>
+                <div>
+                    <p class="text-gray-500 font-semibold mb-0.5">Năm học & Học kỳ:</p>
+                    <span class="text-gray-800 font-medium" id="mkt-year-semester">--</span>
+                </div>
+                <div>
+                    <p class="text-gray-500 font-semibold mb-0.5">Đợt thi:</p>
+                    <span class="text-gray-800 font-medium" id="mkt-dot">--</span>
+                </div>
+                <div>
+                    <p class="text-gray-500 font-semibold mb-0.5">Thời gian áp dụng:</p>
+                    <span class="text-gray-800 font-medium" id="mkt-duration">--</span>
+                </div>
+                <div>
+                    <p class="text-gray-500 font-semibold mb-0.5">Mô tả / Ghi chú:</p>
+                    <span class="text-gray-800 font-medium" id="mkt-mota">--</span>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="font-bold text-gray-700 mb-2 flex items-center gap-1"><i data-lucide="clock" class="w-4 h-4 text-[#9e1c22]"></i> Các ca thi trực thuộc kỳ thi:</h4>
+                <table class="w-full text-left border text-xs">
+                    <thead class="bg-gray-100 text-gray-600 font-bold">
+                        <tr>
+                            <th class="px-4 py-2 border-b">Tên ca</th>
+                            <th class="px-4 py-2 border-b">Ngày thi</th>
+                            <th class="px-4 py-2 border-b">Khung giờ</th>
+                            <th class="px-4 py-2 border-b">Ghi chú</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mkt-shifts-tbody" class="divide-y divide-gray-100">
+                        <!-- JS render -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="bg-gray-50 p-4 border-t flex justify-end gap-2 shrink-0">
+            <button onclick="hideKyThiDetailModal()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded font-bold">Đóng</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Chi tiết Ca thi -->
+<div id="modal-ca-thi-detail" class="hidden-view fixed inset-0 bg-black/60 z-[100] flex items-center justify-center animate-fade-in">
+    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full overflow-hidden animate-fade-in-down flex flex-col max-h-[85vh]">
+        <div class="bg-[#9e1c22] text-white p-4 flex justify-between items-center rounded-t-lg">
+            <h3 class="font-bold text-sm flex items-center gap-1.5"><i data-lucide="clock" class="w-4 h-4"></i> CHI TIẾT CA THI</h3>
+            <button onclick="hideCaThiDetailModal()" class="text-white hover:text-gray-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <div class="p-6 flex-1 overflow-y-auto font-sans text-xs space-y-4">
+            <div class="bg-gray-50 border border-gray-200 rounded p-4 grid grid-cols-2 gap-4">
+                <div>
+                    <p class="text-gray-500 font-semibold mb-0.5">Tên ca thi:</p>
+                    <strong class="text-sm text-[#9e1c22]" id="mct-name">--</strong>
+                </div>
+                <div>
+                    <p class="text-gray-500 font-semibold mb-0.5">Mã ca thi:</p>
+                    <strong class="text-sm text-gray-800 font-mono" id="mct-id">--</strong>
+                </div>
+                <div>
+                    <p class="text-gray-500 font-semibold mb-0.5">Ngày thi:</p>
+                    <span class="text-gray-800 font-medium" id="mct-date">--</span>
+                </div>
+                <div>
+                    <p class="text-gray-500 font-semibold mb-0.5">Khung giờ:</p>
+                    <span class="text-gray-800 font-semibold" id="mct-time">--</span>
+                </div>
+                <div>
+                    <p class="text-gray-500 font-semibold mb-0.5">Thuộc kỳ thi:</p>
+                    <span class="text-gray-800 font-medium" id="mct-parent-exam">--</span>
+                </div>
+                <div>
+                    <p class="text-gray-500 font-semibold mb-0.5">Ghi chú:</p>
+                    <span class="text-gray-800 font-medium" id="mct-note">--</span>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="font-bold text-gray-700 mb-2 flex items-center gap-1"><i data-lucide="calendar" class="w-4 h-4 text-[#9e1c22]"></i> Các môn thi/học phần trong ca này:</h4>
+                <table class="w-full text-left border text-xs">
+                    <thead class="bg-gray-100 text-gray-600 font-bold">
+                        <tr>
+                            <th class="px-4 py-2 border-b">Học phần</th>
+                            <th class="px-4 py-2 border-b">Lớp học phần</th>
+                            <th class="px-4 py-2 border-b">Số SV</th>
+                            <th class="px-4 py-2 border-b">Phòng thi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mct-classes-tbody" class="divide-y divide-gray-100">
+                        <!-- JS render -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="bg-gray-50 p-4 border-t flex justify-end gap-2 shrink-0">
+            <button onclick="hideCaThiDetailModal()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded font-bold">Đóng</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Chi tiết Phòng thi -->
+<div id="modal-phong-thi-detail" class="hidden-view fixed inset-0 bg-black/60 z-[100] flex items-center justify-center animate-fade-in">
+    <div class="bg-white rounded-lg shadow-xl max-w-xl w-full overflow-hidden animate-fade-in-down flex flex-col">
+        <div class="bg-gray-50 border-b border-gray-200 p-4 flex justify-between items-center">
+            <h3 class="font-bold text-lg text-gray-800 flex items-center gap-2"><i data-lucide="layout-grid" class="w-5 h-5 text-gray-500"></i> CHI TIẾT PHÒNG THI</h3>
+            <button onclick="hidePhongThiDetailModal()" class="text-gray-400 hover:text-gray-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <div class="p-6 font-sans text-xs space-y-4">
+            <div class="bg-gray-50 border border-gray-200 rounded p-4 grid grid-cols-2 gap-4">
+                <div>
+                    <p class="text-gray-500 font-semibold mb-0.5">Tên phòng thi:</p>
+                    <strong class="text-lg text-indigo-900" id="mpt-name">--</strong>
+                </div>
+                <div>
+                    <p class="text-gray-500 font-semibold mb-0.5">Mã phòng thi:</p>
+                    <strong class="text-lg text-gray-800 font-mono" id="mpt-id">--</strong>
+                </div>
+                <div>
+                    <p class="text-gray-500 font-semibold mb-0.5">Sức chứa tối đa:</p>
+                    <span class="text-sm font-bold text-gray-800" id="mpt-capacity">-- thí sinh</span>
+                </div>
+                <div>
+                    <p class="text-gray-500 font-semibold mb-0.5">Vị trí (Toà nhà):</p>
+                    <span class="text-sm font-medium text-gray-800" id="mpt-location">--</span>
+                </div>
+                <div>
+                    <p class="text-gray-500 font-semibold mb-0.5">Loại phòng:</p>
+                    <span class="text-sm font-medium text-gray-800" id="mpt-type">--</span>
+                </div>
+                <div>
+                    <p class="text-gray-500 font-semibold mb-0.5">Trạng thái:</p>
+                    <span class="px-2 py-0.5 rounded text-xs font-bold" id="mpt-status">--</span>
+                </div>
+            </div>
+        </div>
+        <div class="bg-gray-50 p-4 border-t flex justify-end gap-2">
+            <button onclick="hidePhongThiDetailModal()" class="bg-[#9e1c22] text-white font-bold py-2 px-4 rounded hover:bg-red-800 transition-colors">Đóng</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Chỉnh sửa Phòng thi -->
+<div id="modal-phong-thi-edit" class="hidden-view fixed inset-0 bg-black/60 z-[100] flex items-center justify-center animate-fade-in">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full overflow-hidden animate-fade-in-down flex flex-col">
+        <div class="bg-gray-100 border-b border-gray-200 text-gray-800 p-4 flex justify-between items-center rounded-t-lg">
+            <h3 class="font-bold text-sm flex items-center gap-1.5"><i data-lucide="edit-3" class="w-4 h-4 text-gray-600"></i> CHỈNH SỬA PHÒNG THI</h3>
+            <button onclick="hidePhongThiEditModal()" class="text-gray-500 hover:text-gray-700"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <div class="p-6 font-sans text-xs space-y-4">
+            <input type="hidden" id="edit-pt-ma" />
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Tên phòng thi</label>
+                <input id="edit-pt-ten" type="text" class="w-full p-2 border border-gray-300 rounded text-sm focus:border-red-800 outline-none" />
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Sức chứa (số thí sinh)</label>
+                <input id="edit-pt-suc-chua" type="number" min="1" class="w-full p-2 border border-gray-300 rounded text-sm focus:border-red-800 outline-none" />
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Vị trí (Toà nhà)</label>
+                <select id="edit-pt-vi-tri" class="w-full p-2 border border-gray-300 rounded text-sm bg-white focus:border-red-800 outline-none">
+                    <option value="Toà nhà A">Toà nhà A</option>
+                    <option value="Toà nhà B">Toà nhà B</option>
+                    <option value="Toà nhà C">Toà nhà C</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Loại phòng</label>
+                <select id="edit-pt-loai" class="w-full p-2 border border-gray-300 rounded text-sm bg-white focus:border-red-800 outline-none">
+                    <option value="Phòng thường">Phòng thường</option>
+                    <option value="Phòng máy tính">Phòng máy tính</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Trạng thái</label>
+                <select id="edit-pt-trang-thai" class="w-full p-2 border border-gray-300 rounded text-sm bg-white focus:border-red-800 outline-none">
+                    <option value="Khả dụng">Khả dụng</option>
+                    <option value="Đang bảo trì">Đang bảo trì</option>
+                    <option value="Ngừng sử dụng">Ngừng sử dụng</option>
+                </select>
+            </div>
+        </div>
+        <div class="bg-gray-50 p-4 border-t flex justify-end gap-2">
+            <button onclick="hidePhongThiEditModal()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded font-bold">Hủy</button>
+            <button onclick="handleSavePhongThiEdit()" class="bg-[#9e1c22] hover:bg-red-800 text-white px-4 py-2 rounded font-bold shadow">Lưu thay đổi</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Tải lên danh sách sinh viên nợ học phí từ Tổ tài vụ (UC 15.1) -->
+<div id="modal-upload-hoc-phi" class="hidden-view fixed inset-0 bg-black/60 z-[100] flex items-center justify-center animate-fade-in">
+    <div class="bg-white rounded-lg shadow-xl max-w-lg w-full overflow-hidden animate-fade-in-down flex flex-col">
+        <div class="bg-gray-50 border-b border-gray-200 p-4 flex justify-between items-center">
+            <h3 class="font-bold text-lg text-gray-800 flex items-center gap-2"><i data-lucide="upload-cloud" class="w-5 h-5 text-gray-500"></i> Tải lên Danh sách nợ học phí (Tổ Tài vụ)</h3>
+            <button onclick="hideUploadHocPhiModal()" class="text-gray-400 hover:text-gray-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <div class="p-6 font-sans text-xs space-y-4">
+            <p class="text-gray-600 leading-relaxed">Tải lên tệp Excel (.xlsx) hoặc CSV (.csv) chứa danh sách sinh viên nợ học phí do Tổ tài vụ cung cấp để đồng bộ điều kiện dự thi.</p>
+            
+            <div class="border-2 border-dashed border-gray-300 hover:border-red-800 rounded-lg p-6 text-center cursor-pointer transition-colors bg-gray-50/80" onclick="document.getElementById('file-hoc-phi-input').click()">
+                <i data-lucide="file-spreadsheet" class="w-10 h-10 text-gray-400 mx-auto mb-2"></i>
+                <p class="font-bold text-gray-700 text-sm">Nhấp để chọn tệp hoặc kéo thả tệp vào đây</p>
+                <p class="text-gray-400 text-[11px] mt-1">Chấp nhận file Excel (.xlsx), CSV (.csv), JSON (Tối đa 10MB)</p>
+                <input type="file" id="file-hoc-phi-input" class="hidden" accept=".csv, .xlsx, .json" onchange="handleHocPhiFileSelected(event)" />
+                <div id="file-hoc-phi-info" class="font-bold text-[#9e1c22] text-xs mt-3 hidden flex items-center justify-center gap-2">
+                    <span class="flex items-center gap-1">
+                        <i data-lucide="check-circle" class="w-4 h-4 text-green-600"></i> <span id="file-hoc-phi-name"></span>
+                    </span>
+                    <button type="button" onclick="clearHocPhiFileSelection(event)" class="text-red-600 hover:text-red-800 focus:outline-none flex items-center" title="Xóa file đã chọn">
+                        <i data-lucide="trash-2" class="w-4.5 h-4.5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center bg-blue-50 border border-blue-100 rounded p-3 text-[11px] text-blue-900">
+                <span class="flex items-center gap-1.5 font-medium"><i data-lucide="file-text" class="w-4 h-4 text-blue-600"></i> Cần file mẫu chuẩn của Tổ tài vụ?</span>
+                <button onclick="downloadSampleHocPhiCSV()" class="font-bold text-blue-700 hover:underline flex items-center gap-1"><i data-lucide="download" class="w-3 h-3"></i> Tải mẫu CSV</button>
+            </div>
+        </div>
+        <div class="bg-gray-50 p-4 border-t flex justify-end gap-2">
+            <button onclick="hideUploadHocPhiModal()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded font-bold">Hủy</button>
+            <button onclick="processUploadHocPhiFile()" class="bg-[#9e1c22] text-white font-bold py-2 px-4 rounded hover:bg-red-800 transition-colors flex items-center gap-1.5">
+                <i data-lucide="upload" class="w-4 h-4"></i> Tải lên & Đồng bộ
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Chỉnh sửa Kỳ thi -->
+<div id="modal-ky-thi-edit" class="hidden-view fixed inset-0 bg-black/60 z-[100] flex items-center justify-center animate-fade-in">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full overflow-hidden animate-fade-in-down">
+        <div class="bg-gray-50 border-b border-gray-200 p-4 flex justify-between items-center rounded-t-lg">
+            <h3 class="font-bold text-sm text-gray-800 flex items-center gap-2"><i data-lucide="edit-2" class="w-4 h-4 text-[#9e1c22]"></i> CHỈNH SỬA KỲ THI</h3>
+            <button onclick="hideKyThiEditModal()" class="text-gray-500 hover:text-gray-700"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <div class="p-6 font-sans text-xs space-y-4">
+            <input type="hidden" id="edit-kt-id" />
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Tên kỳ thi</label>
+                <select id="edit-kt-ten" class="w-full p-2 border border-gray-300 rounded text-sm bg-white focus:border-red-800 outline-none">
+                    <option value="Thi giữa kỳ">Thi giữa kỳ</option>
+                    <option value="Thi cuối kỳ">Thi cuối kỳ</option>
+                </select>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Năm học</label>
+                    <select id="edit-kt-nam" class="w-full p-2 border border-gray-300 rounded text-sm bg-white focus:border-red-800 outline-none"></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Học kỳ</label>
+                    <select id="edit-kt-hocky" class="w-full p-2 border border-gray-300 rounded text-sm bg-white focus:border-red-800 outline-none">
+                        <option value="Học kỳ I">Học kỳ I</option>
+                        <option value="Học kỳ II">Học kỳ II</option>
+                        <option value="Học kỳ III">Học kỳ III</option>
+                    </select>
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Đợt thi</label>
+                <select id="edit-kt-dot" class="w-full p-2 border border-gray-300 rounded text-sm bg-white focus:border-red-800 outline-none">
+                    <option value="Đợt 1">Đợt 1</option>
+                    <option value="Đợt 2">Đợt 2</option>
+                    <option value="Đợt 3">Đợt 3</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Thời gian áp dụng</label>
+                <div class="grid grid-cols-2 gap-4">
+                    <input id="edit-kt-thoigian-bd" type="date" class="w-full p-2 border border-gray-300 rounded text-sm focus:border-red-800 outline-none" />
+                    <input id="edit-kt-thoigian-kt" type="date" class="w-full p-2 border border-gray-300 rounded text-sm focus:border-red-800 outline-none" />
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Mô tả kỳ thi</label>
+                <textarea id="edit-kt-mota" placeholder="Ghi chú thêm về kỳ thi..." class="w-full p-2 border border-gray-300 rounded text-sm focus:border-red-800 outline-none h-16 resize-none"></textarea>
+            </div>
+        </div>
+        <div class="bg-gray-50 p-4 border-t flex justify-end gap-2">
+            <button onclick="hideKyThiEditModal()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded font-bold">Hủy</button>
+            <button onclick="handleSaveKyThiEdit()" class="bg-[#9e1c22] hover:bg-red-800 text-white px-4 py-2 rounded font-bold shadow">Lưu thay đổi</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Chỉnh sửa Ca thi -->
+<div id="modal-ca-thi-edit" class="hidden-view fixed inset-0 bg-black/60 z-[100] flex items-center justify-center animate-fade-in">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full overflow-hidden animate-fade-in-down">
+        <div class="bg-gray-50 border-b border-gray-200 p-4 flex justify-between items-center rounded-t-lg">
+            <h3 class="font-bold text-sm text-gray-800 flex items-center gap-2"><i data-lucide="edit-2" class="w-4 h-4 text-[#9e1c22]"></i> CHỈNH SỬA CA THI</h3>
+            <button onclick="hideCaThiEditModal()" class="text-gray-500 hover:text-gray-700"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <div class="p-6 font-sans text-xs space-y-4">
+            <input type="hidden" id="edit-ct-id" />
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Thuộc Kỳ thi</label>
+                <select id="edit-ct-kythi" class="w-full p-2 border border-gray-300 rounded text-sm bg-white focus:border-red-800 outline-none"></select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Tên ca thi</label>
+                <input id="edit-ct-name" type="text" class="w-full p-2 border border-gray-300 rounded text-sm focus:border-red-800 outline-none" />
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Ngày thi</label>
+                <input id="edit-ct-date" type="date" class="w-full p-2 border border-gray-300 rounded text-sm focus:border-red-800 outline-none" />
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Giờ bắt đầu</label>
+                    <input id="edit-ct-start" type="time" class="w-full p-2 border border-gray-300 rounded text-sm focus:border-red-800 outline-none" />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Giờ kết thúc</label>
+                    <input id="edit-ct-end" type="time" class="w-full p-2 border border-gray-300 rounded text-sm focus:border-red-800 outline-none" />
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Ghi chú</label>
+                <input id="edit-ct-note" type="text" placeholder="Ghi chú thêm..." class="w-full p-2 border border-gray-300 rounded text-sm focus:border-red-800 outline-none" />
+            </div>
+        </div>
+        <div class="bg-gray-50 p-4 border-t flex justify-end gap-2">
+            <button onclick="hideCaThiEditModal()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded font-bold">Hủy</button>
+            <button onclick="handleSaveCaThiEdit()" class="bg-[#9e1c22] hover:bg-red-800 text-white px-4 py-2 rounded font-bold shadow">Lưu thay đổi</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Chỉnh sửa Phân công Phòng thi -->
+<div id="modal-phan-cong-edit" class="hidden-view fixed inset-0 bg-black/60 z-[100] flex items-center justify-center animate-fade-in">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full overflow-hidden animate-fade-in-down">
+        <div class="bg-gray-50 border-b border-gray-200 p-4 flex justify-between items-center rounded-t-lg">
+            <h3 class="font-bold text-sm text-gray-800 flex items-center gap-2">
+                <i data-lucide="edit-2" class="w-4 h-4 text-[#9e1c22]"></i> CHỈNH SỬA PHÂN CÔNG PHÒNG THI
+            </h3>
+            <button onclick="hidePhanCongEditModal()" class="text-gray-500 hover:text-gray-700">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        <div class="p-6 font-sans text-xs space-y-4">
+            <input type="hidden" id="edit-pc-id" />
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Học phần / Môn thi</label>
+                <input id="edit-pc-subject" type="text" class="w-full p-2 border border-gray-300 rounded text-sm bg-gray-100 font-bold text-gray-800 outline-none" readonly />
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Ngày thi</label>
+                    <input id="edit-pc-date" type="text" class="w-full p-2 border border-gray-300 rounded text-sm bg-gray-100 font-medium text-gray-700 outline-none" readonly />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Ca thi</label>
+                    <input id="edit-pc-shift" type="text" class="w-full p-2 border border-gray-300 rounded text-sm bg-gray-100 font-medium text-gray-700 outline-none" readonly />
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Số lượng sinh viên dự thi</label>
+                <input id="edit-pc-count" type="number" min="1" class="w-full p-2 border border-gray-300 rounded text-sm focus:border-red-800 outline-none" />
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Chọn phòng thi phân bổ</label>
+                <select id="edit-pc-rooms" multiple class="w-full p-2 border border-gray-300 rounded text-sm bg-white focus:border-red-800 outline-none h-28">
+                    <!-- JS render options -->
+                </select>
+                <p class="text-[10px] text-gray-500 mt-1">Giữ phím Ctrl (Windows) hoặc Cmd (Mac) để chọn nhiều phòng thi.</p>
+            </div>
+        </div>
+        <div class="bg-gray-50 p-4 border-t flex justify-end gap-2 text-xs">
+            <button onclick="hidePhanCongEditModal()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-bold">Hủy</button>
+            <button onclick="handleSavePhanCongEdit()" class="bg-[#9e1c22] hover:bg-red-800 text-white px-4 py-2 rounded-lg font-bold shadow">Lưu thay đổi</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Chi tiết Phân công Phòng thi -->
+<div id="modal-phan-cong-detail" class="hidden-view fixed inset-0 bg-black/60 z-[100] flex items-center justify-center animate-fade-in">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full overflow-hidden animate-fade-in-down">
+        <div class="bg-[#9e1c22] text-white p-4 flex justify-between items-center rounded-t-lg">
+            <h3 class="font-bold text-sm flex items-center gap-2">
+                <i data-lucide="layout-grid" class="w-4 h-4"></i> CHI TIẾT PHÂN CÔNG PHÒNG THI
+            </h3>
+            <button onclick="hidePhanCongDetailModal()" class="text-white hover:text-gray-200">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        <div class="p-6 space-y-4 text-xs font-sans">
+            <div class="grid grid-cols-2 gap-3 pb-3 border-b border-gray-100">
+                <div>
+                    <span class="text-gray-500 block">Mã phân công</span>
+                    <strong id="pc-detail-id" class="text-sm font-mono font-bold text-gray-800">--</strong>
+                </div>
+                <div>
+                    <span class="text-gray-500 block">Số lượng SV</span>
+                    <strong id="pc-detail-count" class="text-sm font-bold text-blue-900">--</strong>
+                </div>
+            </div>
+            <div>
+                <span class="text-gray-500 block mb-0.5">Học phần / Môn thi</span>
+                <strong id="pc-detail-subject" class="text-sm text-gray-900 font-bold">--</strong>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <span class="text-gray-500 block">Ngày thi</span>
+                    <span id="pc-detail-date" class="font-bold text-gray-800">--</span>
+                </div>
+                <div>
+                    <span class="text-gray-500 block">Ca thi</span>
+                    <span id="pc-detail-shift" class="font-bold text-gray-800">--</span>
+                </div>
+            </div>
+            <div class="p-3 bg-red-50 border border-red-200 rounded-lg">
+                <span class="text-red-900 font-bold block mb-1">Phòng thi đã xếp:</span>
+                <span id="pc-detail-rooms" class="text-sm font-bold text-red-800 font-mono">--</span>
+            </div>
+        </div>
+        <div class="bg-gray-50 p-4 border-t flex justify-end text-xs">
+            <button onclick="hidePhanCongDetailModal()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-bold">Đóng</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Chi tiết Phòng thi -->
+<div id="modal-phong-thi-detail" class="hidden-view fixed inset-0 bg-black/60 z-[100] flex items-center justify-center animate-fade-in">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full overflow-hidden animate-fade-in-down">
+        <div class="bg-[#9e1c22] text-white p-4 flex justify-between items-center rounded-t-lg">
+            <h3 class="font-bold text-sm flex items-center gap-2">
+                <i data-lucide="layout-grid" class="w-4 h-4"></i> CHI TIẾT PHÒNG THI
+            </h3>
+            <button onclick="hidePhongThiDetailModal()" class="text-white hover:text-gray-200">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        <div class="p-6 space-y-4 text-xs font-sans">
+            <div class="grid grid-cols-2 gap-3 pb-3 border-b border-gray-100">
+                <div>
+                    <span class="text-gray-500 block">Mã phòng</span>
+                    <strong id="pt-detail-ma" class="text-sm font-mono font-bold text-gray-800">--</strong>
+                </div>
+                <div>
+                    <span class="text-gray-500 block">Sức chứa (SV)</span>
+                    <strong id="pt-detail-suc-chua" class="text-sm font-bold text-blue-900">--</strong>
+                </div>
+            </div>
+            <div>
+                <span class="text-gray-500 block mb-0.5">Tên phòng thi</span>
+                <strong id="pt-detail-ten" class="text-base text-gray-900 font-bold">--</strong>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <span class="text-gray-500 block">Vị trí tòa nhà</span>
+                    <span id="pt-detail-vi-tri" class="font-bold text-gray-800">--</span>
+                </div>
+                <div>
+                    <span class="text-gray-500 block">Loại phòng</span>
+                    <span id="pt-detail-loai" class="font-bold text-gray-800">--</span>
+                </div>
+            </div>
+            <div class="p-3 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-between">
+                <span class="text-gray-600 font-bold">Trạng thái hiện tại:</span>
+                <span id="pt-detail-trang-thai" class="font-bold">--</span>
+            </div>
+        </div>
+        <div class="bg-gray-50 p-4 border-t flex justify-end text-xs">
+            <button onclick="hidePhongThiDetailModal()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-bold">Đóng</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Xác nhận xoá -->
+<div id="modal-delete-confirm" class="hidden-view fixed inset-0 bg-black/60 z-[200] flex items-center justify-center animate-fade-in">
+    <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full overflow-hidden animate-fade-in-down">
+        <div class="p-6 flex items-start gap-4">
+            <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center shrink-0">
+                <i data-lucide="alert-triangle" class="w-6 h-6 text-red-600"></i>
+            </div>
+            <div class="flex-1 text-left">
+                <h3 class="text-lg font-bold text-gray-900 mb-1">Xác nhận xoá</h3>
+                <p class="text-sm text-gray-600 leading-relaxed" id="delete-confirm-message">Bạn có chắc chắn muốn xoá mục này?</p>
+            </div>
+        </div>
+        <div class="bg-gray-50 px-6 py-4 border-t flex justify-end gap-3">
+            <button onclick="hideDeleteConfirmModal()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-semibold text-sm transition-colors">
+                Huỷ bỏ
+            </button>
+            <button id="delete-confirm-btn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold text-sm transition-colors flex items-center gap-1.5">
+                <i data-lucide="trash-2" class="w-4 h-4"></i> Xoá
+            </button>
         </div>
     </div>
 </div>

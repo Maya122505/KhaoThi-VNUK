@@ -1,4 +1,4 @@
-<div class="flex items-center gap-3 bg-gradient-to-r from-red-50/70 to-orange-50/40 p-2 rounded-xl border border-red-100/80 shadow-sm text-slate-800 w-80">
+<div class="flex items-center gap-3 bg-gradient-to-r from-red-50/70 to-orange-50/40 p-2 rounded-xl border border-red-100/80 shadow-sm text-slate-800 w-72">
     <!-- Avatar Status -->
     <div class="relative flex-shrink-0">
         <div class="w-10 h-10 rounded-full bg-[#9e1c22] flex items-center justify-center text-white font-black text-sm border-2 border-white shadow-md">
@@ -8,18 +8,8 @@
     </div>
     <!-- User info -->
     <div class="flex-1 min-w-0">
-        <div class="flex items-center gap-1.5">
-            <span class="text-xs font-black text-[#9e1c22] tracking-wide">Giảng viên</span>
-            <!-- Lecturer Select Switcher inside card -->
-            <select id="gv-switcher" onchange="switchLecturer(this.value)" class="bg-white border border-red-200 text-slate-700 text-[9px] px-1 rounded outline-none font-bold shadow-sm">
-                <option value="GV001">Nguyễn Văn A</option>
-                <option value="GV002">Trần Thị B</option>
-                <option value="GV003">Lê Hoàng C</option>
-                <option value="GV004">Phạm Minh D</option>
-                <option value="GV005">Đặng Thanh E</option>
-            </select>
-        </div>
-        <p class="text-[10px] text-gray-500 font-mono font-bold truncate mt-0.5" id="selected-gv-code">{{ request.user.username }}</p>
+        <p class="text-xs font-black text-[#9e1c22] tracking-wide">Giảng viên / CB Chấm thi</p>
+        <p class="text-[10px] text-gray-500 font-mono font-bold truncate mt-0.5">{{ request.user.username|lower|default:"gv" }}</p>
     </div>
     <!-- Action Buttons -->
     <div class="flex items-center gap-1.5">

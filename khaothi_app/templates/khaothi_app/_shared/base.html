@@ -8,9 +8,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
-        html { font-size: 17px; }
         body { font-family: 'Inter', sans-serif; }
         .hidden-view { display: none !important; }
         ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -33,16 +32,30 @@
             });
             return false;
         };
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
     </script>
     {% block head_extra %}{% endblock %}
 </head>
 <body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
     {% block content %}{% endblock %}
-    
-    <!-- Footer -->
+
     {% include 'khaothi_app/_shared/_footer.html' %}
     
-    <!-- Profile Modal (Shared for all actors) -->
+    <!-- Modal Hồ sơ cá nhân (Dùng chung cho tất cả các vai trò) -->
     {% if request.user.is_authenticated %}
     <div id="profile-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300">
@@ -123,6 +136,23 @@
     {% endif %}
 
     <script>
+        // Ngăn chặn quay lại trang trước và tải lại trang hiện tại
+        window.history.pushState(null, "", window.location.href);
+        window.onpopstate = function() {
+            window.location.reload();
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        });
+        window.addEventListener('load', function() {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        });
+
         function showProfileModal() {
             const modal = document.getElementById('profile-modal');
             modal.classList.remove('hidden');
