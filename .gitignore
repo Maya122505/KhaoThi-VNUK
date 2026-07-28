@@ -54,3 +54,11 @@ google-services.json
 
 # Gradle
 .gradle/
+
+.agents/
+# SQLite Database
+db.sqlite3
+
+Danhsach.csv
+
+Danhsach2.xlsx
