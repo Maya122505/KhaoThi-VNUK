@@ -315,7 +315,12 @@ INITIAL_SYSTEM_CONFIGS = {
     "phucKhao": {
         "ECO101": { "start": "2026-07-25T09:00", "end": "2026-07-30T17:00", "deadline": "2026-08-05T17:00" },
         "PHI101": { "start": "2026-07-26T09:00", "end": "2026-07-31T17:00", "deadline": "2026-08-06T17:00" }
-    }
+    },
+    "phanCongPhongData": [
+        {"id": "PC001", "ltId": "LT-ENG101", "subjectName": "Tiếng Anh GTQT 3", "date": "15/08/2026", "caThi": "Ca 1 (07:30 - 09:30)", "soLuong": 120, "roomNames": "P.101, P.102"},
+        {"id": "PC002", "ltId": "LT-BUS201", "subjectName": "Quản trị dự án", "date": "16/08/2026", "caThi": "Ca 2 (09:45 - 11:45)", "soLuong": 90, "roomNames": "P.201, P.202"},
+        {"id": "PC003", "ltId": "LT-CS101", "subjectName": "Nhập môn Lập trình", "date": "17/08/2026", "caThi": "Ca 3 (13:00 - 15:00)", "soLuong": 60, "roomNames": "P.301"}
+    ]
 }
 
 INITIAL_KY_THI = [
@@ -405,6 +410,10 @@ def seed_database_relational():
     """
     Xóa dữ liệu cũ và gieo dữ liệu thực tế vào các bảng quan hệ SQLite.
     """
+    state, _ = AppState.objects.get_or_create(key="global_state")
+    state.system_configs = json.dumps(INITIAL_SYSTEM_CONFIGS)
+    state.save()
+
     # Xóa sạch
     AuditLog.objects.all().delete()
     DonPhucKhao.objects.all().delete()
@@ -609,8 +618,10 @@ def seed_database_relational():
             # Find phong thi
             pt_obj, _ = PhongThi.objects.get_or_create(ma_phong=hist["room"], defaults={"ten_phong": hist["room"]})
             # Find sub_code
-            sub_c = hist["subject"].split(" (")[-1][:-1]
-            sub_obj, _ = HocPhan.objects.get_or_create(ma_hoc_phan=sub_c, defaults={"ten_hoc_phan": hist["subject"].split(" (")[0]})
+            sub_c = hist["subject"].split(" (")[-1][:-1] if "(" in hist["subject"] else hist["subject"]
+            sub_name = hist["subject"].split(" (")[0] if "(" in hist["subject"] else hist["subject"]
+            sub_obj, _ = HocPhan.objects.get_or_create(ma_hoc_phan=sub_c, defaults={"ten_hoc_phan": sub_name})
+            lhp_obj, _ = LopHocPhan.objects.get_or_create(ma_lop_hp=f"LHP-{sub_c}", defaults={"hoc_phan": sub_obj, "hoc_ky": "Học kỳ III", "nam_hoc": "2025-2026"})
             
             # Create a mock LichThi for history if not exists
             lt_id = f"LT-{sub_c}-{gv_obj.ma_giang_vien}-{ct_obj.ma_ca_thi}"
@@ -620,10 +631,14 @@ def seed_database_relational():
                     "ky_thi_id": "KT-HK3-2026",
                     "ca_thi": ct_obj,
                     "phong_thi": pt_obj,
+                    "lop_hp": lhp_obj,
                     "ngay_thi": parse_date(hist["date"]),
                     "so_luong_sv": 30
                 }
             )
+            if not lt_obj.lop_hp:
+                lt_obj.lop_hp = lhp_obj
+                lt_obj.save()
             PhanCongCoiThi.objects.create(
                 lich_thi=lt_obj,
                 can_bo=gv_obj,
@@ -800,6 +815,48 @@ def seed_database_relational():
             }
         )
 
+    # Seed 14: DeThi & NopDeThi
+    MOCK_DETHI_LIST = [
+        { "id": "DT001", "hocPhan": "Tiếng Anh GTQT 3", "nguoiNop": "TS. Nguyễn Văn Anh", "thoiGian": "2026-08-10 08:30:00", "fileName": "De_Thi_Tieng_Anh_GTQT_3_ChinhThuc.docx", "ghiChu": "Đề thi trắc nghiệm 60 phút, gồm 50 câu.", "trangThai": "ChoRaSoat" },
+        { "id": "DT002", "hocPhan": "Quản trị dự án", "nguoiNop": "ThS. Trần Thị Mai", "thoiGian": "2026-08-10 09:15:00", "fileName": "De_Thi_Quan_Tri_Du_An_Hocky3.pdf", "ghiChu": "Đề thi tự luận 90 phút, 4 câu tình huống.", "trangThai": "ChoRaSoat" },
+        { "id": "DT003", "hocPhan": "Nhập môn Lập trình", "nguoiNop": "TS. Lê Hoàng Nam", "thoiGian": "2026-08-10 10:45:00", "fileName": "De_Thi_Nhap_Mon_Lap_Trinh_Python.pdf", "ghiChu": "Thi thực hành lập trình 90 phút, 3 bài tập.", "trangThai": "ChoRaSoat" },
+        { "id": "DT004", "hocPhan": "Kinh tế vĩ mô", "nguoiNop": "PGS.TS. Vũ Thị Lan", "thoiGian": "2026-08-11 13:20:00", "fileName": "De_Thi_Kinh_Te_Vi_Mo_KyI.docx", "ghiChu": "40 câu trắc nghiệm + 2 bài tập tính toán.", "trangThai": "ChoRaSoat" },
+        { "id": "DT005", "hocPhan": "Cơ sở dữ liệu", "nguoiNop": "ThS. Hoàng Văn Đức", "thoiGian": "2026-08-11 14:00:00", "fileName": "De_Thi_Co_So_Du_Lieu_SQL.pdf", "ghiChu": "Thi tự luận + thực hành truy vấn SQL 75 phút.", "trangThai": "ChoRaSoat" },
+        { "id": "DT006", "hocPhan": "Marketing căn bản", "nguoiNop": "TS. Phạm Minh Tuấn", "thoiGian": "2026-08-11 15:30:00", "fileName": "De_Thi_Marketing_Can_Ban.pdf", "ghiChu": "Đề thi 2 câu lý thuyết + 1 bài tập tình huống.", "trangThai": "ChoRaSoat" },
+        { "id": "DT007", "hocPhan": "Tài chính doanh nghiệp", "nguoiNop": "TS. Đỗ Hoàng Yến", "thoiGian": "2026-08-12 08:00:00", "fileName": "De_Thi_Tai_Chinh_Doanh_Nghiep.pdf", "ghiChu": "Thi viết 90 phút, được dùng bảng số liệu.", "trangThai": "ChoRaSoat" },
+        { "id": "DT008", "hocPhan": "Mạng máy tính", "nguoiNop": "ThS. Ngô Quang Vinh", "thoiGian": "2026-08-12 09:40:00", "fileName": "De_Thi_Mang_May_Tinh_CCNA.docx", "ghiChu": "Đề thi trắc nghiệm trên phần mềm 60 phút.", "trangThai": "ChoRaSoat" },
+        { "id": "DT009", "hocPhan": "Xác suất thống kê", "nguoiNop": "PGS.TS. Bùi Minh Triết", "thoiGian": "2026-08-12 11:00:00", "fileName": "De_Thi_Xac_Suat_Thong_Ke.pdf", "ghiChu": "Thi tự luận 90 phút, gồm 5 bài tập.", "trangThai": "ChoRaSoat" },
+        { "id": "DT010", "hocPhan": "Lập trình Web", "nguoiNop": "ThS. Nguyễn Thị Thu", "thoiGian": "2026-08-12 14:15:00", "fileName": "De_Thi_Lap_Trinh_Web_Vite_Nextjs.pdf", "ghiChu": "Thi thực hành xây dựng Web App 120 phút.", "trangThai": "ChoRaSoat" }
+    ]
+    for d_mock in MOCK_DETHI_LIST:
+        hp_obj = HocPhan.objects.filter(ten_hoc_phan=d_mock["hocPhan"]).first()
+        if not hp_obj:
+            hp_code = "CSE301" if d_mock["id"] == "DT010" else f"GEN-{d_mock['id']}"
+            hp_obj, _ = HocPhan.objects.get_or_create(ma_hoc_phan=hp_code, defaults={"ten_hoc_phan": d_mock["hocPhan"]})
+            
+        dethi_obj, _ = DeThi.objects.get_or_create(
+            ma_de_thi=d_mock["id"],
+            defaults={
+                "hoc_phan": hp_obj,
+                "trang_thai": d_mock["trangThai"]
+            }
+        )
+        
+        gv_user = User.objects.filter(full_name=d_mock["nguoiNop"]).first()
+        if not gv_user:
+            gv_user, _ = User.objects.get_or_create(
+                username=d_mock["id"].lower(),
+                defaults={"role": "gv", "full_name": d_mock["nguoiNop"]}
+            )
+            
+        NopDeThi.objects.get_or_create(
+            de_thi=dethi_obj,
+            defaults={
+                "nguoi_nop": gv_user,
+                "tep_dinh_kem": d_mock["fileName"]
+            }
+        )
+
 
 def get_state(request):
     """
@@ -808,9 +865,11 @@ def get_state(request):
     """
     state_instance, created = AppState.objects.get_or_create(key="global_state")
     
-    # Nếu lần đầu chạy hoặc DB rỗng, thực hiện gieo dữ liệu
-    if created or KyThi.objects.count() == 0:
+    # Chỉ thực hiện gieo dữ liệu (seed) khi chưa từng khởi tạo dữ liệu
+    has_seeded = AppState.objects.filter(key="seeded_once").exists()
+    if not has_seeded:
         seed_database_relational()
+        AppState.objects.create(key="seeded_once")
         
     # 1. phongThiGocData
     phong_thi_goc_data = []
@@ -1054,7 +1113,7 @@ def get_state(request):
         bb = getattr(dis, 'bien_ban_giam_sat', None)
         lt_obj = LichThi.objects.filter(ca_thi=dis.ca_thi, phong_thi=dis.phong_thi, lop_hp__hoc_phan=dis.hoc_phan).first()
         lt_id = lt_obj.ma_lich_thi if lt_obj else ""
-        subject_name = dis.hoc_phan.ten_hoc_phan if dis.hoc_phan else ""
+        subject_name = dis.hoc_phan.ten_hoc_phan if dis.hoc_phan else "Đợt in sao mới"
         
         # Map DB status to Client display status
         db_status = dis.trang_thai
@@ -1121,7 +1180,7 @@ def get_state(request):
             "thoiGian": nop.thoi_gian_nop.strftime('%H:%M %d/%m/%Y') if nop else "",
             "fileName": nop.tep_dinh_kem if nop else "",
             "ghiChu": rs.ghi_chu if rs else "",
-            "trangThai": dt.trang_thai,
+            "trangThai": {"ChoRaSoat": "Chờ rà soát", "Dat": "Đạt", "ChoChinhSua": "Chờ chỉnh sửa"}.get(dt.trang_thai, dt.trang_thai),
             "nhanXet": rs.ket_qua if rs else ""
         })
         
@@ -1139,14 +1198,10 @@ def get_state(request):
         system_configs_str = json.dumps(INITIAL_SYSTEM_CONFIGS)
         
     sys_configs = json.loads(system_configs_str)
-    if "inSaoData" in sys_configs:
+    if not in_sao_data and "inSaoData" in sys_configs:
         in_sao_data = sys_configs["inSaoData"]
 
-    phan_cong_phong_data = sys_configs.get("phanCongPhongData", [
-        {"id": "PC001", "ltId": "LT-ENG101", "subjectName": "Tiếng Anh GTQT 3", "date": "15/08/2026", "caThi": "Ca 1 (07:30 - 09:30)", "soLuong": 120, "roomNames": "P.101, P.102"},
-        {"id": "PC002", "ltId": "LT-BUS201", "subjectName": "Quản trị dự án", "date": "16/08/2026", "caThi": "Ca 2 (09:45 - 11:45)", "soLuong": 90, "roomNames": "P.201, P.202"},
-        {"id": "PC003", "ltId": "LT-CS101", "subjectName": "Nhập môn Lập trình", "date": "17/08/2026", "caThi": "Ca 3 (13:00 - 15:00)", "soLuong": 60, "roomNames": "P.301"}
-    ])
+    phan_cong_phong_data = sys_configs.get("phanCongPhongData", [])
 
     return JsonResponse({
         "phongThiGocData": phong_thi_goc_data,
@@ -1251,6 +1306,17 @@ def save_state(request):
                     
             # 2. Đồng bộ tuiPhachData -> TuiPhach, MaPhach, DiemThi, DoiSoatDiem, PhanCongChamThi
             if "tuiPhachData" in data:
+                payload_ids = [tp["id"] for tp in data["tuiPhachData"] if tp.get("id")]
+                deleted_tui_ids = list(TuiPhach.objects.exclude(ma_tui__in=payload_ids).values_list('ma_tui', flat=True))
+                if deleted_tui_ids:
+                    DonPhucKhao.objects.filter(ma_phach__tui_phach_id__in=deleted_tui_ids).delete()
+                    DoiSoatDiem.objects.filter(ma_phach__tui_phach_id__in=deleted_tui_ids).delete()
+                    DiemThi.objects.filter(ma_phach__tui_phach_id__in=deleted_tui_ids).delete()
+                    PhanCongChamThi.objects.filter(tui_phach_id__in=deleted_tui_ids).delete()
+                    MaPhach.objects.filter(tui_phach_id__in=deleted_tui_ids).delete()
+                    ChiTietGiaoNhan.objects.filter(tui_phach_id__in=deleted_tui_ids).delete()
+                    TuiPhach.objects.filter(ma_tui__in=deleted_tui_ids).delete()
+
                 # Pre-fetch lookup tables to avoid N+1 queries in loops
                 maphach_dict = {mp.ma_phach: mp for mp in MaPhach.objects.select_related('tui_phach', 'thi_sinh__sinh_vien').all()}
                 diemthi_dict = {(dt.ma_phach_id, dt.lan_cham): dt for dt in DiemThi.objects.all()}
@@ -1327,7 +1393,7 @@ def save_state(request):
                             )
                             maphach_dict[phach] = mp_obj
                         else:
-                            if mp_obj.tui_phach_id != tui_obj.id or mp_obj.trang_thai != "DaRop":
+                            if mp_obj.tui_phach_id != tui_obj.ma_tui or mp_obj.trang_thai != "DaRop":
                                 mp_obj.tui_phach = tui_obj
                                 mp_obj.trang_thai = "DaRop"
                                 mp_obj.save()
@@ -1341,7 +1407,7 @@ def save_state(request):
                             gv2 = giangvien_dict.get(tp["grader2"]) if tp["grader2"] else None
 
                             if g1_s is not None and gv1:
-                                dt_key = (mp_obj.id, 1)
+                                dt_key = (mp_obj.ma_phach, 1)
                                 existing_dt = diemthi_dict.get(dt_key)
                                 if not existing_dt:
                                     DiemThi.objects.create(ma_phach=mp_obj, lan_cham=1, diem=g1_s, can_bo=gv1)
@@ -1352,7 +1418,7 @@ def save_state(request):
                                         existing_dt.save()
 
                             if g2_s is not None and gv2:
-                                dt_key = (mp_obj.id, 2)
+                                dt_key = (mp_obj.ma_phach, 2)
                                 existing_dt = diemthi_dict.get(dt_key)
                                 if not existing_dt:
                                     DiemThi.objects.create(ma_phach=mp_obj, lan_cham=2, diem=g2_s, can_bo=gv2)
@@ -1366,7 +1432,7 @@ def save_state(request):
                             ds_status = "Khop" if diff == 0 else "Lech"
                             
                             # Cập nhật đối soát
-                            existing_ds = doisoat_dict.get(mp_obj.id)
+                            existing_ds = doisoat_dict.get(mp_obj.ma_phach)
                             if not existing_ds:
                                 DoiSoatDiem.objects.create(
                                     ma_phach=mp_obj,
@@ -1388,6 +1454,12 @@ def save_state(request):
                             
             # 3. Đồng bộ phieuGiaoNhanData -> PhieuGiaoNhan, ChiTietGiaoNhan
             if "phieuGiaoNhanData" in data:
+                payload_ids = [pg["id"] for pg in data["phieuGiaoNhanData"] if pg.get("id")]
+                deleted_phieu_ids = list(PhieuGiaoNhan.objects.exclude(ma_phieu__in=payload_ids).values_list('ma_phieu', flat=True))
+                if deleted_phieu_ids:
+                    ChiTietGiaoNhan.objects.filter(phieu_id__in=deleted_phieu_ids).delete()
+                    PhieuGiaoNhan.objects.filter(ma_phieu__in=deleted_phieu_ids).delete()
+
                 for pg in data["phieuGiaoNhanData"]:
                     sender_user, _ = User.objects.get_or_create(username=pg["sender"], defaults={"role": pg["sender"], "full_name": pg["sender"].upper()})
                     recipient_user, _ = User.objects.get_or_create(username=pg["recipient"], defaults={"role": pg["recipient"], "full_name": pg["recipient"].upper()})
@@ -1430,7 +1502,10 @@ def save_state(request):
                                 
                             if ct_obj:
                                 pt_obj, _ = PhongThi.objects.get_or_create(ma_phong=hist["room"], defaults={"ten_phong": hist["room"]})
-                                sub_c = hist["subject"].split(" (")[-1][:-1]
+                                sub_c = hist["subject"].split(" (")[-1][:-1] if "(" in hist["subject"] else hist["subject"]
+                                sub_name = hist["subject"].split(" (")[0] if "(" in hist["subject"] else hist["subject"]
+                                sub_obj, _ = HocPhan.objects.get_or_create(ma_hoc_phan=sub_c, defaults={"ten_hoc_phan": sub_name})
+                                lhp_obj, _ = LopHocPhan.objects.get_or_create(ma_lop_hp=f"LHP-{sub_c}", defaults={"hoc_phan": sub_obj, "hoc_ky": "Học kỳ III", "nam_hoc": "2025-2026"})
                                 
                                 lt_id = f"LT-{sub_c}-{gv_obj.ma_giang_vien}-{ct_obj.ma_ca_thi}"
                                 lt_obj, _ = LichThi.objects.get_or_create(
@@ -1439,10 +1514,14 @@ def save_state(request):
                                         "ky_thi_id": ct_obj.ky_thi_id,
                                         "ca_thi": ct_obj,
                                         "phong_thi": pt_obj,
+                                        "lop_hp": lhp_obj,
                                         "ngay_thi": parse_date(hist["date"]),
                                         "so_luong_sv": 30
                                     }
                                 )
+                                if not lt_obj.lop_hp:
+                                    lt_obj.lop_hp = lhp_obj
+                                    lt_obj.save()
                                 PhanCongCoiThi.objects.update_or_create(
                                     lich_thi=lt_obj,
                                     can_bo=gv_obj,
@@ -1603,8 +1682,15 @@ def save_state(request):
                     NhatKyInSao.objects.filter(dot_in_sao_id__in=deleted_in_sao_ids).delete()
                     DotInSao.objects.filter(ma_dot_in_sao__in=deleted_in_sao_ids).delete()
                 
+                req_user = getattr(request, 'user', None)
+                if req_user and not req_user.is_authenticated:
+                    req_user = None
+
                 for isd in data["inSaoData"]:
-                    user_sys, _ = User.objects.get_or_create(username="system", defaults={"role": "cvht", "full_name": "Hệ thống"})
+                    user_sys = req_user or User.objects.filter(role="tkt").first()
+                    if not user_sys:
+                        user_sys, _ = User.objects.get_or_create(username="tkt_system", defaults={"role": "tkt", "full_name": "Tổ Khảo thí"})
+
                     lt_obj = LichThi.objects.filter(ma_lich_thi=isd.get("ltId")).first()
                     
                     client_status = isd.get("trangThai", "Chờ cập nhật")
@@ -1618,62 +1704,82 @@ def save_state(request):
                     elif client_status == "Từ chối xác nhận":
                         db_status = "TuChoi"
                         
-                    ky_thi_obj = lt_obj.ky_thi if lt_obj else KyThi.objects.first()
-                    if ky_thi_obj:
-                        dt_time = parse_datetime(isd.get("ngay") + "T00:00:00") if (isd.get("ngay") and "T" not in isd.get("ngay")) else parse_datetime(isd.get("ngay"))
-                        dis_obj, _ = DotInSao.objects.update_or_create(
-                            ma_dot_in_sao=isd["id"],
+                    ky_thi_obj = lt_obj.ky_thi if (lt_obj and lt_obj.ky_thi) else KyThi.objects.first()
+                    if not ky_thi_obj:
+                        ky_thi_obj, _ = KyThi.objects.get_or_create(
+                            ma_ky_thi="KT-HK3-2026",
+                            defaults={"ten_ky_thi": "Thi cuối kỳ học kỳ III", "nam_hoc": "2025-2026", "hoc_ky": "Học kỳ III"}
+                        )
+
+                    hp_obj = lt_obj.lop_hp.hoc_phan if (lt_obj and lt_obj.lop_hp and lt_obj.lop_hp.hoc_phan) else None
+                    if not hp_obj and isd.get("subjectName"):
+                        hp_obj = HocPhan.objects.filter(ten_hoc_phan=isd.get("subjectName")).first()
+                    if not hp_obj and isd.get("subjectName"):
+                        hp_obj, _ = HocPhan.objects.get_or_create(ma_hoc_phan=f"HP-{isd['id']}", defaults={"ten_hoc_phan": isd.get("subjectName")})
+
+                    giam_sat_user = User.objects.filter(username=isd.get("giamSat")).first() or User.objects.filter(full_name=isd.get("giamSat")).first() or user_sys
+
+                    dt_time = None
+                    if isd.get("ngay"):
+                        dt_time = parse_datetime(isd.get("ngay") + "T00:00:00") if "T" not in isd.get("ngay") else parse_datetime(isd.get("ngay"))
+                        if not dt_time:
+                            d = safe_parse_date(isd.get("ngay"))
+                            if d:
+                                dt_time = datetime.combine(d, datetime.min.time())
+
+                    dis_obj, _ = DotInSao.objects.update_or_create(
+                        ma_dot_in_sao=isd["id"],
+                        defaults={
+                            "ky_thi": ky_thi_obj,
+                            "ca_thi": lt_obj.ca_thi if (lt_obj and lt_obj.ca_thi) else None,
+                            "phong_thi": lt_obj.phong_thi if (lt_obj and lt_obj.phong_thi) else None,
+                            "hoc_phan": hp_obj,
+                            "nguoi_tao": user_sys,
+                            "so_luong_ban_in": int(isd.get("soLuong", 0) or 0),
+                            "thoi_gian_in_sao": dt_time or timezone.now(),
+                            "noi_in_sao": isd.get("noiIn", ""),
+                            "can_bo_giam_sat": giam_sat_user,
+                            "ghi_chu": isd.get("ghiChu", ""),
+                            "trang_thai": db_status
+                        }
+                    )
+                        
+                    if client_status == "Hoàn tất":
+                        from django.utils import timezone
+                        BienBanGiamSatInSao.objects.update_or_create(
+                            dot_in_sao=dis_obj,
                             defaults={
-                                "ky_thi": ky_thi_obj,
-                                "ca_thi": lt_obj.ca_thi if lt_obj else None,
-                                "phong_thi": lt_obj.phong_thi if lt_obj else None,
-                                "hoc_phan": lt_obj.lop_hp.hoc_phan if (lt_obj and lt_obj.lop_hp) else None,
-                                "nguoi_tao": user_sys,
-                                "so_luong_ban_in": int(isd.get("soLuong", 0) or 0),
-                                "thoi_gian_in_sao": dt_time,
-                                "noi_in_sao": isd.get("noiIn", ""),
-                                "can_bo_giam_sat": User.objects.filter(username=isd.get("giamSat")).first(),
-                                "ghi_chu": isd.get("ghiChu", ""),
-                                "trang_thai": db_status
+                                "trang_thai": "DaXacNhan",
+                                "nguoi_xac_nhan": req_user,
+                                "nhan_xet_giam_sat": isd.get("nhanXetGiamSat", ""),
+                                "chu_ky_so": isd.get("chuKySo", ""),
+                                "ngay_xac_nhan": timezone.now()
                             }
                         )
-                        
-                        if client_status == "Hoàn tất":
-                            from django.utils import timezone
-                            BienBanGiamSatInSao.objects.update_or_create(
-                                dot_in_sao=dis_obj,
-                                defaults={
-                                    "trang_thai": "DaXacNhan",
-                                    "nguoi_xac_nhan": request.user if (request.user and request.user.is_authenticated) else None,
-                                    "nhan_xet_giam_sat": isd.get("nhanXetGiamSat", ""),
-                                    "chu_ky_so": isd.get("chuKySo", ""),
-                                    "ngay_xac_nhan": timezone.now()
-                                }
-                            )
-                        elif client_status == "Cần xử lý lại" or client_status == "Từ chối xác nhận":
-                            from django.utils import timezone
-                            BienBanGiamSatInSao.objects.update_or_create(
-                                dot_in_sao=dis_obj,
-                                defaults={
-                                    "trang_thai": "TuChoi",
-                                    "nguoi_xac_nhan": request.user if (request.user and request.user.is_authenticated) else None,
-                                    "nhan_xet_giam_sat": isd.get("ghiChuKiemTra", "") or isd.get("nhanXetGiamSat", ""),
-                                    "chu_ky_so": "",
-                                    "ngay_xac_nhan": timezone.now()
-                                }
-                            )
-                        elif client_status == "Chờ xác nhận":
-                            BienBanGiamSatInSao.objects.update_or_create(
-                                dot_in_sao=dis_obj,
-                                defaults={
-                                    "trang_thai": "ChoXacNhan",
-                                    "nguoi_xac_nhan": None,
-                                    "nhan_xet_giam_sat": "",
-                                    "chu_ky_so": "",
-                                    "ngay_xac_nhan": None
-                                }
-                            )
-                    
+                    elif client_status == "Cần xử lý lại" or client_status == "Từ chối xác nhận":
+                        from django.utils import timezone
+                        BienBanGiamSatInSao.objects.update_or_create(
+                            dot_in_sao=dis_obj,
+                            defaults={
+                                "trang_thai": "TuChoi",
+                                "nguoi_xac_nhan": req_user,
+                                "nhan_xet_giam_sat": isd.get("ghiChuKiemTra", "") or isd.get("nhanXetGiamSat", ""),
+                                "chu_ky_so": "",
+                                "ngay_xac_nhan": timezone.now()
+                            }
+                        )
+                    elif client_status == "Chờ xác nhận":
+                        BienBanGiamSatInSao.objects.update_or_create(
+                            dot_in_sao=dis_obj,
+                            defaults={
+                                "trang_thai": "ChoXacNhan",
+                                "nguoi_xac_nhan": None,
+                                "nhan_xet_giam_sat": "",
+                                "chu_ky_so": "",
+                                "ngay_xac_nhan": None
+                            }
+                        )
+                
                     if isd.get("nkThoiGian"):
                         from django.utils import timezone
                         NhatKyInSao.objects.update_or_create(
@@ -1706,11 +1812,14 @@ def save_state(request):
                         
                     hp_obj, _ = HocPhan.objects.get_or_create(ma_hoc_phan=hp_code, defaults={"ten_hoc_phan": hp_name})
                     
+                    # Map frontend display string -> DB enum value
+                    trang_thai_map = {"Chờ rà soát": "ChoRaSoat", "Đạt": "Dat", "Chờ chỉnh sửa": "ChoChinhSua"}
+                    trang_thai_val = trang_thai_map.get(dt.get("trangThai", ""), dt.get("trangThai", "ChoRaSoat"))
                     dethi_obj, _ = DeThi.objects.update_or_create(
                         ma_de_thi=dt["id"],
                         defaults={
                             "hoc_phan": hp_obj,
-                            "trang_thai": dt.get("trangThai", "ChoRaSoat")
+                            "trang_thai": trang_thai_val
                         }
                     )
                     

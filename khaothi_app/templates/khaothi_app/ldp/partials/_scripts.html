@@ -108,7 +108,11 @@
 
     window.onload = async function() {
         initIcons();
-        await loadStateFromServer();
+        try {
+            await loadStateFromServer();
+        } catch (err) {
+            console.error("Lỗi loadStateFromServer:", err);
+        }
         sessionStorage.removeItem('ldp_activeViewId');
         navigate('view-home');
     };
@@ -130,6 +134,9 @@
             tuiPhachData = data.tuiPhachData || [];
             phieuGiaoNhanData = data.phieuGiaoNhanData || [];
             canBoCoiThiData = data.canBoCoiThiData || [];
+            phongThiData = data.phongThiData || [];
+            phanCongPhongData = data.phanCongPhongData || [];
+            inSaoData = data.inSaoData || [];
             const mockDeThiList = [
                 { id: "DT001", hocPhan: "Tiếng Anh GTQT 3", nguoiNop: "TS. Nguyễn Văn Anh", thoiGian: "08:30 10/08/2026", fileName: "De_Thi_Tieng_Anh_GTQT_3_ChinhThuc.docx", ghiChu: "Đề thi trắc nghiệm 60 phút, gồm 50 câu.", trangThai: "Chờ rà soát", nhanXet: "" },
                 { id: "DT002", hocPhan: "Quản trị dự án", nguoiNop: "ThS. Trần Thị Mai", thoiGian: "09:15 10/08/2026", fileName: "De_Thi_Quan_Tri_Du_An_Hocky3.pdf", ghiChu: "Đề thi tự luận 90 phút, 4 câu tình huống.", trangThai: "Chờ rà soát", nhanXet: "" },
@@ -139,10 +146,11 @@
                 { id: "DT006", hocPhan: "Marketing căn bản", nguoiNop: "TS. Phạm Minh Tuấn", thoiGian: "15:30 11/08/2026", fileName: "De_Thi_Marketing_Can_Ban.pdf", ghiChu: "Đề thi 2 câu lý thuyết + 1 bài tập tình huống.", trangThai: "Chờ rà soát", nhanXet: "" },
                 { id: "DT007", hocPhan: "Tài chính doanh nghiệp", nguoiNop: "TS. Đỗ Hoàng Yến", thoiGian: "08:00 12/08/2026", fileName: "De_Thi_Tai_Chinh_Doanh_Nghiep.pdf", ghiChu: "Thi viết 90 phút, được dùng bảng số liệu.", trangThai: "Chờ rà soát", nhanXet: "" },
                 { id: "DT008", hocPhan: "Mạng máy tính", nguoiNop: "ThS. Ngô Quang Vinh", thoiGian: "09:40 12/08/2026", fileName: "De_Thi_Mang_May_Tinh_CCNA.docx", ghiChu: "Đề thi trắc nghiệm trên phần mềm 60 phút.", trangThai: "Chờ rà soát", nhanXet: "" },
-                { id: "DT009", hocPhan: "Xác suất thống kê", nguoiNop: "PGS.TS. Bùi Minh Triết", thoiGian: "11:00 12/08/2026", fileName: "De_Thi_Xac_Suat_Thong_Ke.pdf", ghiChu: "Thi tự luận 90 phút, gồm 5 bài tập.", trangThai: "Chờ rà soát", nhanXet: "" }
+                { id: "DT009", hocPhan: "Xác suất thống kê", nguoiNop: "PGS.TS. Bùi Minh Triết", thoiGian: "11:00 12/08/2026", fileName: "De_Thi_Xac_Suat_Thong_Ke.pdf", ghiChu: "Thi tự luận 90 phút, gồm 5 bài tập.", trangThai: "Chờ rà soát", nhanXet: "" },
+                { id: "DT010", hocPhan: "Lập trình Web", nguoiNop: "ThS. Nguyễn Thị Thu", thoiGian: "14:15 12/08/2026", fileName: "De_Thi_Lap_Trinh_Web_Vite_Nextjs.pdf", ghiChu: "Thi thực hành xây dựng Web App 120 phút.", trangThai: "Chờ rà soát", nhanXet: "" }
             ];
-            deThiData = (data.deThiData && data.deThiData.length >= 1) ? data.deThiData.filter(d => d.id !== "DT010") : mockDeThiList;
-            danhSachThiData = (data.danhSachThiData && data.danhSachThiData.length > 0) ? data.danhSachThiData : defaultDanhSachThiData;
+            deThiData = (data.deThiData !== undefined && data.deThiData !== null && data.deThiData.length > 0) ? data.deThiData : mockDeThiList;
+            danhSachThiData = (data.danhSachThiData !== undefined && data.danhSachThiData !== null && data.danhSachThiData.length > 0) ? data.danhSachThiData : defaultDanhSachThiData;
             isStateLoaded = true;
         } catch(e) {
             console.error("Lỗi đồng bộ dữ liệu:", e);
@@ -166,7 +174,10 @@
                     canBoCoiThiData,
                     phucKhaoData,
                     deThiData,
-                    danhSachThiData
+                    danhSachThiData,
+                    phongThiData,
+                    phanCongPhongData,
+                    inSaoData
                 })
             });
         } catch(e) {

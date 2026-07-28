@@ -590,6 +590,7 @@ class AppState(models.Model):
     lich_thi = models.TextField(default='[]')
     hoc_phi = models.TextField(default='[]')
     lop_thi_diem = models.TextField(default='{}')
+    danh_sach_thi_data = models.TextField(default='[]')
 
     def __str__(self):
         return f"AppState - {self.key}"

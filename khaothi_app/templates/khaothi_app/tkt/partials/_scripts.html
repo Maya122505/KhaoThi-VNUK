@@ -80,9 +80,10 @@
                 { id: "DT006", hocPhan: "Marketing căn bản", nguoiNop: "TS. Phạm Minh Tuấn", thoiGian: "15:30 11/08/2026", fileName: "De_Thi_Marketing_Can_Ban.pdf", ghiChu: "Đề thi 2 câu lý thuyết + 1 bài tập tình huống.", trangThai: "Chờ rà soát", nhanXet: "" },
                 { id: "DT007", hocPhan: "Tài chính doanh nghiệp", nguoiNop: "TS. Đỗ Hoàng Yến", thoiGian: "08:00 12/08/2026", fileName: "De_Thi_Tai_Chinh_Doanh_Nghiep.pdf", ghiChu: "Thi viết 90 phút, được dùng bảng số liệu.", trangThai: "Chờ rà soát", nhanXet: "" },
                 { id: "DT008", hocPhan: "Mạng máy tính", nguoiNop: "ThS. Ngô Quang Vinh", thoiGian: "09:40 12/08/2026", fileName: "De_Thi_Mang_May_Tinh_CCNA.docx", ghiChu: "Đề thi trắc nghiệm trên phần mềm 60 phút.", trangThai: "Chờ rà soát", nhanXet: "" },
-                { id: "DT009", hocPhan: "Xác suất thống kê", nguoiNop: "PGS.TS. Bùi Minh Triết", thoiGian: "11:00 12/08/2026", fileName: "De_Thi_Xac_Suat_Thong_Ke.pdf", ghiChu: "Thi tự luận 90 phút, gồm 5 bài tập.", trangThai: "Chờ rà soát", nhanXet: "" }
+                { id: "DT009", hocPhan: "Xác suất thống kê", nguoiNop: "PGS.TS. Bùi Minh Triết", thoiGian: "11:00 12/08/2026", fileName: "De_Thi_Xac_Suat_Thong_Ke.pdf", ghiChu: "Thi tự luận 90 phút, gồm 5 bài tập.", trangThai: "Chờ rà soát", nhanXet: "" },
+                { id: "DT010", hocPhan: "Lập trình Web", nguoiNop: "ThS. Nguyễn Thị Thu", thoiGian: "14:15 12/08/2026", fileName: "De_Thi_Lap_Trinh_Web_Vite_Nextjs.pdf", ghiChu: "Thi thực hành xây dựng Web App 120 phút.", trangThai: "Chờ rà soát", nhanXet: "" }
             ];
-            deThiData = (data.deThiData && data.deThiData.length >= 5) ? data.deThiData.filter(d => d.id !== "DT010") : mockDeThiList;
+            deThiData = (data.deThiData !== undefined && data.deThiData !== null && data.deThiData.length > 0) ? data.deThiData : mockDeThiList;
             hocPhanData = data.hocPhanData || [];
             if (data.donGiaRulesData && data.donGiaRulesData.length > 0) {
                 donGiaRulesData = data.donGiaRulesData;
@@ -91,11 +92,13 @@
 
             // Xây dựng dữ liệu chi tiết túi phách (tuiPhachChiTietData) động từ tuiPhachData
             tuiPhachChiTietData = {};
-            tuiPhachData.forEach(bag => {
+            (tuiPhachData || []).forEach(bag => {
+                if (!bag) return;
+                const phachList = bag.phachGoc || [];
                 tuiPhachChiTietData[bag.id] = {
                     password: bag.password || "123",
                     subjectName: bag.subjectName,
-                    papers: bag.phachGoc.map((phach, idx) => {
+                    papers: phachList.map((phach, idx) => {
                         const scoreObj = (bag.scores && bag.scores[phach]) || { grader1: null, grader2: null };
                         return {
                             stt: idx + 1,
@@ -118,7 +121,8 @@
     async function saveStateToServer() {
         try {
             // Đồng bộ chi tiết từ tuiPhachChiTietData ngược lại tuiPhachData
-            tuiPhachData.forEach(bag => {
+            (tuiPhachData || []).forEach(bag => {
+                if (!bag) return;
                 const detail = tuiPhachChiTietData[bag.id];
                 if (detail && detail.papers) {
                     bag.scores = bag.scores || {};
@@ -153,7 +157,8 @@
                     phanCongPhongData,
                     inSaoData,
                     deThiData,
-                    donGiaRulesData
+                    donGiaRulesData,
+                    danhSachThiData
                 })
             });
         } catch(e) {
@@ -162,8 +167,12 @@
     }
     window.onload = async function() {
         initIcons();
-        await loadStateFromServer();
-        populateCaThiSelectOptions();
+        try {
+            await loadStateFromServer();
+        } catch (err) {
+            console.error("Lỗi loadStateFromServer:", err);
+        }
+        if (typeof populateCaThiSelectOptions === 'function') populateCaThiSelectOptions();
         sessionStorage.removeItem('tkt_activeViewId');
         navigate('view-home');
     };
@@ -637,6 +646,12 @@
                     if (typeof renderGioCoiThongKe === 'function') renderGioCoiThongKe();
                 }
 
+                showGlobalToast("Thành công", `Đã xóa ${idsToDelete.length} mục thành công.`);
+                if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
+            }
+        );
+    }
+
     function handleDeleteKyThi(id) {
         showDeleteConfirmModal(
             "Bạn có chắc chắn muốn xóa kỳ thi này? Toàn bộ ca thi và lịch thi liên quan sẽ bị xóa.",
@@ -727,31 +742,6 @@
         );
     }
     window.handleDeleteInSao = handleDeleteInSao;
-
-                // Reset selection state
-                selectModesState[key] = 0;
-                const btn = document.getElementById(`btn-select-${key}`);
-                const btnSpan = btn ? btn.querySelector('span') : null;
-                if (btnSpan) btnSpan.innerText = "Chọn";
-                
-                // Hide selection checkboxes and global delete button
-                document.querySelectorAll(`.select-cb-${key}, .select-col-${key}`).forEach(el => {
-                    el.classList.add('hidden');
-                });
-                const globalDelBtn = document.getElementById(`btn-delete-all-${key}`);
-                if (globalDelBtn) globalDelBtn.classList.add('hidden');
-                
-                // Show individual delete buttons again
-                document.querySelectorAll(`.del-btn-${key}`).forEach(el => el.classList.remove('hidden'));
-                if (key === 'dsl-lich') {
-                    document.querySelectorAll('.del-col-dsl-lich').forEach(el => el.classList.remove('hidden'));
-                }
-
-                showGlobalToast("Thành công", `Đã xóa thành công ${idsToDelete.length} mục.`, "success");
-                if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
-            }
-        );
-    }
 
     function renderCaThiList() {
         const div = document.getElementById('ca-thi-list-div');
@@ -4496,6 +4486,18 @@
             gcInput.value = is.ghiChuKiemTra || is.nhanXetGiamSat || '';
         }
 
+        const pwInput = document.getElementById('kt-confirm-password');
+        if (pwInput) pwInput.value = '';
+        const pwError = document.getElementById('kt-confirm-password-error');
+        if (pwError) pwError.classList.add('hidden-view');
+
+        const pwContainer = document.getElementById('kt-password-container');
+        if (isLocked) {
+            if (pwContainer) pwContainer.classList.add('hidden');
+        } else {
+            if (pwContainer) pwContainer.classList.remove('hidden');
+        }
+
         const ktSaveBtn = document.getElementById('btn-save-kiem-tra');
         const ktNotice = document.getElementById('kt-locked-notice');
         if (isLocked) {
@@ -4520,6 +4522,32 @@
         if (!rawId) return;
 
         const ids = rawId.split(',').map(s => s.trim()).filter(s => s);
+        const firstIs = inSaoData.find(x => x.id === ids[0]);
+        const isLocked = firstIs && firstIs.trangThai === "Hoàn tất";
+
+        if (!isLocked) {
+            const pwInput = document.getElementById('kt-confirm-password');
+            const pwVal = pwInput ? pwInput.value.trim() : '';
+            const pwError = document.getElementById('kt-confirm-password-error');
+
+            if (!pwVal) {
+                showGlobalToast("Lỗi xác nhận", "Vui lòng nhập mật khẩu xác nhận.", "error");
+                if (pwError) {
+                    pwError.textContent = "Mật khẩu không được để trống!";
+                    pwError.classList.remove('hidden-view');
+                }
+                return;
+            }
+            if (pwVal !== "123456") {
+                showGlobalToast("Lỗi xác nhận", "Mật khẩu xác nhận không chính xác!", "error");
+                if (pwError) {
+                    pwError.textContent = "Mật khẩu xác nhận không chính xác! Hãy kiểm tra lại";
+                    pwError.classList.remove('hidden-view');
+                }
+                return;
+            }
+        }
+
         const radioChecked = document.querySelector('input[name="kt-res-radio"]:checked');
         const ketQua = radioChecked ? radioChecked.value : 'Khop';
         const ghiChuKT = document.getElementById('kt-ghi-chu-input') ? document.getElementById('kt-ghi-chu-input').value.trim() : '';
@@ -4528,7 +4556,7 @@
         ids.forEach(id => {
             const is = inSaoData.find(x => x.id === id);
             if (!is) return;
-
+ 
             is.ketQuaKiemTra = ketQua;
             is.ghiChuKiemTra = ghiChuKT;
 
