@@ -2,13 +2,13 @@
 <div id="view-nhap-tra-diem" class="view-section hidden-view animate-fade-in h-full flex flex-col font-sans">
     <div class="flex justify-between items-center border-b pb-4 mb-4">
         <div>
-            <h2 class="text-xl font-bold text-blue-900 flex items-center gap-2">
+            <h2 class="text-2xl font-bold text-blue-900 flex items-center gap-2">
                 <i data-lucide="award" class="text-blue-600"></i> Phê duyệt Bảng điểm
             </h2>
         </div>
         <div class="flex items-center gap-3">
             <button id="btn-batch-duyet-diem-dvcm" onclick="executeBatchDuyetDiemDVCM()" disabled
-                class="bg-[#9e1c22] opacity-50 cursor-not-allowed text-white text-xs font-bold px-5 py-2.5 rounded shadow flex items-center gap-2 transition-all">
+                class="bg-[#9e1c22] opacity-50 cursor-not-allowed text-white text-sm font-bold px-5 py-2.5 rounded shadow flex items-center gap-2 transition-all">
                 <i data-lucide="check-circle" class="w-4 h-4"></i> PHÊ DUYỆT BẢNG ĐIỂM (<span id="count-checked-duyet-dvcm">0</span>)
             </button>
         </div>
@@ -19,22 +19,22 @@
         <!-- Left Column: Master List (5 cols) -->
         <div class="col-span-5 flex flex-col bg-white border rounded-lg shadow-sm overflow-hidden h-full justify-between">
             <div class="p-3 bg-gray-50 border-b flex flex-col gap-2">
-                <div class="flex justify-between items-center text-xs font-bold text-gray-700">
+                <div class="flex justify-between items-center text-sm font-bold text-gray-700">
                     <div class="flex items-center gap-2">
                         <input type="checkbox" id="check-all-duyet-dvcm" onchange="toggleSelectAllDuyetDVCM(this.checked)" class="w-4 h-4 cursor-pointer accent-[#9e1c22]" title="Chọn tất cả bài chờ duyệt">
                         <span>Danh sách bảng điểm</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <select id="duyet-filter-select-dvcm" onchange="renderNhapTraDiem()" class="text-[11px] p-1 border rounded border-gray-300 bg-white font-semibold text-gray-700 outline-none cursor-pointer">
+                        <select id="duyet-filter-select-dvcm" onchange="renderNhapTraDiem()" class="text-xs p-1 border rounded border-gray-300 bg-white font-semibold text-gray-700 outline-none cursor-pointer">
                             <option value="all">Tất cả</option>
                             <option value="cho" selected>Chờ duyệt</option>
                             <option value="da">Đã duyệt</option>
                         </select>
-                        <span class="text-gray-500 font-normal" id="duyet-list-count-dvcm">--</span>
+                        <span class="text-xs text-gray-500 font-normal" id="duyet-list-count-dvcm">--</span>
                     </div>
                 </div>
                 <div>
-                    <input type="text" id="duyet-search-input-dvcm" oninput="renderNhapTraDiem()" placeholder="🔍 Tìm theo mã túi, tên môn..." class="w-full text-xs p-2 border rounded border-gray-300 outline-none focus:border-red-500 bg-white" />
+                    <input type="text" id="duyet-search-input-dvcm" oninput="renderNhapTraDiem()" placeholder="🔍 Tìm theo mã túi, tên môn..." class="w-full text-sm p-2 border rounded border-gray-300 outline-none focus:border-red-500 bg-white" />
                 </div>
             </div>
             
@@ -46,9 +46,9 @@
         <!-- Right Column: Detail Preview Sheet (7 cols) -->
         <div class="col-span-7 flex flex-col h-full">
             <!-- Empty state when no item selected -->
-            <div id="entry-panel-empty" class="bg-white rounded-lg border border-dashed border-gray-300 p-12 text-center text-gray-400 italic text-xs flex flex-col items-center justify-center h-full min-h-[450px]">
+            <div id="entry-panel-empty" class="bg-white rounded-lg border border-dashed border-gray-300 p-12 text-center text-gray-400 italic text-sm flex flex-col items-center justify-center h-full min-h-[450px]">
                 <i data-lucide="file-spreadsheet" class="w-12 h-12 text-gray-300 mb-3"></i>
-                <span class="font-semibold text-gray-500 text-sm mb-1">Xem chi tiết bảng điểm</span>
+                <span class="font-semibold text-gray-500 text-base mb-1">Xem chi tiết bảng điểm</span>
                 <span>Vui lòng chọn một túi bài thi ở danh sách bên trái để kiểm tra điểm thi trước khi phê duyệt.</span>
             </div>
 
@@ -58,11 +58,11 @@
                     <div class="flex justify-between items-start pb-3 border-b mb-4">
                         <div>
                             <div class="flex items-center gap-2">
-                                <h3 class="font-bold text-[#9e1c22] text-base" id="entry-title-tui">Túi bài thi: --</h3>
+                                <h3 class="font-bold text-[#9e1c22] text-lg" id="entry-title-tui">Túi bài thi: --</h3>
                                 <span id="entry-status-badge"></span>
                             </div>
-                            <p class="text-xs font-semibold text-gray-700 mt-1" id="entry-title-sub">Học phần: --</p>
-                            <p class="text-[11px] text-gray-500 mt-0.5" id="entry-meta-info">Số lượng: 0 bài thi | Giám khảo: --</p>
+                            <p class="text-sm font-semibold text-gray-700 mt-1" id="entry-title-sub">Học phần: --</p>
+                            <p class="text-xs text-gray-500 mt-0.5" id="entry-meta-info">Số lượng: 0 bài thi | Giám khảo: --</p>
                         </div>
                         <div id="entry-action-container" class="text-right">
                             <!-- Status badge / Approver info -->
@@ -71,10 +71,10 @@
 
                     <!-- Scores table preview (Single score column: Điểm thi KTHP) -->
                     <div class="overflow-y-auto border rounded h-[350px] max-h-[350px]">
-                        <table class="w-full text-left text-xs border-collapse">
+                        <table class="w-full text-left text-sm border-collapse">
                             <thead class="bg-gray-100 font-bold text-gray-700 sticky top-0 border-b">
                                 <tr>
-                                    <th class="px-4 py-2.5 w-14">STT</th>
+                                    <th class="px-4 py-2.5 w-14 text-center">STT</th>
                                     <th class="px-4 py-2.5 font-mono">Mã phách</th>
                                     <th class="px-4 py-2.5 text-center font-mono font-bold text-blue-900">Điểm thi KTHP</th>
                                 </tr>
@@ -86,7 +86,7 @@
                     </div>
                 </div>
 
-                <div class="bg-blue-50 border border-blue-100 p-3 rounded text-[11px] text-blue-800 flex justify-between items-center mt-3">
+                <div class="bg-blue-50 border border-blue-100 p-3 rounded text-xs text-blue-800 flex justify-between items-center mt-3">
                     <span><i data-lucide="shield-check" class="w-4 h-4 inline-block mr-1 text-blue-600"></i> Bảng điểm đã được Giảng viên chấm thi nộp & kiểm tra đầy đủ.</span>
                 </div>
             </div>

@@ -980,6 +980,17 @@
         if (!p) return;
         selectedPhucKhaoDon = p;
 
+        // Highlight selected card visually
+        document.querySelectorAll('.pk-card').forEach(el => {
+            el.classList.remove('border-red-800', 'bg-red-50/20');
+            el.classList.add('border-gray-200', 'bg-white');
+        });
+        const selectedEl = document.querySelector(`.pk-card[data-id="${maDon}"]`);
+        if (selectedEl) {
+            selectedEl.classList.remove('border-gray-200', 'bg-white');
+            selectedEl.classList.add('border-red-800', 'bg-red-50/20');
+        }
+
         const emptyView = document.getElementById('pk-empty-view');
         const processView = document.getElementById('pk-process-view');
         if (emptyView) emptyView.classList.add('hidden-view');
@@ -993,6 +1004,9 @@
 
         const infoTuiBai = document.getElementById('pk-info-tui-bai');
         if (infoTuiBai) infoTuiBai.innerText = p.lich_thi ? (typeof p.lich_thi === 'object' ? `TB-${p.lich_thi.ma_lich_thi || '2026-001'}` : `TB-${p.lich_thi}`) : `TB-2026-001`;
+
+        const infoLyDo = document.getElementById('pk-info-ly-do');
+        if (infoLyDo) infoLyDo.innerText = p.ly_do || p.lyDo || 'Không có lý do chi tiết';
 
         let phachCodeStr = 'P-102';
         if (p.ma_phach) {
@@ -1053,7 +1067,9 @@
 
         if (infoTrangThaiRut) {
             infoTrangThaiRut.innerText = isDaRut ? 'Đã rút bài' : 'Chưa rút bài';
-            infoTrangThaiRut.className = isDaRut ? 'font-bold text-green-700' : 'font-bold text-red-700';
+            infoTrangThaiRut.className = isDaRut 
+                ? 'font-bold text-green-700 bg-green-50 border border-green-200 px-1.5 py-0.5 rounded' 
+                : 'font-bold text-red-700 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded animate-pulse';
         }
 
         if (btnRutBai) {
@@ -1082,18 +1098,22 @@
             tbody.innerHTML = '';
             papersBundle.forEach((item, idx) => {
                 const isReadonlyAttr = isCompleted ? 'disabled readonly' : '';
-                const inputStyle = isCompleted ? 'bg-gray-100 text-gray-800 border-gray-300 font-bold cursor-not-allowed' : 'border border-gray-300 font-bold focus:border-blue-600 focus:ring-1 focus:ring-blue-500';
+                const inputStyle = isCompleted 
+                    ? 'w-24 bg-gray-100 text-gray-700 border border-gray-300 font-bold cursor-not-allowed text-center py-1 rounded' 
+                    : 'w-24 bg-white border border-gray-300 focus:border-red-800 text-center font-bold text-gray-800 rounded py-1 transition-all outline-none';
                 const displayValue = item.diemMoi || (isCompleted ? item.diemGoc : '');
+
+                const labelSpan = (idx === 0) ? `<span class="text-[10px] font-sans font-semibold text-blue-900 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded ml-2">${item.label}</span>` : '';
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-gray-50 border-b border-gray-100">
-                        <td class="px-4 py-2.5 font-mono font-bold text-blue-900">
+                        <td class="px-4 py-2.5 font-mono font-bold text-gray-800">
                             ${item.code}
-                            <span class="text-[10px] font-sans font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded ml-2">${item.label}</span>
+                            ${labelSpan}
                         </td>
-                        <td class="px-4 py-2.5 text-center font-bold text-gray-700">${item.diemGoc}</td>
+                        <td class="px-4 py-2.5 text-center font-bold text-gray-750">${item.diemGoc}</td>
                         <td class="px-4 py-2.5 text-center">
-                            <input type="number" step="0.25" min="0" max="10" value="${displayValue}" placeholder="Nhập điểm mới..." ${isReadonlyAttr} class="w-28 rounded px-2 py-1 text-center outline-none ${inputStyle}" />
+                            <input type="number" step="0.25" min="0" max="10" value="${displayValue}" placeholder="--" ${isReadonlyAttr} class="${inputStyle}" />
                         </td>
                     </tr>
                 `;
@@ -1360,30 +1380,34 @@
 
         filtered.forEach(p => {
             const st = p.trang_thai;
-            let badge = `<span class="bg-red-100 text-red-800 px-2 py-0.5 rounded text-[10px] font-bold">Chưa rút bài</span>`;
+            let badge = `<span class="bg-red-50 text-red-700 border border-red-200 px-2 py-0.5 rounded text-[11px] font-bold">Chưa rút bài</span>`;
+            
             if (st === 'DangXuLy' || st === 'Đang xử lý' || st === 'Đã rút bài') {
-                badge = `<span class="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-[10px] font-bold">Đã rút bài</span>`;
+                badge = `<span class="bg-yellow-50 text-yellow-700 border border-yellow-200 px-2 py-0.5 rounded text-[11px] font-bold">Đã rút bài</span>`;
             } else if (st === 'DaHoanThanh' || st === 'Đã hoàn thành') {
-                badge = `<span class="bg-green-100 text-green-800 px-2 py-0.5 rounded text-[10px] font-bold">✓ Đã hoàn thành</span>`;
+                badge = `<span class="bg-green-50 text-green-700 border border-green-200 px-2 py-0.5 rounded text-[11px] font-bold">✓ Đã hoàn thành</span>`;
             }
 
             const svName = formatObjStr(p.sinh_vien, 'Sinh viên');
             const hpName = formatObjStr(p.hoc_phan, 'Học phần thi');
 
+            // Set active class if this card is currently selected
+            const isActive = selectedPhucKhaoDon && selectedPhucKhaoDon.ma_don === p.ma_don;
+            const activeRing = isActive ? 'border-red-800 bg-red-50/20 shadow-sm' : 'border-gray-200 bg-white hover:border-gray-300';
+
             div.innerHTML += `
-                <div onclick="selectDonPhucKhao('${p.ma_don}')" class="group p-3.5 border border-gray-200 rounded-xl bg-white hover:border-blue-500 hover:shadow-md cursor-pointer transition-all">
-                    <div class="flex justify-between items-start mb-2">
+                <div onclick="selectDonPhucKhao('${p.ma_don}')" data-id="${p.ma_don}" class="pk-card group p-3.5 rounded-lg border ${activeRing} cursor-pointer transition-all duration-150 select-none relative">
+                    <div class="flex justify-between items-center mb-1">
                         <div class="flex items-center gap-2">
-                            <input type="checkbox" class="pk-card-checkbox cursor-pointer rounded text-blue-600 focus:ring-blue-500" value="${p.ma_don}" onclick="event.stopPropagation();" />
-                            <span class="font-bold text-blue-900 font-mono text-sm">${p.ma_don}</span>
+                            <input type="checkbox" class="pk-card-checkbox cursor-pointer rounded text-blue-900 focus:ring-blue-900 w-4 h-4 border-gray-300" value="${p.ma_don}" onclick="event.stopPropagation();" />
+                            <span class="font-bold text-gray-800 font-mono text-xs tracking-wide">${p.ma_don}</span>
                         </div>
                         ${badge}
                     </div>
-                    <p class="text-gray-800 font-semibold mb-1 truncate text-xs">${hpName}</p>
-                    <div class="flex items-center gap-2 text-xs text-gray-500 mt-2">
-                        <span class="font-medium text-gray-700">${svName}</span>
-                        <span class="ml-auto"></span>
-                        <span class="font-bold px-1.5 py-0.5 bg-blue-50 text-blue-800 rounded">Điểm: ${p.diem_goc || '0.0'}</span>
+                    <p class="text-gray-900 font-bold text-xs leading-snug my-1.5">${hpName}</p>
+                    <div class="flex items-center justify-between text-[11px] text-gray-500 mt-2 pt-2 border-t border-gray-100">
+                        <span class="font-medium text-gray-650 flex items-center gap-1"><i data-lucide="user" class="w-3.5 h-3.5 text-gray-400"></i> ${svName}</span>
+                        <span class="font-bold px-2 py-0.5 bg-gray-50 text-gray-700 border border-gray-200 rounded">Điểm: ${p.diem_goc || '0.0'}</span>
                     </div>
                 </div>
             `;

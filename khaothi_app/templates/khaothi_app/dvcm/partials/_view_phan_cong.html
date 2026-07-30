@@ -11,7 +11,7 @@
     <!-- Sub-view 1: Phân công Chấm thi kết thúc học phần (UC 8.1) -->
     <div id="sub-pc-main" class="sub-pc-view flex flex-col gap-4 flex-1">
         <!-- Filter Area -->
-        <div class="bg-white p-4 border border-gray-200 rounded-lg shadow-sm flex items-center justify-between gap-4 text-xs">
+        <div class="bg-white p-4 border border-gray-200 rounded-lg shadow-sm flex items-center justify-between gap-4 text-sm">
             <div class="flex items-center gap-3 flex-1">
                 <div class="flex items-center gap-2 flex-1 max-w-sm">
                     <label class="font-bold text-gray-700 whitespace-nowrap">Học phần:</label>
@@ -36,7 +36,7 @@
             <!-- Left Column: Table List (7 Columns) -->
             <div class="col-span-7 bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex flex-col">
                 <div class="overflow-x-auto flex-1">
-                    <table class="w-full text-left text-xs border-collapse">
+                    <table class="w-full text-left text-sm border-collapse">
                         <thead class="bg-gray-100 font-bold text-gray-700 border-b border-gray-200">
                             <tr>
                                 <th class="px-3 py-3.5 text-center w-10">
@@ -56,7 +56,7 @@
                 </div>
 
                 <!-- Pagination -->
-                <div class="p-3 bg-gray-50 border-t border-gray-200 flex justify-between items-center text-xs text-gray-600">
+                <div class="p-3 bg-gray-50 border-t border-gray-200 flex justify-between items-center text-sm text-gray-600">
                     <span id="phan-cong-total-info">Hiển thị 0 túi bài thi</span>
                     <div class="flex items-center gap-2">
                         <button id="btn-main-prev-page" onclick="changePhanCongPage(-1)" class="px-3 py-1.5 border border-gray-300 rounded-lg bg-white font-bold text-gray-700 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors">
@@ -71,19 +71,19 @@
             </div>
 
             <!-- Right Column: Sticky Assignment Panel (5 Columns) -->
-            <div class="col-span-5 bg-white border border-gray-200 rounded-xl shadow-sm p-5 flex flex-col gap-4 sticky top-4 font-sans">
+            <div class="col-span-5 bg-white border border-gray-200 rounded-xl shadow-sm p-5 flex flex-col gap-4 sticky top-4 font-sans text-sm">
                 <div class="border-b border-gray-200 pb-3 flex items-center justify-between">
-                    <h3 class="font-extrabold text-sm text-[#9e1c22] flex items-center gap-2">
+                    <h3 class="font-extrabold text-base text-[#9e1c22] flex items-center gap-2">
                         <i data-lucide="user-check" class="w-5 h-5 text-[#9e1c22]"></i>
                         Khu vực Phân công
                     </h3>
-                    <span id="panel-main-badge" class="bg-red-50 text-[#9e1c22] border border-red-200 px-2.5 py-0.5 rounded-full font-bold text-[11px]">
+                    <span id="panel-main-badge" class="bg-red-50 text-[#9e1c22] border border-red-200 px-2.5 py-0.5 rounded-full font-bold text-xs">
                         Đã chọn 0 túi
                     </span>
                 </div>
 
                 <!-- Empty State -->
-                <div id="panel-main-empty" class="p-8 text-center text-gray-500 text-xs flex flex-col items-center justify-center gap-2.5 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                <div id="panel-main-empty" class="p-8 text-center text-gray-500 text-sm flex flex-col items-center justify-center gap-2.5 bg-gray-50 rounded-xl border border-dashed border-gray-200">
                     <div class="w-10 h-10 rounded-full bg-red-50 text-[#9e1c22] flex items-center justify-center font-bold">
                         <i data-lucide="check-square" class="w-5 h-5"></i>
                     </div>
@@ -94,7 +94,7 @@
 
                 <!-- Active State -->
                 <div id="panel-main-active" class="hidden-view flex flex-col gap-4">
-                    <div class="bg-red-50/60 border border-red-100 p-3 rounded-lg flex flex-col gap-2 text-xs">
+                    <div class="bg-red-50/60 border border-red-100 p-3 rounded-lg flex flex-col gap-2 text-sm">
                         <div class="flex items-center justify-between text-red-950 font-bold">
                             <span>Túi bài thi đã chọn:</span>
                             <span id="panel-main-papers-count" class="text-[#9e1c22] font-extrabold">(0 bài thi)</span>
@@ -105,14 +105,14 @@
                     </div>
 
                     <div class="flex flex-col gap-2">
-                        <label class="font-bold text-gray-800 text-xs">
+                        <label class="font-bold text-gray-800 text-sm">
                             Chọn Giảng viên phụ trách:
                         </label>
-                        <input type="text" id="select-gv-panel-main" list="gv-datalist-main" placeholder="-- Click chọn hoặc gõ tên/mã giảng viên --" class="p-2.5 border border-gray-300 rounded-lg text-xs font-bold text-gray-900 outline-none focus:border-[#9e1c22] bg-white w-full shadow-xs" />
+                        <input type="text" id="select-gv-panel-main" list="gv-datalist-main" placeholder="-- Click chọn hoặc gõ tên/mã giảng viên --" class="p-2.5 border border-gray-300 rounded-lg text-sm font-bold text-gray-900 outline-none focus:border-[#9e1c22] bg-white w-full shadow-xs" />
                         <datalist id="gv-datalist-main"></datalist>
                     </div>
 
-                    <button onclick="triggerSaveFromPanelMain()" class="w-full bg-[#9e1c22] hover:bg-red-800 text-white font-bold py-3 rounded-lg shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer text-xs uppercase tracking-wide">
+                    <button onclick="triggerSaveFromPanelMain()" class="w-full bg-[#9e1c22] hover:bg-red-800 text-white font-bold py-3 rounded-lg shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer text-sm uppercase tracking-wide">
                         <i data-lucide="check-circle-2" class="w-4 h-4"></i> Phân công
                     </button>
                 </div>
@@ -123,7 +123,7 @@
     <!-- Sub-view 2: Phân công Chấm Phúc khảo (UC 8.2) -->
     <div id="sub-pc-pk" class="sub-pc-view hidden-view flex flex-col gap-4 flex-1">
         <!-- Filter Area -->
-        <div class="bg-white p-4 border border-gray-200 rounded-lg shadow-sm flex items-center justify-between gap-4 text-xs">
+        <div class="bg-white p-4 border border-gray-200 rounded-lg shadow-sm flex items-center justify-between gap-4 text-sm">
             <div class="flex items-center gap-3 flex-1">
                 <div class="flex items-center gap-2 flex-1 max-w-sm">
                     <label class="font-bold text-gray-700 whitespace-nowrap">Học phần:</label>
@@ -148,7 +148,7 @@
             <!-- Left Column: Table List (7 Columns) -->
             <div class="col-span-7 bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex flex-col">
                 <div class="overflow-x-auto flex-1">
-                    <table class="w-full text-left text-xs border-collapse">
+                    <table class="w-full text-left text-sm border-collapse">
                         <thead class="bg-gray-100 font-bold text-gray-700 border-b border-gray-200">
                             <tr>
                                 <th class="px-3 py-3.5 text-center w-10">
@@ -167,7 +167,7 @@
                 </div>
 
                 <!-- Pagination -->
-                <div class="p-3 bg-gray-50 border-t border-gray-200 flex justify-between items-center text-xs text-gray-600">
+                <div class="p-3 bg-gray-50 border-t border-gray-200 flex justify-between items-center text-sm text-gray-600">
                     <span id="phan-cong-pk-total-info">Hiển thị 0 bài thi phúc khảo</span>
                     <div class="flex items-center gap-2">
                         <button id="btn-pk-prev-page" onclick="changePhanCongPkPage(-1)" class="px-3 py-1.5 border border-gray-300 rounded-lg bg-white font-bold text-gray-700 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors">
@@ -182,19 +182,19 @@
             </div>
 
             <!-- Right Column: Sticky Assignment Panel PK (5 Columns) -->
-            <div class="col-span-5 bg-white border border-gray-200 rounded-xl shadow-sm p-5 flex flex-col gap-4 sticky top-4 font-sans">
+            <div class="col-span-5 bg-white border border-gray-200 rounded-xl shadow-sm p-5 flex flex-col gap-4 sticky top-4 font-sans text-sm">
                 <div class="border-b border-gray-200 pb-3 flex items-center justify-between">
-                    <h3 class="font-extrabold text-sm text-[#9e1c22] flex items-center gap-2">
+                    <h3 class="font-extrabold text-base text-[#9e1c22] flex items-center gap-2">
                         <i data-lucide="shield-alert" class="w-5 h-5 text-[#9e1c22]"></i>
                         Phân công Chấm Phúc khảo
                     </h3>
-                    <span id="panel-pk-badge" class="bg-red-50 text-[#9e1c22] border border-red-200 px-2.5 py-0.5 rounded-full font-bold text-[11px]">
+                    <span id="panel-pk-badge" class="bg-red-50 text-[#9e1c22] border border-red-200 px-2.5 py-0.5 rounded-full font-bold text-xs">
                         Đã chọn 0 bài
                     </span>
                 </div>
 
                 <!-- Empty State PK -->
-                <div id="panel-pk-empty" class="p-8 text-center text-gray-500 text-xs flex flex-col items-center justify-center gap-2.5 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                <div id="panel-pk-empty" class="p-8 text-center text-gray-500 text-sm flex flex-col items-center justify-center gap-2.5 bg-gray-50 rounded-xl border border-dashed border-gray-200">
                     <div class="w-10 h-10 rounded-full bg-red-50 text-[#9e1c22] flex items-center justify-center font-bold">
                         <i data-lucide="check-square" class="w-5 h-5"></i>
                     </div>
@@ -205,7 +205,7 @@
 
                 <!-- Active State PK -->
                 <div id="panel-pk-active" class="hidden-view flex flex-col gap-4">
-                    <div class="bg-red-50/60 border border-red-100 p-3 rounded-lg flex flex-col gap-2 text-xs">
+                    <div class="bg-red-50/60 border border-red-100 p-3 rounded-lg flex flex-col gap-2 text-sm">
                         <div class="flex items-center justify-between text-red-950 font-bold">
                             <span>Bài thi phúc khảo đã chọn:</span>
                             <span class="text-[#9e1c22] font-extrabold">Chấm lại ẩn danh</span>
@@ -213,18 +213,18 @@
                         <div id="panel-pk-chips" class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto pt-1">
                             <!-- Chips -->
                         </div>
-                        <p class="text-[11px] text-red-700 font-bold bg-red-100/80 p-1.5 rounded border border-red-200">
+                        <p class="text-xs text-red-700 font-bold bg-red-100/80 p-1.5 rounded border border-red-200">
                             ⚠ Tự động loại bỏ cán bộ chấm lần 1 khỏi danh sách chọn.
                         </p>
                     </div>
 
                     <div class="flex flex-col gap-2">
-                        <label class="font-bold text-gray-800 text-xs">Chọn Giảng viên chấm phúc khảo:</label>
-                        <input type="text" id="select-gv-panel-pk" list="gv-datalist-pk" placeholder="-- Click chọn hoặc gõ tên/mã giảng viên --" class="p-2.5 border border-gray-300 rounded-lg text-xs font-bold text-gray-900 outline-none focus:border-[#9e1c22] bg-white w-full shadow-xs" />
+                        <label class="font-bold text-gray-800 text-sm">Chọn Giảng viên chấm phúc khảo:</label>
+                        <input type="text" id="select-gv-panel-pk" list="gv-datalist-pk" placeholder="-- Click chọn hoặc gõ tên/mã giảng viên --" class="p-2.5 border border-gray-300 rounded-lg text-sm font-bold text-gray-900 outline-none focus:border-[#9e1c22] bg-white w-full shadow-xs" />
                         <datalist id="gv-datalist-pk"></datalist>
                     </div>
 
-                    <button onclick="triggerSaveFromPanelPk()" class="w-full bg-[#9e1c22] hover:bg-red-800 text-white font-bold py-3 rounded-lg shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer text-xs uppercase tracking-wide">
+                    <button onclick="triggerSaveFromPanelPk()" class="w-full bg-[#9e1c22] hover:bg-red-800 text-white font-bold py-3 rounded-lg shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer text-sm uppercase tracking-wide">
                         <i data-lucide="check-circle-2" class="w-4 h-4"></i> Phân công Phúc khảo
                     </button>
                 </div>
@@ -235,7 +235,7 @@
 
 <!-- Cửa sổ Modal Khu Vực Phân Công Chấm Thi (Modal Window cho UC 8.1 & UC 8.2) -->
 <div id="modal-assign-popup" class="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-[250] hidden-view animate-fade-in">
-    <div class="bg-white rounded-xl shadow-2xl border border-gray-200 max-w-xl w-full p-6 flex flex-col gap-4 text-xs font-sans">
+    <div class="bg-white rounded-xl shadow-2xl border border-gray-200 max-w-xl w-full p-6 flex flex-col gap-4 text-sm font-sans">
         <div class="flex items-center justify-between border-b border-gray-200 pb-3">
             <h3 class="font-extrabold text-base text-blue-950 flex items-center gap-2" id="assign-popup-title">
                 <i data-lucide="user-check" class="text-blue-700 w-5 h-5"></i> Khu vực Phân công Chấm thi
@@ -251,14 +251,14 @@
 
         <div class="flex flex-col gap-2">
             <label class="font-bold text-gray-800" id="assign-popup-label">Chọn giảng viên (Gõ tên hoặc mã để tìm kiếm nhanh):</label>
-            <input type="text" id="search-gv-popup-keyword" oninput="filterGvPopupOptions()" placeholder="🔍 Gõ từ khóa tìm tên hoặc mã giảng viên..." class="w-full p-2.5 border rounded outline-none bg-white font-sans text-xs" />
-            <select id="select-gv-popup" class="w-full p-2.5 border rounded outline-none bg-white font-bold text-gray-900 text-xs">
+            <input type="text" id="search-gv-popup-keyword" oninput="filterGvPopupOptions()" placeholder="🔍 Gõ từ khóa tìm tên hoặc mã giảng viên..." class="w-full p-2.5 border rounded outline-none bg-white font-sans text-sm" />
+            <select id="select-gv-popup" class="w-full p-2.5 border rounded outline-none bg-white font-bold text-gray-900 text-sm">
                 <option value="">-- Chọn giảng viên --</option>
             </select>
         </div>
 
         <!-- Error Message Box -->
-        <div id="err-msg-popup" class="hidden-view border border-red-300 bg-red-100 text-red-700 p-2.5 rounded font-bold text-xs flex items-center gap-1.5">
+        <div id="err-msg-popup" class="hidden-view border border-red-300 bg-red-100 text-red-700 p-2.5 rounded font-bold text-sm flex items-center gap-1.5">
             <i data-lucide="alert-circle" class="w-4 h-4"></i>
             <span id="err-msg-popup-text">Vui lòng chọn cán bộ chấm thi</span>
         </div>
@@ -276,7 +276,7 @@
 
 <!-- Modal Xác Nhận Phân Công (Confirm Modal Window) -->
 <div id="modal-confirm-assign" class="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-[300] hidden-view animate-fade-in">
-    <div class="bg-white rounded-xl shadow-2xl border border-gray-200 max-w-md w-full p-6 flex flex-col gap-4 text-xs font-sans">
+    <div class="bg-white rounded-xl shadow-2xl border border-gray-200 max-w-md w-full p-6 flex flex-col gap-4 text-sm font-sans">
         <div class="flex items-center gap-3 text-blue-900 border-b border-gray-100 pb-3">
             <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-700 flex items-center justify-center font-bold">
                 <i data-lucide="help-circle" class="w-6 h-6"></i>
@@ -287,7 +287,7 @@
             </div>
         </div>
 
-        <p class="text-sm font-semibold text-gray-800 leading-relaxed" id="confirm-modal-msg">
+        <p class="text-base font-semibold text-gray-800 leading-relaxed" id="confirm-modal-msg">
             Bạn có chắc chắn muốn lưu phân công không?
         </p>
 

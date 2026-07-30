@@ -1,8 +1,8 @@
-<!-- Horizontal Tabs -->
+<!-- Horizontal Tabs for DVCM -->
 <nav class="bg-[#9e1c22] text-white px-8 flex relative z-50 shadow-md">
-    <button id="nav-btn-home" class="nav-btn px-6 py-3 text-base font-semibold border-r border-red-800 transition-colors hover:bg-red-800" onclick="navigate('view-home')">Trang chủ</button>
+    <button id="nav-btn-home" class="nav-btn px-6 py-3 text-base font-semibold border-r border-red-800 border-b-4 border-transparent transition-colors hover:bg-red-800" onclick="navigate('view-home')">Trang chủ</button>
     <div class="relative group">
-        <button id="nav-btn-giao-nhan" class="nav-btn px-6 py-3 text-base font-semibold border-r border-red-800 flex items-center gap-2 transition-colors hover:bg-red-800" onclick="toggleDropdown('dropdown-giao-nhan', event)">
+        <button id="nav-btn-giao-nhan" class="nav-btn px-6 py-3 text-base font-semibold border-r border-red-800 border-b-4 border-transparent flex items-center gap-2 transition-colors hover:bg-red-800" onclick="toggleDropdown('dropdown-giao-nhan', event)">
             Quản lý Giao nhận <i data-lucide="chevron-down" class="w-4 h-4" id="icon-giao-nhan"></i>
         </button>
         <div id="dropdown-giao-nhan" class="dropdown-menu hidden-view absolute top-full left-0 bg-white border border-gray-200 shadow-xl min-w-[250px] flex-col text-gray-800 rounded-b-md overflow-hidden animate-fade-in-down">
@@ -15,7 +15,7 @@
         </div>
     </div>
     <div class="relative group">
-        <button id="nav-btn-phan-cong" class="nav-btn px-6 py-3 text-base font-semibold border-r border-red-800 flex items-center gap-2 transition-colors hover:bg-red-800" onclick="toggleDropdown('dropdown-phan-cong', event)">
+        <button id="nav-btn-phan-cong" class="nav-btn px-6 py-3 text-base font-semibold border-r border-red-800 border-b-4 border-transparent flex items-center gap-2 transition-colors hover:bg-red-800" onclick="toggleDropdown('dropdown-phan-cong', event)">
             Quản lý Phân công <i data-lucide="chevron-down" class="w-4 h-4" id="icon-phan-cong"></i>
         </button>
         <div id="dropdown-phan-cong" class="dropdown-menu hidden-view absolute top-full left-0 bg-white border border-gray-200 shadow-xl min-w-[270px] flex-col text-gray-800 rounded-b-md overflow-hidden animate-fade-in-down">
@@ -28,7 +28,7 @@
         </div>
     </div>
     <div class="relative group">
-        <button id="nav-btn-phe-duyet" class="nav-btn px-6 py-3 text-base font-semibold border-r border-red-800 flex items-center gap-2 transition-colors hover:bg-red-800" onclick="toggleDropdown('dropdown-phe-duyet', event)">
+        <button id="nav-btn-phe-duyet" class="nav-btn px-6 py-3 text-base font-semibold border-r border-red-800 border-b-4 border-transparent flex items-center gap-2 transition-colors hover:bg-red-800" onclick="toggleDropdown('dropdown-phe-duyet', event)">
             Quản lý Phê duyệt <i data-lucide="chevron-down" class="w-4 h-4" id="icon-phe-duyet"></i>
         </button>
         <div id="dropdown-phe-duyet" class="dropdown-menu hidden-view absolute top-full left-0 bg-white border border-gray-200 shadow-xl min-w-[250px] flex-col text-gray-800 rounded-b-md overflow-hidden animate-fade-in-down">
@@ -37,5 +37,5 @@
             </button>
         </div>
     </div>
-    <button id="nav-btn-de-thi" class="nav-btn px-6 py-3 text-base font-semibold border-r border-red-800 transition-colors hover:bg-red-800" onclick="navigate('view-de-thi')">Quản lý Đề thi</button>
+    <button id="nav-btn-de-thi" class="nav-btn px-6 py-3 text-base font-semibold border-r border-red-800 border-b-4 border-transparent transition-colors hover:bg-red-800" onclick="navigate('view-de-thi')">Quản lý Đề thi</button>
 </nav>

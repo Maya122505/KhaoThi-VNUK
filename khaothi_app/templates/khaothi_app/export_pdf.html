@@ -252,11 +252,11 @@
                         <strong>{{ phieu.type }}</strong><br>
                         <span style="font-size: 10px; color: #64748b;">
                             {% if phieu.rooms %}
-                            Phòng thi gốc: {{ phieu.rooms|join:", " }}
+                            Phòng thi: {{ phieu.rooms|join:", " }}
                             {% elif phieu.bags %}
                             Túi phách kèm bài thi: {{ phieu.bags|join:", " }}
                             {% else %}
-                            Túi phách bài thi gốc
+                            Túi phách bài thi
                             {% endif %}
                         </span>
                     </td>

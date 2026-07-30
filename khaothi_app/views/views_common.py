@@ -268,6 +268,15 @@ for i in range(1, 51):
         ptFinal = pt2
         file = f"bien_ban_phuc_khao_{sub_code.lower()}_{i}.pdf"
 
+    reasons = [
+        "Dạ thưa thầy/cô, em đối chiếu với đáp án thấy bài làm của em đạt khoảng 7 điểm nhưng điểm công bố chỉ được 4.2. Kính mong thầy cô khảo thí xem lại giúp em ạ.",
+        "Em xin phúc khảo lại điểm thi môn này vì em tự tính điểm thi thấy tự tin làm đúng hết nhưng điểm nhận được khá thấp.",
+        "Kính gửi phòng khảo thí, em làm bài thi tốt và ghi đầy đủ lời giải các câu tự luận nhưng điểm thi thực tế lệch nhiều so với đáp án em tự chấm. Mong thầy cô chấm lại bài giúp em ạ.",
+        "Em xin phép được phúc khảo bài thi do điểm thi cuối kỳ bị lệch nhiều so với điểm quá trình học tập của em.",
+        "Dạ em muốn xin phúc khảo lại bài thi môn này vì em làm bài khá ổn và không bị bỏ sót câu nào mà điểm thi ra lại bị dưới trung bình ạ. Em cảm ơn thầy cô."
+    ]
+    ly_do = reasons[i % len(reasons)]
+
     INITIAL_PHUC_KHAO.append({
         "id": f"PK-{i:03d}",
         "phach": f"PH{i:04d}",
@@ -279,7 +288,8 @@ for i in range(1, 51):
         "msv": f"SV{i:03d}",
         "name": generate_name(i + 100),
         "status": status,
-        "file": file
+        "file": file,
+        "lyDo": ly_do
     })
 
 INITIAL_AUDIT_LOGS = [
@@ -810,15 +820,20 @@ def seed_database_relational():
             )
             mp_obj = MaPhach.objects.create(ma_phach=pk["phach"], tui_phach=tp_obj, thi_sinh=ts_obj)
             
+        lt_obj_resolved = mp_obj.thi_sinh.lich_thi if (mp_obj and mp_obj.thi_sinh) else None
+        hp_obj_resolved = lt_obj_resolved.lop_hp.hoc_phan if (lt_obj_resolved and lt_obj_resolved.lop_hp) else None
+        
         DonPhucKhao.objects.create(
             ma_don=pk["id"],
             sinh_vien=sv_obj,
             ma_phach=mp_obj,
+            lich_thi=lt_obj_resolved,
+            hoc_phan=hp_obj_resolved,
             diem_goc=pk["originalPt1"],
             diem_phuc_khao_1=pk["pt1"],
             diem_phuc_khao_2=pk["pt2"],
             diem_phuc_khao_cuoi=pk["ptFinal"],
-            ly_do="Đơn phúc khảo trực tuyến sinh viên",
+            ly_do=pk.get("lyDo", "Đơn phúc khảo trực tuyến sinh viên"),
             file_bien_ban=pk["file"],
             trang_thai=pk["status"]
         )
@@ -1023,7 +1038,8 @@ def get_state(request):
             "msv": dpk.sinh_vien.ma_sinh_vien,
             "name": dpk.sinh_vien.ho_ten,
             "status": dpk.trang_thai,
-            "file": dpk.file_bien_ban or ""
+            "file": dpk.file_bien_ban or "",
+            "lyDo": dpk.ly_do or ""
         })
         
     # 6. auditLogsData
@@ -1580,11 +1596,16 @@ def save_state(request):
                     sv_obj, _ = SinhVien.objects.get_or_create(ma_sinh_vien=pk["msv"], defaults={"ho_ten": pk["name"]})
                     mp_obj = MaPhach.objects.filter(ma_phach=pk["phach"]).first()
                     
+                    lt_obj_resolved = mp_obj.thi_sinh.lich_thi if (mp_obj and mp_obj.thi_sinh) else None
+                    hp_obj_resolved = lt_obj_resolved.lop_hp.hoc_phan if (lt_obj_resolved and lt_obj_resolved.lop_hp) else None
+                    
                     DonPhucKhao.objects.update_or_create(
                         ma_don=pk["id"],
                         defaults={
                             "sinh_vien": sv_obj,
                             "ma_phach": mp_obj,
+                            "lich_thi": lt_obj_resolved,
+                            "hoc_phan": hp_obj_resolved,
                             "diem_goc": pk["originalPt1"],
                             "diem_phuc_khao_1": pk["pt1"],
                             "diem_phuc_khao_2": pk["pt2"],
