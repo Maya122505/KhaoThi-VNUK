@@ -12,6 +12,9 @@
     let phieuGiaoNhanData = [];
     let canBoCoiThiData = [];
     let phucKhaoData = [];
+    let deThiData = [];
+    let danhSachThiData = [];
+    let systemConfigsData = {};
 
     let isStateLoaded = false;
     let activeViewId = "view-home";
@@ -23,6 +26,15 @@
     let isThulaoApproved = false;
     let thulaoApprover = "";
     let thulaoApprovedAt = "";
+
+    // LDP Approval Filters & Modes
+    let duyetLichStatusFilter = 'all';
+    let duyetDanhSachStatusFilter = 'all';
+    let duyetDeStatusFilter = 'all';
+
+    let selectModeLich = false;
+    let selectModeDs = false;
+    let selectModeDe = false;
 
     window.onload = async function() {
         initIcons();
@@ -48,6 +60,17 @@
             phieuGiaoNhanData = data.phieuGiaoNhanData;
             canBoCoiThiData = data.canBoCoiThiData;
             phucKhaoData = data.phucKhaoData;
+            deThiData = data.deThiData || [];
+            systemConfigsData = data.systemConfigsData || {};
+
+            danhSachThiData = data.danhSachThiData || [];
+            if (danhSachThiData.length === 0) {
+                danhSachThiData = [
+                    { id: "DS-ENG101", subjectName: "Tiếng Anh GTQT 3 (ENG101)", totalSv: 120, eligibleSv: 115, debtSv: 5, timeSent: "14:30 25/07/2026", status: "Chờ phê duyệt" },
+                    { id: "DS-BUS201", subjectName: "Quản trị dự án (BUS201)", totalSv: 90, eligibleSv: 88, debtSv: 2, timeSent: "10:15 26/07/2026", status: "Đã phê duyệt" },
+                    { id: "DS-CS101", subjectName: "Nhập môn Lập trình (CS101)", totalSv: 60, eligibleSv: 60, debtSv: 0, timeSent: "08:30 27/07/2026", status: "Chờ phê duyệt" }
+                ];
+            }
             isStateLoaded = true;
         } catch(e) {
             console.error("Lỗi đồng bộ dữ liệu:", e);
@@ -69,7 +92,10 @@
                     tuiPhachData,
                     phieuGiaoNhanData,
                     canBoCoiThiData,
-                    phucKhaoData
+                    phucKhaoData,
+                    deThiData,
+                    danhSachThiData,
+                    systemConfigsData
                 })
             });
         } catch(e) {
@@ -125,8 +151,7 @@
         });
 
         activeViewId = viewId;
-        let activeBtnId = 'nav-btn-home';
-        if (viewId.includes('duyet')) activeBtnId = 'nav-btn-phe-duyet';
+        let activeBtnId = 'nav-btn-' + viewId.replace('view-', '');
 
         const activeBtn = document.getElementById(activeBtnId);
         if (activeBtn) {
@@ -142,6 +167,12 @@
             renderDuyetPhucKhao();
         } else if(viewId === 'view-duyet-thu-lao') {
             renderDuyetThuLao();
+        } else if(viewId === 'view-duyet-lich-thi') {
+            renderDuyetLichThi();
+        } else if(viewId === 'view-duyet-danh-sach-thi') {
+            renderDuyetDanhSachThi();
+        } else if(viewId === 'view-duyet-de-thi') {
+            renderDuyetDeThi();
         }
         initIcons();
     }
@@ -613,4 +644,465 @@
 
         setTimeout(() => toast.classList.add('hidden-view'), 4000);
     }
+
+    // ==========================================================
+    // UC: PHÊ DUYỆT LỊCH THI, DANH SÁCH THI, ĐỀ THI (LDP)
+    // ==========================================================
+    function filterDuyetLichThiStatus(status) {
+        duyetLichStatusFilter = status;
+        document.querySelectorAll('.flt-status-btn').forEach(btn => {
+            btn.classList.remove('bg-[#9e1c22]', 'text-white', 'border-[#9e1c22]');
+            btn.classList.add('bg-white', 'text-gray-700', 'hover:bg-gray-50');
+        });
+        const activeBtn = document.getElementById('flt-status-' + status);
+        if (activeBtn) {
+            activeBtn.classList.remove('bg-white', 'text-gray-700', 'hover:bg-gray-50');
+            activeBtn.classList.add('bg-[#9e1c22]', 'text-white');
+        }
+        renderDuyetLichThi();
+    }
+    window.filterDuyetLichThiStatus = filterDuyetLichThiStatus;
+
+    function filterDuyetDanhSachThiStatus(status) {
+        duyetDanhSachStatusFilter = status;
+        document.querySelectorAll('.fds-status-btn').forEach(btn => {
+            btn.classList.remove('bg-[#9e1c22]', 'text-white');
+            btn.classList.add('bg-white', 'text-gray-700', 'hover:bg-gray-50');
+        });
+        const activeBtn = document.getElementById('fds-status-' + status);
+        if (activeBtn) {
+            activeBtn.classList.remove('bg-white', 'text-gray-700', 'hover:bg-gray-50');
+            activeBtn.classList.add('bg-[#9e1c22]', 'text-white');
+        }
+        renderDuyetDanhSachThi();
+    }
+    window.filterDuyetDanhSachThiStatus = filterDuyetDanhSachThiStatus;
+
+    function filterDuyetDeThiStatus(status) {
+        duyetDeStatusFilter = status;
+        document.querySelectorAll('.fde-status-btn').forEach(btn => {
+            btn.classList.remove('bg-[#9e1c22]', 'text-white');
+            btn.classList.add('bg-white', 'text-gray-700', 'hover:bg-gray-50');
+        });
+        const activeBtn = document.getElementById('fde-status-' + status);
+        if (activeBtn) {
+            activeBtn.classList.remove('bg-white', 'text-gray-700', 'hover:bg-gray-50');
+            activeBtn.classList.add('bg-[#9e1c22]', 'text-white');
+        }
+        renderDuyetDeThi();
+    }
+    window.filterDuyetDeThiStatus = filterDuyetDeThiStatus;
+
+    function toggleSelectMode(type) {
+        if (type === 'duyet-lich') {
+            selectModeLich = !selectModeLich;
+            const cols = document.querySelectorAll('.select-col-duyet-lich');
+            cols.forEach(col => {
+                if (selectModeLich) col.classList.remove('hidden');
+                else col.classList.add('hidden');
+            });
+            const btn = document.getElementById('btn-select-duyet-lich');
+            if (selectModeLich) {
+                btn.innerHTML = `<i data-lucide="x" class="w-3.5 h-3.5 text-red-600"></i> Hủy chọn`;
+            } else {
+                btn.innerHTML = `<i data-lucide="check-square" class="w-3.5 h-3.5 text-gray-600"></i> Chọn`;
+            }
+            updateSelectActionsVisibility('duyet-lich');
+        } else if (type === 'duyet-ds') {
+            selectModeDs = !selectModeDs;
+            const cols = document.querySelectorAll('.select-col-duyet-ds');
+            cols.forEach(col => {
+                if (selectModeDs) col.classList.remove('hidden');
+                else col.classList.add('hidden');
+            });
+            const btn = document.getElementById('btn-select-duyet-ds');
+            if (selectModeDs) {
+                btn.innerHTML = `<i data-lucide="x" class="w-3.5 h-3.5 text-red-600"></i> Hủy chọn`;
+            } else {
+                btn.innerHTML = `<i data-lucide="check-square" class="w-3.5 h-3.5 text-gray-600"></i> Chọn`;
+            }
+            updateSelectActionsVisibility('duyet-ds');
+        } else if (type === 'duyet-de') {
+            selectModeDe = !selectModeDe;
+            const cols = document.querySelectorAll('.select-col-duyet-de');
+            cols.forEach(col => {
+                if (selectModeDe) col.classList.remove('hidden');
+                else col.classList.add('hidden');
+            });
+            const btn = document.getElementById('btn-select-duyet-de');
+            if (selectModeDe) {
+                btn.innerHTML = `<i data-lucide="x" class="w-3.5 h-3.5 text-red-600"></i> Hủy chọn`;
+            } else {
+                btn.innerHTML = `<i data-lucide="check-square" class="w-3.5 h-3.5 text-gray-600"></i> Chọn`;
+            }
+            updateSelectActionsVisibility('duyet-de');
+        }
+        initIcons();
+    }
+    window.toggleSelectMode = toggleSelectMode;
+
+    function updateSelectActionsVisibility(type) {
+        let isSelected = false;
+        let count = 0;
+        if (type === 'duyet-lich') {
+            const checked = document.querySelectorAll('.chk-duyet-lich:checked');
+            isSelected = checked.length > 0;
+            count = checked.length;
+            const btnApprove = document.getElementById('btn-approve-all-duyet-lich');
+            const btnReject = document.getElementById('btn-reject-all-duyet-lich');
+            if (selectModeLich && isSelected) {
+                btnApprove.classList.remove('hidden');
+                btnApprove.classList.add('flex');
+                btnReject.classList.remove('hidden');
+                btnReject.classList.add('flex');
+                btnApprove.querySelector('span').innerText = `Phê duyệt chọn (${count})`;
+                btnReject.querySelector('span').innerText = `Từ chối chọn (${count})`;
+            } else {
+                btnApprove.classList.add('hidden');
+                btnReject.classList.add('hidden');
+            }
+        } else if (type === 'duyet-ds') {
+            const checked = document.querySelectorAll('.chk-duyet-ds:checked');
+            isSelected = checked.length > 0;
+            count = checked.length;
+            const btnApprove = document.getElementById('btn-approve-all-duyet-ds');
+            const btnReject = document.getElementById('btn-reject-all-duyet-ds');
+            if (selectModeDs && isSelected) {
+                btnApprove.classList.remove('hidden');
+                btnApprove.classList.add('flex');
+                btnReject.classList.remove('hidden');
+                btnReject.classList.add('flex');
+                btnApprove.querySelector('span').innerText = `Phê duyệt chọn (${count})`;
+                btnReject.querySelector('span').innerText = `Từ chối chọn (${count})`;
+            } else {
+                btnApprove.classList.add('hidden');
+                btnReject.classList.add('hidden');
+            }
+        } else if (type === 'duyet-de') {
+            const checked = document.querySelectorAll('.chk-duyet-de:checked');
+            isSelected = checked.length > 0;
+            count = checked.length;
+            const btnApprove = document.getElementById('btn-approve-all-duyet-de');
+            const btnReject = document.getElementById('btn-reject-all-duyet-de');
+            if (selectModeDe && isSelected) {
+                btnApprove.classList.remove('hidden');
+                btnApprove.classList.add('flex');
+                btnReject.classList.remove('hidden');
+                btnReject.classList.add('flex');
+                btnApprove.querySelector('span').innerText = `Phê duyệt chọn (${count})`;
+                btnReject.querySelector('span').innerText = `Từ chối chọn (${count})`;
+            } else {
+                btnApprove.classList.add('hidden');
+                btnReject.classList.add('hidden');
+            }
+        }
+    }
+    window.updateSelectActionsVisibility = updateSelectActionsVisibility;
+
+    function handleApproveSelected(type) {
+        if (type === 'duyet-lich') {
+            const checked = Array.from(document.querySelectorAll('.chk-duyet-lich:checked'));
+            if (!systemConfigsData.lichThiStatus) systemConfigsData.lichThiStatus = {};
+            checked.forEach(cb => {
+                systemConfigsData.lichThiStatus[cb.dataset.id] = 'Đã phê duyệt';
+            });
+            showGlobalToast("Thành công", `Đã phê duyệt ${checked.length} lịch thi.`);
+            saveStateToServer();
+            toggleSelectMode('duyet-lich');
+            renderDuyetLichThi();
+        } else if (type === 'duyet-ds') {
+            const checked = Array.from(document.querySelectorAll('.chk-duyet-ds:checked'));
+            checked.forEach(cb => {
+                const item = danhSachThiData.find(x => x.id === cb.dataset.id);
+                if (item) item.status = 'Đã phê duyệt';
+            });
+            showGlobalToast("Thành công", `Đã phê duyệt ${checked.length} danh sách thi.`);
+            saveStateToServer();
+            toggleSelectMode('duyet-ds');
+            renderDuyetDanhSachThi();
+        } else if (type === 'duyet-de') {
+            const checked = Array.from(document.querySelectorAll('.chk-duyet-de:checked'));
+            checked.forEach(cb => {
+                const item = deThiData.find(x => x.id === cb.dataset.id);
+                if (item) item.trangThai = 'Đạt';
+            });
+            showGlobalToast("Thành công", `Đã phê duyệt ${checked.length} đề thi.`);
+            saveStateToServer();
+            toggleSelectMode('duyet-de');
+            renderDuyetDeThi();
+        }
+    }
+    window.handleApproveSelected = handleApproveSelected;
+
+    function handleRejectSelected(type) {
+        if (type === 'duyet-lich') {
+            const checked = Array.from(document.querySelectorAll('.chk-duyet-lich:checked'));
+            if (!systemConfigsData.lichThiStatus) systemConfigsData.lichThiStatus = {};
+            checked.forEach(cb => {
+                systemConfigsData.lichThiStatus[cb.dataset.id] = 'Từ chối';
+            });
+            showGlobalToast("Từ chối", `Đã từ chối ${checked.length} lịch thi.`);
+            saveStateToServer();
+            toggleSelectMode('duyet-lich');
+            renderDuyetLichThi();
+        } else if (type === 'duyet-ds') {
+            const checked = Array.from(document.querySelectorAll('.chk-duyet-ds:checked'));
+            checked.forEach(cb => {
+                const item = danhSachThiData.find(x => x.id === cb.dataset.id);
+                if (item) item.status = 'Từ chối';
+            });
+            showGlobalToast("Từ chối", `Đã từ chối ${checked.length} danh sách thi.`);
+            saveStateToServer();
+            toggleSelectMode('duyet-ds');
+            renderDuyetDanhSachThi();
+        } else if (type === 'duyet-de') {
+            const checked = Array.from(document.querySelectorAll('.chk-duyet-de:checked'));
+            checked.forEach(cb => {
+                const item = deThiData.find(x => x.id === cb.dataset.id);
+                if (item) item.trangThai = 'Chờ chỉnh sửa';
+            });
+            showGlobalToast("Từ chối", `Đã từ chối ${checked.length} đề thi.`);
+            saveStateToServer();
+            toggleSelectMode('duyet-de');
+            renderDuyetDeThi();
+        }
+    }
+    window.handleRejectSelected = handleRejectSelected;
+
+    function changeDanhSachThiStatus(id, newStatus) {
+        const item = danhSachThiData.find(x => x.id === id);
+        if (item) {
+            item.status = newStatus;
+            showGlobalToast("Cập nhật", `Đã ${newStatus.toLowerCase()} danh sách thi ${id}.`);
+            saveStateToServer();
+            renderDuyetDanhSachThi();
+        }
+    }
+    window.changeDanhSachThiStatus = changeDanhSachThiStatus;
+
+    function changeDeThiStatus(id, newStatus) {
+        const item = deThiData.find(x => x.id === id);
+        if (item) {
+            item.trangThai = newStatus;
+            showGlobalToast("Cập nhật", `Đã ${newStatus.toLowerCase()} đề thi ${id}.`);
+            saveStateToServer();
+            renderDuyetDeThi();
+        }
+    }
+    window.changeDeThiStatus = changeDeThiStatus;
+
+    function changeLichThiStatus(id, newStatus) {
+        if (!systemConfigsData.lichThiStatus) systemConfigsData.lichThiStatus = {};
+        systemConfigsData.lichThiStatus[id] = newStatus;
+        showGlobalToast("Cập nhật", `Đã ${newStatus.toLowerCase()} lịch thi ${id}.`);
+        saveStateToServer();
+        renderDuyetLichThi();
+    }
+    window.changeLichThiStatus = changeLichThiStatus;
+
+    function renderDuyetLichThi() {
+        const tbody = document.getElementById('duyet-lich-thi-tbody');
+        if (!tbody) return;
+
+        const searchKw = (document.getElementById('search-duyet-lich')?.value || '').toLowerCase().trim();
+
+        let list = [...lichThiData];
+
+        // Apply search keyword
+        if (searchKw) {
+            list = list.filter(item => 
+                item.id.toLowerCase().includes(searchKw) || 
+                item.subjectName.toLowerCase().includes(searchKw) || 
+                (item.room && item.room.toLowerCase().includes(searchKw))
+            );
+        }
+
+        // Apply status filter
+        if (duyetLichStatusFilter !== 'all') {
+            list = list.filter(item => {
+                const status = (systemConfigsData.lichThiStatus && systemConfigsData.lichThiStatus[item.id]) || 'Chờ phê duyệt';
+                if (duyetLichStatusFilter === 'cho-duyet') return status === 'Chờ phê duyệt' || status === 'Chờ duyệt';
+                if (duyetLichStatusFilter === 'da-duyet') return status === 'Đã phê duyệt';
+                if (duyetLichStatusFilter === 'tu-choi') return status === 'Từ chối';
+                return true;
+            });
+        }
+
+        if (list.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-gray-500 italic">Không tìm thấy lịch thi nào.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = list.map((item, index) => {
+            const status = (systemConfigsData.lichThiStatus && systemConfigsData.lichThiStatus[item.id]) || 'Chờ phê duyệt';
+            let badgeClass = "bg-yellow-100 text-yellow-800";
+            if (status === "Đã phê duyệt") badgeClass = "bg-green-100 text-green-800 font-bold";
+            else if (status === "Từ chối") badgeClass = "bg-red-100 text-red-800";
+
+            return `
+                <tr class="hover:bg-gray-50 border-b border-gray-100">
+                    <td class="select-col-duyet-lich ${selectModeLich ? '' : 'hidden'} px-3 py-3 text-center w-8">
+                        <input type="checkbox" class="chk-duyet-lich cursor-pointer" data-id="${item.id}" onchange="updateSelectActionsVisibility('duyet-lich')" />
+                    </td>
+                    <td class="px-4 py-3 text-center font-semibold text-gray-500">${index + 1}</td>
+                    <td class="px-4 py-3 font-mono font-bold text-blue-900">${item.id}</td>
+                    <td class="px-4 py-3 font-semibold text-gray-800">${item.subjectName} (${item.subjectCode})</td>
+                    <td class="px-4 py-3 text-center text-gray-600 font-medium">${item.shiftName}<br/><span class="text-xs text-gray-400 font-normal">${item.date}</span></td>
+                    <td class="px-4 py-3 text-center text-blue-600 font-bold">${item.room}</td>
+                    <td class="px-4 py-3 text-gray-600">${item.teacher || 'Chưa phân công'}</td>
+                    <td class="px-4 py-3 text-center">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold ${badgeClass}">${status}</span>
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        ${status === 'Chờ phê duyệt' || status === 'Chờ duyệt' ? `
+                            <button onclick="changeLichThiStatus('${item.id}', 'Đã phê duyệt')" class="bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 font-bold px-2 py-1 rounded text-[10px] mr-1">Phê duyệt</button>
+                            <button onclick="changeLichThiStatus('${item.id}', 'Từ chối')" class="bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 font-bold px-2 py-1 rounded text-[10px]">Từ chối</button>
+                        ` : `<span class="text-gray-400 italic text-[11px]">Đã xử lý</span>`}
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+    window.renderDuyetLichThi = renderDuyetLichThi;
+
+    function renderDuyetDanhSachThi() {
+        const tbody = document.getElementById('duyet-danh-sach-thi-tbody');
+        if (!tbody) return;
+
+        const searchKw = (document.getElementById('search-duyet-ds-thi')?.value || '').toLowerCase().trim();
+
+        let list = [...danhSachThiData];
+
+        // Apply search keyword
+        if (searchKw) {
+            list = list.filter(item => 
+                item.id.toLowerCase().includes(searchKw) || 
+                item.subjectName.toLowerCase().includes(searchKw)
+            );
+        }
+
+        // Apply status filter
+        if (duyetDanhSachStatusFilter !== 'all') {
+            list = list.filter(item => {
+                const status = item.status || 'Chờ phê duyệt';
+                if (duyetDanhSachStatusFilter === 'cho-duyet') return status === 'Chờ phê duyệt' || status === 'Chờ duyệt';
+                if (duyetDanhSachStatusFilter === 'da-duyet') return status === 'Đã phê duyệt';
+                if (duyetDanhSachStatusFilter === 'tu-choi') return status === 'Từ chối';
+                return true;
+            });
+        }
+
+        if (list.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="10" class="text-center py-8 text-gray-500 italic">Không tìm thấy danh sách thi nào.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = list.map((item, index) => {
+            const status = item.status || 'Chờ phê duyệt';
+            let badgeClass = "bg-yellow-100 text-yellow-800";
+            if (status === "Đã phê duyệt") badgeClass = "bg-green-100 text-green-800 font-bold";
+            else if (status === "Từ chối") badgeClass = "bg-red-100 text-red-800";
+
+            return `
+                <tr class="hover:bg-gray-50 border-b border-gray-100">
+                    <td class="select-col-duyet-ds ${selectModeDs ? '' : 'hidden'} px-3 py-3 text-center w-8">
+                        <input type="checkbox" class="chk-duyet-ds cursor-pointer" data-id="${item.id}" onchange="updateSelectActionsVisibility('duyet-ds')" />
+                    </td>
+                    <td class="px-4 py-3 text-center font-semibold text-gray-500">${index + 1}</td>
+                    <td class="px-4 py-3 font-mono font-bold text-blue-900">${item.id}</td>
+                    <td class="px-4 py-3 font-semibold text-gray-800">${item.subjectName}</td>
+                    <td class="px-4 py-3 text-center text-gray-600 font-bold">${item.totalSv}</td>
+                    <td class="px-4 py-3 text-center text-green-600 font-bold">${item.eligibleSv}</td>
+                    <td class="px-4 py-3 text-center text-red-600 font-bold">${item.debtSv}</td>
+                    <td class="px-4 py-3 text-gray-500">${item.timeSent || 'Chưa gửi'}</td>
+                    <td class="px-4 py-3 text-center">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold ${badgeClass}">${status}</span>
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        ${status === 'Chờ phê duyệt' || status === 'Chờ duyệt' ? `
+                            <button onclick="changeDanhSachThiStatus('${item.id}', 'Đã phê duyệt')" class="bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 font-bold px-2 py-1 rounded text-[10px] mr-1">Phê duyệt</button>
+                            <button onclick="changeDanhSachThiStatus('${item.id}', 'Từ chối')" class="bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 font-bold px-2 py-1 rounded text-[10px]">Từ chối</button>
+                        ` : `<span class="text-gray-400 italic text-[11px]">Đã xử lý</span>`}
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+    window.renderDuyetDanhSachThi = renderDuyetDanhSachThi;
+
+    function renderDuyetDeThi() {
+        const tbody = document.getElementById('duyet-de-thi-tbody');
+        if (!tbody) return;
+
+        const searchKw = (document.getElementById('search-duyet-de')?.value || '').toLowerCase().trim();
+
+        let list = [...deThiData];
+
+        // Apply search keyword
+        if (searchKw) {
+            list = list.filter(item => 
+                item.id.toLowerCase().includes(searchKw) || 
+                item.hocPhan.toLowerCase().includes(searchKw) ||
+                (item.nguoiNop && item.nguoiNop.toLowerCase().includes(searchKw))
+            );
+        }
+
+        // Apply status filter
+        if (duyetDeStatusFilter !== 'all') {
+            list = list.filter(item => {
+                const status = item.trangThai || 'Chờ phê duyệt';
+                const mappedStatus = (status === 'ChoRaSoat' || status === 'Chờ rà soát' || status === 'Chờ phê duyệt') ? 'cho-duyet' :
+                                     (status === 'Dat' || status === 'Đạt' || status === 'Đã phê duyệt') ? 'da-duyet' : 'tu-choi';
+                return mappedStatus === duyetDeStatusFilter;
+            });
+        }
+
+        if (list.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-gray-500 italic">Không tìm thấy đề thi nào.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = list.map((item, index) => {
+            const status = item.trangThai || 'Chờ phê duyệt';
+            let statusText = 'Chờ phê duyệt';
+            let badgeClass = "bg-yellow-100 text-yellow-800";
+            
+            if (status === 'Dat' || status === 'Đạt' || status === 'Đã phê duyệt') {
+                statusText = 'Đã phê duyệt';
+                badgeClass = "bg-green-100 text-green-800 font-bold";
+            } else if (status === 'ChoChinhSua' || status === 'Chờ chỉnh sửa' || status === 'Từ chối') {
+                statusText = 'Từ chối';
+                badgeClass = "bg-red-100 text-red-800";
+            }
+
+            return `
+                <tr class="hover:bg-gray-50 border-b border-gray-100">
+                    <td class="select-col-duyet-de ${selectModeDe ? '' : 'hidden'} px-3 py-3 text-center w-8">
+                        <input type="checkbox" class="chk-duyet-de cursor-pointer" data-id="${item.id}" onchange="updateSelectActionsVisibility('duyet-de')" />
+                    </td>
+                    <td class="px-4 py-3 text-center font-semibold text-gray-500">${index + 1}</td>
+                    <td class="px-4 py-3 font-mono font-bold text-blue-900">${item.id}</td>
+                    <td class="px-4 py-3 font-semibold text-gray-800">${item.hocPhan}</td>
+                    <td class="px-4 py-3 text-gray-600 text-xs">
+                        Người nộp: <strong>${item.nguoiNop || 'N/A'}</strong><br/>
+                        Thời gian: <span class="text-gray-400">${item.thoiGian || 'N/A'}</span>
+                    </td>
+                    <td class="px-4 py-3 text-center font-semibold text-blue-600">
+                        <a href="#" class="text-blue-600 font-bold hover:underline" onclick="event.preventDefault(); showGlobalToast('Tải tệp', 'Đang tải xuống đề thi ${item.fileName}...');">${item.fileName || 'Chưa đính kèm'}</a>
+                    </td>
+                    <td class="px-4 py-3 text-gray-600 italic">${item.nhanXet || 'Không có nhận xét'}</td>
+                    <td class="px-4 py-3 text-center">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold ${badgeClass}">${statusText}</span>
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        ${statusText === 'Chờ phê duyệt' ? `
+                            <button onclick="changeDeThiStatus('${item.id}', 'Đạt')" class="bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 font-bold px-2 py-1 rounded text-[10px] mr-1">Phê duyệt</button>
+                            <button onclick="changeDeThiStatus('${item.id}', 'Chờ chỉnh sửa')" class="bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 font-bold px-2 py-1 rounded text-[10px]">Từ chối</button>
+                        ` : `<span class="text-gray-400 italic text-[11px]">Đã xử lý</span>`}
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+    window.renderDuyetDeThi = renderDuyetDeThi;
 </script>

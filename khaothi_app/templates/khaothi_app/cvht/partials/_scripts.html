@@ -320,7 +320,7 @@
         return true;
     }
 
-    function saveConfigNhapDiem() {
+    async function saveConfigNhapDiem() {
         const startEl = document.getElementById('config-nd-start');
         const endEl = document.getElementById('config-nd-end');
         const publishEl = document.getElementById('config-nd-publish');
@@ -401,7 +401,7 @@
     }
     window.editConfigNhapDiem = editConfigNhapDiem;
 
-    function saveConfigPhucKhao() {
+    async function saveConfigPhucKhao() {
         const startEl = document.getElementById('config-pk-start');
         const endEl = document.getElementById('config-pk-end');
         const deadlineEl = document.getElementById('config-pk-deadline');

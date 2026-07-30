@@ -34,6 +34,21 @@
             return false;
         };
 
+        window.addEventListener('unhandledrejection', function(event) {
+            const error = event.reason;
+            fetch('/api/log_error/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: error ? error.message : 'Unhandled Promise Rejection',
+                    source: error ? error.fileName : '',
+                    line: error ? error.lineNumber : '',
+                    col: error ? error.columnNumber : '',
+                    stack: error ? error.stack : ''
+                })
+            });
+        });
+
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {

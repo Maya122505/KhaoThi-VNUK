@@ -1,4 +1,165 @@
 <script>
+    // Synced global variables
+    let kyThiData = [];
+    let caThiData = [];
+    let lichThiData = [];
+    let hocPhiData = [];
+    let lopThiDiemData = [];
+    let phongThiData = [];
+    let tuiPhachData = [];
+    let phieuGiaoNhanData = [];
+    let canBoCoiThiData = [];
+    let phucKhaoData = [];
+    let auditLogsData = [];
+    let systemConfigsData = {};
+    let phanCongPhongData = [];
+    let inSaoData = [];
+    let deThiData = [];
+    let hocPhanData = [];
+    let isStateLoaded = false;
+    let allPhieuChoXacNhan = [];
+
+    let selectModesState = {
+        'phong-thi': 0,
+        'phan-cong': 0,
+        'in-sao': 0,
+        'in-sao-nk': 0,
+        'in-sao-bb': 0,
+        'rasoat-de': 0,
+        'ca-thi': 0
+    };
+
+    function toggleSelectMode(type) {
+        selectModesState[type] = selectModesState[type] === 0 ? 1 : 0;
+        const btn = document.getElementById(`btn-select-${type}`);
+        if (btn) {
+            const span = btn.querySelector('span');
+            if (span) span.innerText = selectModesState[type] > 0 ? "Huỷ" : "Chọn";
+        }
+        document.querySelectorAll(`.select-col-${type}`).forEach(el => {
+            if (selectModesState[type] > 0) el.classList.remove('hidden');
+            else el.classList.add('hidden');
+        });
+        const btnDeleteAll = document.getElementById(`btn-delete-all-${type}`);
+        if (btnDeleteAll) {
+            if (selectModesState[type] > 0) btnDeleteAll.classList.remove('hidden');
+            else btnDeleteAll.classList.add('hidden');
+        }
+    }
+    window.toggleSelectMode = toggleSelectMode;
+
+    function renderSelectCheckbox(type, label = '', val = '') {
+        return `<input type="checkbox" class="select-checkbox-${type} rounded border-gray-300 text-red-600 focus:ring-red-500" value="${val}" onclick="event.stopPropagation();" />`;
+    }
+    window.renderSelectCheckbox = renderSelectCheckbox;
+
+    async function loadStateFromServer() {
+        try {
+            const res = await fetch('/api/get_state/');
+            const data = await res.json();
+
+            kyThiData = (data.kyThiData || []).map(kt => ({
+                ma_ky_thi: kt.ma_ky_thi || kt.id || '',
+                ten_ky_thi: kt.ten_ky_thi || kt.name || '',
+                nam_hoc: kt.nam_hoc || kt.year || '',
+                hoc_ky: kt.hoc_ky || kt.semester || '',
+                dot_thi: kt.dot_thi || kt.dot || '',
+                mo_ta: kt.mo_ta || kt.mota || '',
+                ca_thi_count: kt.ca_thi_count || kt.shiftsCount || 0
+            }));
+
+            caThiData = (data.caThiData || []).map(ct => ({
+                ma_ca_thi: ct.ma_ca_thi || ct.id || '',
+                ky_thi: ct.ky_thi || ct.ky_thi_id || ct.kyThiId || '',
+                ten_ca: ct.ten_ca || ct.name || '',
+                ngay_thi: ct.ngay_thi || ct.date || '',
+                gio_bat_dau: ct.gio_bat_dau || ct.start || '',
+                gio_ket_thuc: ct.gio_ket_thuc || ct.end || '',
+                note: ct.note || ''
+            }));
+
+            lichThiData = (data.lichThiData || []).map(lt => {
+                const id = lt.id || lt.ma_lich_thi || '';
+                const subjectName = lt.subjectName || lt.ten_hoc_phan || '';
+                const date = lt.date || lt.ngay_thi || '';
+                const shiftName = lt.shiftName || lt.ca_thi || '';
+                const room = lt.room || lt.phong_thi || '';
+                const teacher = lt.teacher || lt.giam_thi || '';
+                return {
+                    id: id,
+                    ma_lich_thi: id,
+                    subjectCode: lt.subjectCode || lt.ma_hoc_phan || '',
+                    subjectName: subjectName,
+                    ten_hoc_phan: subjectName,
+                    date: date,
+                    ngay_thi: date,
+                    shiftName: shiftName,
+                    ca_thi: shiftName,
+                    time: lt.time || shiftName,
+                    room: room,
+                    phong_thi: room,
+                    teacher: teacher,
+                    giam_thi: teacher,
+                    examiner: teacher,
+                    teacherId: lt.teacherId || '',
+                    so_luong_sv: lt.so_luong_sv || lt.soLuong || 30
+                };
+            });
+
+            hocPhiData = data.hocPhiData || [];
+            lopThiDiemData = data.lopThiDiemData || [];
+            phongThiData = data.phongThiData || [];
+            tuiPhachData = data.tuiPhachData || [];
+            phieuGiaoNhanData = data.phieuGiaoNhanData || [];
+            canBoCoiThiData = data.canBoCoiThiData || [];
+            phucKhaoData = data.phucKhaoData || [];
+            auditLogsData = data.auditLogsData || [];
+            systemConfigsData = data.systemConfigsData || {};
+            phanCongPhongData = data.phanCongPhongData || [];
+            inSaoData = data.inSaoData || [];
+            deThiData = data.deThiData || [];
+            hocPhanData = data.hocPhanData || [];
+            isStateLoaded = true;
+        } catch(e) {
+            console.error("Lỗi đồng bộ dữ liệu từ server:", e);
+            fetch('/api/log_error/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: "loadStateFromServer error: " + e.message,
+                    stack: e.stack
+                })
+            });
+        }
+    }
+
+    async function saveStateToServer() {
+        try {
+            await fetch('/api/save_state/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    kyThiData,
+                    caThiData,
+                    lichThiData,
+                    hocPhiData,
+                    lopThiDiemData,
+                    phongThiData,
+                    phanCongPhongData,
+                    inSaoData,
+                    deThiData,
+                    hocPhanData,
+                    canBoCoiThiData,
+                    phucKhaoData
+                })
+            });
+        } catch (e) {
+            console.error("Lỗi lưu dữ liệu:", e);
+        }
+    }
+
     // ==========================================================
     // KHỞI TẠO VÀ ĐIỀU HƯỚNG
     // ==========================================================
@@ -6,6 +167,7 @@
 
     window.onload = async function() {
         initIcons();
+        await loadStateFromServer();
         const savedViewId = sessionStorage.getItem('tkt_activeViewId');
         await navigate(savedViewId || 'view-home');
     };
@@ -28,12 +190,14 @@
 
         activeViewId = viewId;
         let activeBtnId = 'nav-btn-home';
-        if (viewId === 'view-ky-thi') activeBtnId = 'nav-btn-ky-thi';
+        if (viewId === 'view-ky-thi' || viewId === 'view-ca-thi') activeBtnId = 'nav-btn-ky-thi';
         else if (viewId === 'view-danh-sach-lich') activeBtnId = 'nav-btn-danh-sach-lich';
         else if (viewId === 'view-nhap-diem') activeBtnId = 'nav-btn-nhap-diem';
         else if (viewId === 'view-phuc-khao') activeBtnId = 'nav-btn-phuc-khao';
         else if (viewId.includes('giao-nhan') || viewId.includes('nhan-bai') || viewId.includes('ban-giao-bai')) activeBtnId = 'nav-btn-giao-nhan';
         else if (viewId === 'view-gio-coi') activeBtnId = 'nav-btn-gio-coi';
+        else if (viewId === 'view-phong-thi') activeBtnId = 'nav-btn-phong-thi';
+        else if (viewId === 'view-in-sao') activeBtnId = 'nav-btn-in-sao';
 
         const activeBtn = document.getElementById(activeBtnId);
         if (activeBtn) {
@@ -43,12 +207,27 @@
 
         // Thay vì render từ state ảo, gọi hàm fetch dữ liệu tương ứng
         if (viewId === 'view-home') await fetchAndRenderDashboard();
-        else if (viewId === 'view-ky-thi') await fetchAndRenderKyThi();
-        else if (viewId === 'view-danh-sach-lich') await fetchAndRenderLichThi();
+        else if (viewId === 'view-ky-thi' || viewId === 'view-ca-thi') await fetchAndRenderKyThi();
+        else if (viewId === 'view-danh-sach-lich') {
+            await fetchAndRenderLichThi();
+            const tab = sessionStorage.getItem('tkt_dsl_activeTab') || 'ds';
+            switchDslTab(tab);
+        }
         else if (viewId === 'view-nhap-diem') resetViewNhapDiem(); // Nhập điểm có logic riêng
         else if (viewId === 'view-phuc-khao') await fetchAndRenderPhucKhao();
         else if (viewId.includes('giao-nhan') || viewId.includes('nhan-bai') || viewId.includes('ban-giao-bai')) await fetchAndRenderGiaoNhan();
         else if (viewId === 'view-gio-coi') await fetchAndRenderGioCoi();
+        else if (viewId === 'view-phong-thi') {
+            const tab = sessionStorage.getItem('tkt_pt_activeTab') || 'danh-sach';
+            switchTabPhongThi(tab);
+        }
+        else if (viewId === 'view-in-sao') {
+            const tab = sessionStorage.getItem('tkt_is_activeTab') || 'lap-dot';
+            switchTabInSao(tab);
+        }
+        else if (viewId === 'view-rasoat-de') {
+            renderRasoatDeList();
+        }
 
         initIcons();
     }
@@ -168,15 +347,36 @@
     }
 
     async function fetchAndRenderKyThi() {
-        const kyThiData = await fetchData('/tkt/api/ky-thi/');
-        const caThiData = await fetchData('/tkt/api/ca-thi/');
-        if (kyThiData && caThiData) {
+        const rawKyThi = await fetchData('/tkt/api/ky-thi/');
+        const rawCaThi = await fetchData('/tkt/api/ca-thi/');
+        if (rawKyThi && rawCaThi) {
+            kyThiData = rawKyThi.map(kt => ({
+                ma_ky_thi: kt.ma_ky_thi || kt.id || '',
+                ten_ky_thi: kt.ten_ky_thi || kt.name || '',
+                nam_hoc: kt.nam_hoc || kt.year || '',
+                hoc_ky: kt.hoc_ky || kt.semester || '',
+                dot_thi: kt.dot_thi || kt.dot || '',
+                mo_ta: kt.mo_ta || kt.mota || '',
+                ca_thi_count: kt.ca_thi_count || kt.shiftsCount || 0
+            }));
+            caThiData = rawCaThi.map(ct => ({
+                ma_ca_thi: ct.ma_ca_thi || ct.id || '',
+                ky_thi: ct.ky_thi || ct.ky_thi_id || ct.kyThiId || '',
+                ten_ca: ct.ten_ca || ct.name || '',
+                ngay_thi: ct.ngay_thi || ct.date || '',
+                gio_bat_dau: ct.gio_bat_dau || ct.start || '',
+                gio_ket_thuc: ct.gio_ket_thuc || ct.end || '',
+                note: ct.note || ''
+            }));
             renderKyThiView(kyThiData, caThiData);
         }
     }
 
     async function fetchAndRenderLichThi() {
-        // Cần API cho Lịch thi
+        if (!lichThiData || lichThiData.length === 0) {
+            await loadStateFromServer();
+        }
+        renderDslLichThiTable();
     }
 
     async function fetchAndRenderPhucKhao() {
@@ -224,34 +424,158 @@
     }
 
     function renderKyThiView(kyThiData, caThiData) {
-        // Populate select options
-        const select = document.getElementById('ct-kythi-select');
-        select.innerHTML = '';
-        kyThiData.forEach(kt => {
-            select.innerHTML += `<option value="${kt.ma_ky_thi}">${kt.ten_ky_thi}</option>`;
+        // Populate select options for both view-ky-thi and view-ca-thi
+        const selects = ['ct-kythi-select', 'ct-vca-kythi-select'];
+        selects.forEach(id => {
+            const select = document.getElementById(id);
+            if (select) {
+                select.innerHTML = '';
+                kyThiData.forEach(kt => {
+                    select.innerHTML += `<option value="${kt.ma_ky_thi}">${kt.ten_ky_thi}</option>`;
+                });
+            }
         });
 
-        // Render list
-        const div = document.getElementById('ca-thi-list-div');
-        div.innerHTML = '';
-        if (caThiData.length === 0) {
-            div.innerHTML = `<div class="text-center text-gray-400 py-6 italic">Chưa có ca thi nào.</div>`;
-            return;
-        }
-        caThiData.forEach(c => {
-            const kt = kyThiData.find(x => x.ma_ky_thi === c.ky_thi);
-            div.innerHTML += `
-                <div class="border border-gray-200 rounded p-3 text-xs bg-gray-50 flex justify-between items-center shadow-sm">
-                    <div>
-                        <p class="font-bold text-blue-900">${c.ten_ca} - Ngày thi: ${c.ngay_thi}</p>
-                        <p class="text-gray-500 mt-1 font-semibold">Khung giờ: ${c.gio_bat_dau} - ${c.gio_ket_thuc}</p>
-                        <p class="text-gray-400 mt-0.5">${kt ? kt.ten_ky_thi : ''} (${c.note || 'Không ghi chú'})</p>
+        // Render ca thi lists for both view-ky-thi and view-ca-thi
+        const listDivs = ['ca-thi-list-div', 'ca-thi-vca-list-div'];
+        listDivs.forEach(id => {
+            const div = document.getElementById(id);
+            if (!div) return;
+            div.innerHTML = '';
+            if (caThiData.length === 0) {
+                div.innerHTML = `<div class="text-center text-gray-400 py-6 italic">Chưa có ca thi nào.</div>`;
+                return;
+            }
+            caThiData.forEach(c => {
+                const kt = kyThiData.find(x => x.ma_ky_thi === c.ky_thi);
+                const isVca = id === 'ca-thi-vca-list-div';
+                const hasSelectMode = isVca && selectModesState['vca-ca-thi'] > 0;
+                
+                div.innerHTML += `
+                    <div class="border border-gray-200 rounded p-3 text-xs bg-gray-50 flex justify-between items-center shadow-sm">
+                        <div class="flex items-center gap-3">
+                            ${hasSelectMode ? `
+                                <div onclick="event.stopPropagation();" class="mr-1">
+                                    ${renderSelectCheckbox('vca-ca-thi', '', c.ma_ca_thi)}
+                                </div>
+                            ` : ''}
+                            <div onclick="${isVca ? `showCaThiDetailModal('${c.ma_ca_thi}')` : ''}" class="${isVca ? 'cursor-pointer hover:underline' : ''}">
+                                <p class="font-bold text-blue-900">${c.ten_ca} - Ngày thi: ${c.ngay_thi}</p>
+                                <p class="text-gray-500 mt-1 font-semibold">Khung giờ: ${c.gio_bat_dau} - ${c.gio_ket_thuc}</p>
+                                <p class="text-gray-400 mt-0.5">${kt ? kt.ten_ky_thi : ''} (${c.note || 'Không ghi chú'})</p>
+                            </div>
+                        </div>
+                        <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">Hoạt động</span>
                     </div>
-                    <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">Hoạt động</span>
-                </div>
-            `;
+                `;
+            });
         });
     }
+
+    async function handleCreateKyThi() {
+        const ten = document.getElementById('kt-ten').value;
+        const nam = document.getElementById('kt-nam').value;
+        const hocky = document.getElementById('kt-hocky').value;
+        const dateRange = document.getElementById('kt-thoigian').value.split(' - ');
+        
+        if (!ten || !nam || dateRange.length < 2) {
+            showGlobalToast("Lỗi", "Vui lòng nhập đầy đủ thông tin kỳ thi và khoảng thời gian.", "error");
+            return;
+        }
+
+        const ngay_bat_dau = dateRange[0].trim().split('/').reverse().join('-');
+        const ngay_ket_thuc = dateRange[1].trim().split('/').reverse().join('-');
+
+        const csrftoken = getCookie('csrftoken');
+        try {
+            const response = await fetch('/tkt/api/ky-thi/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({
+                    ten_ky_thi: ten,
+                    nam_hoc: nam,
+                    hoc_ky: hocky,
+                    ngay_bat_dau: ngay_bat_dau,
+                    ngay_ket_thuc: ngay_ket_thuc
+                })
+            });
+
+            if (!response.ok) {
+                const errData = await response.json();
+                throw new Error(JSON.stringify(errData));
+            }
+
+            showGlobalToast("Thành công", "Đã tạo kỳ thi mới thành công.", "success");
+            await fetchAndRenderKyThi();
+            
+            document.getElementById('kt-ten').value = '';
+            document.getElementById('kt-nam').value = '';
+            document.getElementById('kt-dot').value = '';
+            document.getElementById('kt-thoigian').value = '';
+            document.getElementById('kt-mota').value = '';
+        } catch (error) {
+            console.error("Lỗi khi tạo kỳ thi:", error);
+            showGlobalToast("Lỗi", "Không thể tạo kỳ thi. Vui lòng kiểm tra lại thông tin.", "error");
+        }
+    }
+    window.handleCreateKyThi = handleCreateKyThi;
+
+    async function handleCreateCaThi() {
+        const isVca = activeViewId === 'view-ca-thi';
+        const prefix = isVca ? 'ct-vca-' : 'ct-';
+        
+        const kyThiId = document.getElementById(prefix + 'kythi-select').value;
+        const tenCa = document.getElementById(prefix + 'ten').value;
+        const ngayThi = document.getElementById(prefix + 'ngay').value;
+        const gioBd = document.getElementById(prefix + 'gio-bd').value;
+        const gioKt = document.getElementById(prefix + 'gio-kt').value;
+        const note = document.getElementById(prefix + 'ghichu').value;
+
+        if (!kyThiId || !tenCa || !ngayThi || !gioBd || !gioKt) {
+            showGlobalToast("Lỗi", "Vui lòng điền đầy đủ các trường bắt buộc để tạo ca thi.", "error");
+            return;
+        }
+
+        const csrftoken = getCookie('csrftoken');
+        try {
+            const response = await fetch('/tkt/api/ca-thi/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({
+                    ky_thi: kyThiId,
+                    ten_ca: tenCa,
+                    ngay_thi: ngayThi,
+                    gio_bat_dau: gioBd,
+                    gio_ket_thuc: gioKt,
+                    note: note
+                })
+            });
+
+            if (!response.ok) {
+                const errData = await response.json();
+                throw new Error(JSON.stringify(errData));
+            }
+
+            showGlobalToast("Thành công", "Đã tạo ca thi mới thành công.", "success");
+            await fetchAndRenderKyThi();
+
+            document.getElementById(prefix + 'ten').value = '';
+            document.getElementById(prefix + 'ngay').value = '';
+            document.getElementById(prefix + 'gio-bd').value = '';
+            document.getElementById(prefix + 'gio-kt').value = '';
+            document.getElementById(prefix + 'ghichu').value = '';
+        } catch (error) {
+            console.error("Lỗi khi tạo ca thi:", error);
+            showGlobalToast("Lỗi", "Không thể tạo ca thi. Vui lòng kiểm tra lại.", "error");
+        }
+    }
+    window.handleCreateCaThi = handleCreateCaThi;
 
     let allLichThiBanGiao = [];
     let filteredLichThiBanGiao = [];
@@ -262,9 +586,25 @@
 
     function renderGiaoNhanView(data) {
         if (data) {
-            if (data.lich_thi_ban_giao) allLichThiBanGiao = data.lich_thi_ban_giao;
-            if (data.phieu_cho_xac_nhan) allPhieuChoXacNhan = data.phieu_cho_xac_nhan;
-            if (data.lich_su_phieu) allLichSuPhieu = data.lich_su_phieu;
+            const phieuList = data.phieu_list || [];
+            allPhieuChoXacNhan = phieuList.filter(p => p.trang_thai === "Chờ bạn xác nhận" || p.trang_thai === "Chờ xác nhận");
+            allLichSuPhieu = phieuList;
+            
+            allLichThiBanGiao = (lichThiData || []).map(lt => ({
+                id: lt.ma_lich_thi || lt.id,
+                ma_lich_thi: lt.ma_lich_thi || lt.id,
+                lop_hp: lt.lop_hp || lt.subjectCode || lt.id,
+                ten_hoc_phan: lt.ten_hoc_phan || lt.subjectName || 'Học phần',
+                ca_thi: lt.ca_thi || lt.shiftName || lt.time || '',
+                phong_thi: lt.phong_thi || lt.room || '',
+                ngay_thi: lt.ngay_thi || lt.date || '',
+                so_luong_sv: lt.so_luong_sv || lt.soLuong || 30
+            }));
+
+            const userSelect = document.getElementById('select-pbg-user');
+            if (userSelect && data.users) {
+                userSelect.innerHTML = data.users.map(u => `<option value="${u.username}">${u.full_name} (${u.username})</option>`).join('');
+            }
         }
         const phieu_cho_xac_nhan = allPhieuChoXacNhan || [];
         const lich_su_phieu = allLichSuPhieu || [];
@@ -333,25 +673,55 @@
 
         histTbodies.forEach(histTbody => {
             histTbody.innerHTML = '';
+            const tableEl = histTbody.closest('table');
+            const colCount = tableEl ? tableEl.querySelectorAll('thead th').length : 5;
+
             if (!lich_su_phieu || lich_su_phieu.length === 0) {
-                histTbody.innerHTML = `<tr><td colspan="5" class="text-center p-4 text-gray-500">Chưa có lịch sử giao nhận.</td></tr>`;
+                histTbody.innerHTML = `<tr><td colspan="${colCount}" class="text-center p-4 text-gray-500">Chưa có lịch sử giao nhận.</td></tr>`;
             } else {
                 lich_su_phieu.forEach(p => {
                     let stBadge = `<span class="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-xs font-bold">${p.trang_thai}</span>`;
-                    if (p.trang_thai === "Đã hoàn tất") stBadge = `<span class="bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-bold">✓ ${p.trang_thai}</span>`;
+                    if (p.trang_thai === "Đã hoàn tất" || p.trang_thai === "Đã tiếp nhận") {
+                        stBadge = `<span class="bg-green-100 text-green-800 px-2.5 py-1 rounded text-xs font-bold shadow-xs">✓ Đã tiếp nhận</span>`;
+                    } else if (p.trang_thai === "Chờ bạn xác nhận" || p.trang_thai === "Chờ xác nhận") {
+                        stBadge = `<span class="bg-yellow-100 text-yellow-800 px-2.5 py-1 rounded text-xs font-bold shadow-xs">Chờ bạn xác nhận</span>`;
+                    }
 
-                    let totalItems = (p.chi_tiet || []).length;
-                    let qtyDisplay = totalItems;
+                    // Count of rooms/bags
+                    const totalItems = (p.chi_tiet || []).length || p.qty || 1;
+                    const qtyDisplay = `${totalItems} phòng`;
 
-                    histTbody.innerHTML += `
-                        <tr class="hover:bg-gray-50 text-xs">
-                            <td class="px-4 py-2.5 font-mono font-bold text-blue-600">${p.ma_phieu}</td>
-                            <td class="px-4 py-2.5 text-gray-700 font-semibold">${p.loai_phieu || 'Bàn giao bài thi'}</td>
-                            <td class="px-4 py-2.5 text-gray-700">${p.nguoi_giao?.full_name || 'Tổ Khảo thí'} ➔ ${p.nguoi_nhan?.full_name || 'Thư ký'}</td>
-                            <td class="px-4 py-2.5 text-center font-bold text-slate-800">${qtyDisplay}</td>
-                            <td class="px-4 py-2.5 text-center">${stBadge}</td>
-                        </tr>
-                    `;
+                    // Sender and Recipient short names (e.g. TKT, TKCT, DVCM)
+                    const senderName = (p.nguoi_giao?.username || p.sender || 'TKT').toUpperCase();
+                    const recipientName = (p.nguoi_nhan?.username || p.recipient || 'TKCT').toUpperCase();
+                    const routeDisplay = `${senderName} ➔ ${recipientName}`;
+
+                    if (colCount === 4) {
+                        histTbody.innerHTML += `
+                            <tr class="hover:bg-gray-50 text-xs">
+                                <td class="px-4 py-2.5 font-mono font-bold text-blue-600 flex items-center gap-1">
+                                    <span class="hover:underline cursor-pointer" onclick="showGnDetailNhan('${p.ma_phieu}')">${p.ma_phieu}</span>
+                                    <i data-lucide="file-text" class="w-4 h-4 text-gray-400"></i>
+                                </td>
+                                <td class="px-4 py-2.5 text-gray-700 font-bold">${routeDisplay}</td>
+                                <td class="px-4 py-2.5 text-center font-bold text-slate-800">${qtyDisplay}</td>
+                                <td class="px-4 py-2.5 text-center">${stBadge}</td>
+                            </tr>
+                        `;
+                    } else {
+                        histTbody.innerHTML += `
+                            <tr class="hover:bg-gray-50 text-xs">
+                                <td class="px-4 py-2.5 font-mono font-bold text-blue-600 flex items-center gap-1">
+                                    <span class="hover:underline cursor-pointer" onclick="showGnDetailNhan('${p.ma_phieu}')">${p.ma_phieu}</span>
+                                    <i data-lucide="file-text" class="w-4 h-4 text-gray-400"></i>
+                                </td>
+                                <td class="px-4 py-2.5 text-gray-700 font-semibold">${p.loai_phieu || 'Bàn giao bài thi'}</td>
+                                <td class="px-4 py-2.5 text-gray-700 font-bold">${routeDisplay}</td>
+                                <td class="px-4 py-2.5 text-center font-bold text-slate-800">${qtyDisplay}</td>
+                                <td class="px-4 py-2.5 text-center">${stBadge}</td>
+                            </tr>
+                        `;
+                    }
                 });
             }
         });
@@ -1400,9 +1770,176 @@
 
 
     // ==========================================================
+    // UC: LẬP DANH SÁCH & LỊCH THI
+    // ==========================================================
+    function switchDslTab(tab) {
+        sessionStorage.setItem('tkt_dsl_activeTab', tab);
+        const tabDs = document.getElementById('dsl-tab-ds');
+        const tabLich = document.getElementById('dsl-tab-lich');
+        if (tabDs) tabDs.classList.add('hidden-view');
+        if (tabLich) tabLich.classList.add('hidden-view');
+        
+        const btnDs = document.getElementById('btn-dsl-tab-ds');
+        const btnLich = document.getElementById('btn-dsl-tab-lich');
+        if (btnDs && btnLich) {
+            btnDs.className = "bg-gray-100 text-gray-700 px-4 py-2 rounded text-sm font-semibold hover:bg-gray-200";
+            btnLich.className = "bg-gray-100 text-gray-700 px-4 py-2 rounded text-sm font-semibold hover:bg-gray-200";
+        }
+
+        if (tab === 'ds') {
+            if (tabDs) tabDs.classList.remove('hidden-view');
+            if (btnDs) btnDs.className = "bg-blue-900 text-white px-4 py-2 rounded text-sm font-semibold shadow";
+            renderDslSubjects();
+        } else {
+            if (tabLich) tabLich.classList.remove('hidden-view');
+            if (btnLich) btnLich.className = "bg-blue-900 text-white px-4 py-2 rounded text-sm font-semibold shadow";
+            populateLichKyThiDropdown();
+            renderDslLichThiTable();
+        }
+        initIcons();
+    }
+    window.switchDslTab = switchDslTab;
+
+    function renderDslSubjects() {
+        const sel = document.getElementById('dsl-subject-select');
+        if (!sel) return;
+        sel.innerHTML = hocPhanData.map(hp => `<option value="${hp.code}">${hp.name} (${hp.code})</option>`).join('');
+    }
+
+    function handleSyncDoiChieuHocPhi() {
+        const selSubject = document.getElementById('dsl-subject-select').value;
+        if (!selSubject) {
+            showGlobalToast("Thông báo", "Vui lòng chọn học phần để đối chiếu.", "warning");
+            return;
+        }
+        
+        const students = hocPhiData.filter(s => s.subject === selSubject);
+        const tbody = document.getElementById('dsl-students-tbody');
+        if (!tbody) return;
+
+        if (students.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center text-gray-500 py-8 italic">Không có sinh viên nào đăng ký học phần này.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = students.map(s => {
+            const hasDebt = s.debt > 0;
+            const isEligible = !hasDebt;
+            return `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-3 border-b font-mono font-bold">${s.msv}</td>
+                    <td class="px-4 py-3 border-b font-semibold">${s.name}</td>
+                    <td class="px-4 py-3 border-b">${s.class}</td>
+                    <td class="px-4 py-3 border-b text-center">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold ${hasDebt ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}">
+                            ${hasDebt ? 'Nợ học phí: ' + s.debt.toLocaleString() + 'đ' : 'Đã hoàn thành'}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3 border-b text-center">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isEligible ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
+                            ${isEligible ? 'Đủ ĐK' : 'Cấm thi'}
+                        </span>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+        
+        showGlobalToast("Thành công", `Đã đối chiếu điều kiện dự thi cho ${students.length} sinh viên.`, "success");
+    }
+    window.handleSyncDoiChieuHocPhi = handleSyncDoiChieuHocPhi;
+
+    function handleSaveDanhSachThi() {
+        showGlobalToast("Thành công", "Đã gửi duyệt danh sách thi thành công.", "success");
+    }
+    window.handleSaveDanhSachThi = handleSaveDanhSachThi;
+
+    function populateLichKyThiDropdown() {
+        const ktSel = document.getElementById('dsl-lich-kythi');
+        if (ktSel) {
+            ktSel.innerHTML = kyThiData.map(kt => `<option value="${kt.ma_ky_thi}">${kt.ten_ky_thi}</option>`).join('');
+            populateCaThiDropdown();
+        }
+        const subSel = document.getElementById('dsl-lich-subject');
+        if (subSel) {
+            subSel.innerHTML = hocPhanData.map(hp => `<option value="${hp.code}">${hp.name} (${hp.code})</option>`).join('');
+        }
+        const roomSel = document.getElementById('dsl-lich-phong');
+        if (roomSel) {
+            roomSel.innerHTML = phongThiData.map(p => `<option value="${p.ma}">${p.ten}</option>`).join('');
+        }
+    }
+    window.populateLichKyThiDropdown = populateLichKyThiDropdown;
+
+    function populateCaThiDropdown() {
+        const ktId = document.getElementById('dsl-lich-kythi')?.value;
+        const caSel = document.getElementById('dsl-lich-cathi');
+        if (!caSel) return;
+        const caList = caThiData.filter(c => c.ky_thi === ktId || !ktId);
+        caSel.innerHTML = caList.map(c => `<option value="${c.ten_ca}">${c.ten_ca} - Ngày thi: ${c.ngay_thi}</option>`).join('') || '<option value="">-- Chưa có ca thi --</option>';
+    }
+    window.populateCaThiDropdown = populateCaThiDropdown;
+
+    function handleLậpLịchThiSubmit() {
+        const ktId = document.getElementById('dsl-lich-kythi').value;
+        const caTen = document.getElementById('dsl-lich-cathi').value;
+        const subCode = document.getElementById('dsl-lich-subject').value;
+        const roomCode = document.getElementById('dsl-lich-phong').value;
+        const gtUser = document.getElementById('dsl-lich-giám-thị').value;
+
+        if (!ktId || !caTen || !subCode || !roomCode) {
+            showGlobalToast("Lỗi", "Vui lòng chọn đầy đủ thông tin để lập lịch.", "error");
+            return;
+        }
+
+        const sub = hocPhanData.find(hp => hp.code === subCode);
+        const room = phongThiData.find(p => p.ma === roomCode);
+        const ca = caThiData.find(c => c.ten_ca === caTen && (c.ky_thi === ktId));
+
+        const newLich = {
+            id: "LHP-" + Date.now().toString().slice(-4),
+            subjectName: sub ? sub.name : subCode,
+            date: ca ? ca.ngay_thi : new Date().toISOString().slice(0, 10),
+            time: caTen,
+            room: room ? room.ten : roomCode,
+            examiner: gtUser,
+            soLuong: 30
+        };
+
+        lichThiData.unshift(newLich);
+        renderDslLichThiTable();
+        showGlobalToast("Thành công", "Đã thêm lịch thi thành công.", "success");
+        if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
+    }
+    window.handleLậpLịchThiSubmit = handleLậpLịchThiSubmit;
+
+    function renderDslLichThiTable() {
+        const tbody = document.getElementById('dsl-lich-tbody');
+        if (!tbody) return;
+
+        tbody.innerHTML = lichThiData.map(lt => {
+            const name = lt.subjectName || lt.ten_hoc_phan || 'Môn thi';
+            const date = lt.date || lt.ngay_thi || '';
+            const ca = lt.time || lt.ca_thi || '';
+            const room = lt.room || lt.phong_thi || 'Chưa xếp';
+            const examiner = lt.examiner || lt.giam_thi || 'Chưa phân';
+            return `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-2.5 border-b font-bold text-blue-900">${name}</td>
+                    <td class="px-4 py-2.5 border-b font-medium text-gray-700">${date}</td>
+                    <td class="px-4 py-2.5 border-b text-gray-600">${ca}</td>
+                    <td class="px-4 py-2.5 border-b font-bold text-gray-800">${room}</td>
+                    <td class="px-4 py-2.5 border-b text-gray-600">${examiner}</td>
+                </tr>
+            `;
+        }).join('') || `<tr><td colspan="5" class="text-center py-6 text-gray-500 italic">Chưa có lịch thi nào được lập.</td></tr>`;
+    }
+    window.renderDslLichThiTable = renderDslLichThiTable;
+
+    // ==========================================================
     // UC: QUẢN LÝ PHÒNG THI
     // ==========================================================
     function switchTabPhongThi(tab) {
+        sessionStorage.setItem('tkt_pt_activeTab', tab);
         const tabDs = document.getElementById('phong-thi-danh-sach-tab');
         const tabPc = document.getElementById('phong-thi-phan-cong-tab');
         if (tabDs) tabDs.classList.add('hidden-view');
@@ -1788,6 +2325,7 @@
     // UC: IN SAO ĐỀ THI
     // ==========================================================
     function switchTabInSao(tab) {
+        sessionStorage.setItem('tkt_is_activeTab', tab);
         document.getElementById('in-sao-lap-dot-tab').classList.add('hidden-view');
         document.getElementById('in-sao-nhat-ky-tab').classList.add('hidden-view');
         document.getElementById('in-sao-xac-nhan-tab').classList.add('hidden-view');

@@ -12,6 +12,8 @@
     let phieuGiaoNhanData = [];
     let canBoCoiThiData = [];
     let phucKhaoData = [];
+    let deThiData = [];
+    let hocPhanData = [];
 
     let isStateLoaded = false;
     let giaoNhanSelectedIds = new Set();
@@ -49,6 +51,8 @@
             phieuGiaoNhanData = data.phieuGiaoNhanData;
             canBoCoiThiData = data.canBoCoiThiData;
             phucKhaoData = data.phucKhaoData;
+            deThiData = data.deThiData || [];
+            hocPhanData = data.hocPhanData || [];
             isStateLoaded = true;
         } catch(e) {
             console.error("Lỗi đồng bộ dữ liệu:", e);
@@ -70,7 +74,9 @@
                     tuiPhachData,
                     phieuGiaoNhanData,
                     canBoCoiThiData,
-                    phucKhaoData
+                    phucKhaoData,
+                    deThiData,
+                    hocPhanData
                 })
             });
         } catch(e) {
@@ -112,6 +118,8 @@
             switchPhanCongSubTab('main');
         } else if(viewId === 'view-nhap-tra-diem') {
             renderNhapTraDiem();
+        } else if(viewId === 'view-de-thi') {
+            switchTabDeThi('danh-sach');
         }
         initIcons();
     }
@@ -1761,4 +1769,158 @@
 
         setTimeout(() => toast.classList.add('hidden-view'), 4000);
     }
+
+    // ==========================================================
+    // UC: QUẢN LÝ ĐỀ THI (DVCM)
+    // ==========================================================
+    function switchTabDeThi(tab) {
+        const tabDs = document.getElementById('de-thi-danh-sach-tab');
+        const tabNd = document.getElementById('de-thi-nop-de-tab');
+        if (tabDs) tabDs.classList.add('hidden-view');
+        if (tabNd) tabNd.classList.add('hidden-view');
+
+        const btnDs = document.getElementById('btn-dt-tab-ds');
+        const btnNd = document.getElementById('btn-dt-tab-nd');
+        if (btnDs && btnNd) {
+            btnDs.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 text-gray-600 hover:bg-gray-100 font-sans shadow-none";
+            btnNd.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 text-gray-600 hover:bg-gray-100 font-sans shadow-none";
+        }
+
+        if (tab === 'danh-sach') {
+            if (tabDs) tabDs.classList.remove('hidden-view');
+            if (btnDs) btnDs.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 bg-blue-100 text-blue-800 shadow-sm font-sans";
+            renderDeThi();
+        } else {
+            if (tabNd) tabNd.classList.remove('hidden-view');
+            if (btnNd) btnNd.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 bg-blue-100 text-blue-800 shadow-sm font-sans";
+            renderDeThiNopTable();
+        }
+        initIcons();
+    }
+    window.switchTabDeThi = switchTabDeThi;
+
+    function renderDeThi() {
+        const tbody = document.getElementById('de-thi-tbody');
+        if (!tbody) return;
+
+        if (deThiData.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-gray-500 italic">Chưa có đề thi nào được nộp.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = deThiData.map(dt => {
+            let badgeClass = "bg-yellow-100 text-yellow-800";
+            if (dt.trangThai === "Đạt") badgeClass = "bg-green-100 text-green-800 font-bold";
+            else if (dt.trangThai === "Chờ chỉnh sửa") badgeClass = "bg-red-100 text-red-800";
+
+            return `
+                <tr class="hover:bg-gray-50 border-b border-gray-100 cursor-pointer" onclick="showDeThiDetail('${dt.id}')">
+                    <td class="px-4 py-3 font-mono font-bold text-blue-900">${dt.id}</td>
+                    <td class="px-4 py-3 font-semibold text-gray-800">${dt.hocPhan}</td>
+                    <td class="px-4 py-3 text-gray-600">${dt.nguoiNop}</td>
+                    <td class="px-4 py-3 text-gray-500 font-medium">${dt.thoiGian}</td>
+                    <td class="px-4 py-3 text-blue-600 font-medium truncate max-w-[150px]" title="${dt.fileName}">${dt.fileName || 'Chưa đính kèm'}</td>
+                    <td class="px-4 py-3">
+                        <span class="px-2.5 py-1 rounded text-xs ${badgeClass}">${dt.trangThai}</span>
+                    </td>
+                    <td class="px-4 py-3 text-center text-gray-500 italic">${dt.nhanXet || 'Không'}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+    window.renderDeThi = renderDeThi;
+
+    function renderDeThiNopTable() {
+        const tbody = document.getElementById('de-thi-nop-tbody');
+        if (!tbody) return;
+
+        if (deThiData.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-500 italic">Chưa có đề thi nào được nộp.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = deThiData.map(dt => {
+            let badgeClass = "bg-yellow-100 text-yellow-800";
+            if (dt.trangThai === "Đạt") badgeClass = "bg-green-100 text-green-800 font-bold";
+            else if (dt.trangThai === "Chờ chỉnh sửa") badgeClass = "bg-red-100 text-red-800";
+
+            return `
+                <tr class="hover:bg-gray-50 border-b border-gray-100">
+                    <td class="px-3 py-2.5 font-mono font-bold text-blue-950">${dt.id}</td>
+                    <td class="px-3 py-2.5 font-semibold text-gray-800">${dt.hocPhan}</td>
+                    <td class="px-3 py-2.5 text-gray-600">${dt.nguoiNop}</td>
+                    <td class="px-3 py-2.5 text-gray-500 font-medium">${dt.thoiGian}</td>
+                    <td class="px-3 py-2.5 text-blue-600 font-medium truncate max-w-[120px]">${dt.fileName || 'N/A'}</td>
+                    <td class="px-3 py-2.5">
+                        <span class="px-2 py-0.5 rounded text-[10px] ${badgeClass}">${dt.trangThai}</span>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+    window.renderDeThiNopTable = renderDeThiNopTable;
+
+    function showDeThiDetail(id) {
+        const dt = deThiData.find(x => x.id === id);
+        if (!dt) return;
+
+        document.getElementById('dt-detail-id').innerText = dt.id;
+        document.getElementById('dt-detail-subject').innerText = dt.hocPhan;
+        document.getElementById('dt-detail-submitter').innerText = dt.nguoiNop;
+        document.getElementById('dt-detail-time').innerText = dt.thoiGian;
+        document.getElementById('dt-detail-file-name').innerText = dt.fileName || 'Không có tệp';
+        document.getElementById('dt-detail-note').innerText = dt.ghiChu || 'Không ghi chú';
+        document.getElementById('dt-detail-review').innerText = dt.nhanXet || 'Chưa có nhận xét rà soát.';
+
+        const statusEl = document.getElementById('dt-detail-status');
+        statusEl.innerText = dt.trangThai;
+        statusEl.className = "px-2 py-0.5 rounded font-bold text-xs " + 
+            (dt.trangThai === "Đạt" ? "bg-green-100 text-green-800" : 
+             dt.trangThai === "Chờ chỉnh sửa" ? "bg-red-100 text-red-800" : "bg-yellow-100 text-yellow-800");
+
+        document.getElementById('modal-detail-de-thi').classList.remove('hidden-view');
+    }
+    window.showDeThiDetail = showDeThiDetail;
+
+    function closeDeThiDetail() {
+        document.getElementById('modal-detail-de-thi').classList.add('hidden-view');
+    }
+    window.closeDeThiDetail = closeDeThiDetail;
+
+    async function handleNopDeThi() {
+        const subject = document.getElementById('dt-hoc-phan').value.trim();
+        const fileInput = document.getElementById('dt-file');
+        const note = document.getElementById('dt-ghi-chu').value.trim();
+
+        if (!subject || !fileInput.files[0]) {
+            showGlobalToast("Lỗi nhập liệu", "Vui lòng nhập tên học phần và chọn tệp đề thi.", "error");
+            return;
+        }
+
+        const fileName = fileInput.files[0].name;
+        const newDe = {
+            id: "DT" + Date.now().toString().slice(-4),
+            hocPhan: subject,
+            nguoiNop: "Trưởng ĐVCM",
+            thoiGian: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + " " + new Date().toLocaleDateString('vi-VN'),
+            fileName: fileName,
+            ghiChu: note,
+            trangThai: "Chờ rà soát",
+            nhanXet: ""
+        };
+
+        deThiData.unshift(newDe);
+        
+        // Reset form
+        document.getElementById('dt-hoc-phan').value = '';
+        document.getElementById('dt-file').value = '';
+        document.getElementById('dt-file-name').innerText = 'Click để chọn tệp hoặc kéo thả tệp vào đây';
+        document.getElementById('dt-ghi-chu').value = '';
+
+        showGlobalToast("Thành công", "Đã nộp đề thi lên hệ thống thành công.", "success");
+        renderDeThiNopTable();
+        
+        if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
+    }
+    window.handleNopDeThi = handleNopDeThi;
 </script>

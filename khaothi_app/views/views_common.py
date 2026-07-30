@@ -145,12 +145,18 @@ for i in range(1, 53):
     
     scores_dict = {}
     status = "Đã khóa phách"
-    if i <= 10:
+    if i <= 3:
+        status = "Đã duyệt bảng điểm"
+    elif i <= 7:
+        status = "Khoa đã phê duyệt"
+    elif i <= 12:
         status = "Đã đối chiếu hợp lệ"
     elif i <= 25:
         status = "Đang chấm"
     elif i <= 40:
         status = "Chờ khớp điểm"
+
+    if i <= 12 or (25 < i <= 40):
         for p in phach_list:
             scores_dict[p] = { "grader1": round(4.0 + (int(p[-2:]) * 0.15) % 6.0, 1), "grader2": round(4.0 + (int(p[-2:]) * 0.15) % 6.0, 1) }
             
@@ -320,6 +326,34 @@ INITIAL_SYSTEM_CONFIGS = {
         {"id": "PC001", "ltId": "LT-ENG101", "subjectName": "Tiếng Anh GTQT 3", "date": "15/08/2026", "caThi": "Ca 1 (07:30 - 09:30)", "soLuong": 120, "roomNames": "P.101, P.102"},
         {"id": "PC002", "ltId": "LT-BUS201", "subjectName": "Quản trị dự án", "date": "16/08/2026", "caThi": "Ca 2 (09:45 - 11:45)", "soLuong": 90, "roomNames": "P.201, P.202"},
         {"id": "PC003", "ltId": "LT-CS101", "subjectName": "Nhập môn Lập trình", "date": "17/08/2026", "caThi": "Ca 3 (13:00 - 15:00)", "soLuong": 60, "roomNames": "P.301"}
+    ],
+    "inSaoData": [
+        {
+            "id": "IS1001",
+            "ltId": "LHP-ENG101",
+            "subjectName": "Tiếng Anh GTQT 3 (ENG101)",
+            "kyThiTen": "Thi cuối kỳ học kỳ III",
+            "caThi": "Ca 1 - Ngày thi: 2026-07-12",
+            "soLuong": 125,
+            "ngay": "2026-07-11",
+            "noiIn": "Phòng khảo thí",
+            "giamSat": "Trần Văn Vũ",
+            "ghiChu": "In kèm đề phụ",
+            "trangThai": "Chờ cập nhật"
+        },
+        {
+            "id": "IS1002",
+            "ltId": "LHP-BUS201",
+            "subjectName": "Quản trị dự án (BUS201)",
+            "kyThiTen": "Thi cuối kỳ học kỳ III",
+            "caThi": "Ca 2 - Ngày thi: 2026-07-12",
+            "soLuong": 95,
+            "ngay": "2026-07-11",
+            "noiIn": "Phòng khảo thí",
+            "giamSat": "Trần Văn Vũ",
+            "ghiChu": "",
+            "trangThai": "Chờ xác nhận"
+        }
     ]
 }
 
