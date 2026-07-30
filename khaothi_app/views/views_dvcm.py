@@ -162,8 +162,8 @@ class DVCMDataAPI(APIView):
         # 1. Lấy danh sách túi phách đang chờ phân công chấm
         tui_phach_cho_phan_cong = TuiPhach.objects.filter(
             trang_thai='DaGiaoDVCM',
-            hoc_phan__khoa=khoa_dvcm
-        ).select_related('hoc_phan')
+            tui_bai_thi__lich_thi__lop_hp__hoc_phan__khoa=khoa_dvcm
+        ).select_related('tui_bai_thi__lich_thi__lop_hp__hoc_phan')
 
         # 2. Lấy danh sách giảng viên thuộc khoa
         giang_vien_khoa = GiangVien.objects.filter(khoa=khoa_dvcm)

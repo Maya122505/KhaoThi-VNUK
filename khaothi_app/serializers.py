@@ -43,12 +43,16 @@ class TuiBaiThiSerializer(serializers.ModelSerializer):
         fields = ['ma_tui_bai', 'lich_thi', 'so_luong_bai', 'trang_thai']
 
 class TuiPhachSerializer(serializers.ModelSerializer):
-    hoc_phan = serializers.StringRelatedField()
-    trang_thai = serializers.CharField(source='get_trang_thai_display')
+    hoc_phan = serializers.SerializerMethodField()
 
     class Meta:
         model = TuiPhach
         fields = ['ma_tui', 'hoc_phan', 'so_luong_bai', 'trang_thai']
+
+    def get_hoc_phan(self, obj):
+        if obj.tui_bai_thi and obj.tui_bai_thi.lich_thi and obj.tui_bai_thi.lich_thi.lop_hp and obj.tui_bai_thi.lich_thi.lop_hp.hoc_phan:
+            return str(obj.tui_bai_thi.lich_thi.lop_hp.hoc_phan)
+        return None
 
 class GiangVienSerializer(serializers.ModelSerializer):
     khoa = serializers.StringRelatedField()

@@ -22,7 +22,7 @@ class TKCTDataAPI(APIView):
         tui_bai_thi_cho_lam_phach = TuiBaiThi.objects.filter(trang_thai='DaThuHoi').select_related('lich_thi__lop_hp__hoc_phan')
         
         # Lấy danh sách túi phách đã được tạo
-        tui_phach_da_tao = TuiPhach.objects.all().select_related('hoc_phan')
+        tui_phach_da_tao = TuiPhach.objects.all().select_related('tui_bai_thi__lich_thi__lop_hp__hoc_phan')
 
         # Serialize dữ liệu
         tui_bai_thi_serializer = TuiBaiThiSerializer(tui_bai_thi_cho_lam_phach, many=True)
@@ -47,13 +47,12 @@ class TuiPhachAPI(APIView):
             hoc_phan_ma = tui.get('subjectId')
             so_bai = tui.get('papers', 30)
             
-            hoc_phan = HocPhan.objects.filter(ma_hoc_phan=hoc_phan_ma).first()
-            ma_tui = f"TP_{hoc_phan_ma}_{index+1}" # Đơn giản hóa tạo mã túi
-            
+            tui_bai_thi = TuiBaiThi.objects.filter(lich_thi__lop_hp__hoc_phan__ma_hoc_phan=hoc_phan_ma).first()
+            ma_tui = f"TP_{hoc_phan_ma}_{index+1}"
             tui_obj, _ = TuiPhach.objects.get_or_create(
                 ma_tui=ma_tui,
                 defaults={
-                    'hoc_phan': hoc_phan,
+                    'tui_bai_thi': tui_bai_thi,
                     'so_luong_bai': so_bai,
                     'trang_thai': 'MoiTao'
                 }
