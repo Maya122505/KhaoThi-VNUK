@@ -19,6 +19,10 @@
         .animate-fade-in-down { animation: fadeInDown 0.2s ease-out forwards; }
         .animate-fade-in-up { animation: fadeInUp 0.4s ease-out forwards; }
         .animate-shake { animation: shake 0.4s ease-in-out; }
+
+        /* Ẩn thanh cuộn ngang cho tab bar */
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
     </style>
 {% endblock %}
 
@@ -30,12 +34,16 @@
     <main class="flex-1 max-w-[1500px] mx-auto w-full p-6 relative">
         {% include 'khaothi_app/tkt/partials/_view_home.html' %}
         {% include 'khaothi_app/tkt/partials/_view_ky_thi.html' %}
+        {% include 'khaothi_app/tkt/partials/_view_ca_thi.html' %}
         {% include 'khaothi_app/tkt/partials/_view_danh_sach_lich.html' %}
         {% include 'khaothi_app/tkt/partials/_view_nhap_diem.html' %}
         {% include 'khaothi_app/tkt/partials/_view_phuc_khao.html' %}
         {% include 'khaothi_app/tkt/partials/_view_nhan_bai.html' %}
         {% include 'khaothi_app/tkt/partials/_view_ban_giao_bai.html' %}
         {% include 'khaothi_app/tkt/partials/_view_gio_coi.html' %}
+        {% include 'khaothi_app/tkt/partials/_view_phong_thi.html' %}
+        {% include 'khaothi_app/tkt/partials/_view_in_sao.html' %}
+        {% include 'khaothi_app/tkt/partials/_view_rasoat_de.html' %}
     </main>
 
     {% include 'khaothi_app/tkt/partials/_modals.html' %}

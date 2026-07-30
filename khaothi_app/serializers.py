@@ -82,8 +82,8 @@ class PhieuGiaoNhanSerializer(serializers.ModelSerializer):
     nguoi_giao = UserSerializer(read_only=True)
     nguoi_nhan = UserSerializer(read_only=True)
     chi_tiet = ChiTietGiaoNhanSerializer(many=True, read_only=True)
-    loai_phieu = serializers.CharField(source='get_loai_phieu_display')
-    trang_thai = serializers.CharField(source='get_trang_thai_display')
+    loai_phieu = serializers.CharField(required=False, allow_null=True)
+    trang_thai = serializers.CharField(required=False, allow_null=True)
 
     class Meta:
         model = PhieuGiaoNhan

@@ -523,6 +523,7 @@ class DonPhucKhao(models.Model):
     sinh_vien = models.ForeignKey(SinhVien, on_delete=models.CASCADE, related_name='don_phuc_khao')
     lich_thi = models.ForeignKey(LichThi, on_delete=models.CASCADE, related_name='don_phuc_khao', null=True, blank=True)
     ma_phach = models.ForeignKey(MaPhach, on_delete=models.CASCADE, related_name='don_phuc_khao', null=True, blank=True)
+    hoc_phan = models.ForeignKey(HocPhan, on_delete=models.CASCADE, related_name='don_phuc_khao', null=True, blank=True)
     diem_goc = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
     diem_phuc_khao_1 = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
     diem_phuc_khao_2 = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)

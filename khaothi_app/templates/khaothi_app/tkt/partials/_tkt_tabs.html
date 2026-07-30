@@ -9,83 +9,80 @@
     
     <nav id="tkt-nav-scroller" class="flex flex-nowrap overflow-x-auto overflow-y-visible whitespace-nowrap scroll-smooth w-full hide-scrollbar md:px-8">
         <!-- Trang chủ -->
-        <button id="nav-btn-home" class="nav-btn px-4 py-3 text-sm font-semibold border-r border-red-800 transition-colors hover:bg-red-800 shrink-0" onclick="navigate('view-home')">Trang chủ</button>
+        <button id="nav-btn-home" class="nav-btn px-4 py-3 text-base font-semibold border-r border-red-800 transition-colors hover:bg-red-800 shrink-0" onclick="navigate('view-home')">Trang chủ</button>
         <!-- Quản lý Kỳ thi -->
-        <button id="nav-btn-ky-thi" class="nav-btn px-4 py-3 text-sm font-semibold border-r border-red-800 transition-colors hover:bg-red-800 shrink-0" onclick="navigate('view-ky-thi')">Quản lý Kỳ thi</button>
+        <button id="nav-btn-ky-thi" class="nav-btn px-4 py-3 text-base font-semibold border-r border-red-800 transition-colors hover:bg-red-800 shrink-0" onclick="navigate('view-ky-thi')">Quản lý Kỳ thi</button>
         <!-- Quản lý Ca thi -->
-        <button id="nav-btn-ca-thi" class="nav-btn px-4 py-3 text-sm font-semibold border-r border-red-800 transition-colors hover:bg-red-800 shrink-0" onclick="navigate('view-ca-thi')">Quản lý Ca thi</button>
+        <button id="nav-btn-ca-thi" class="nav-btn px-4 py-3 text-base font-semibold border-r border-red-800 transition-colors hover:bg-red-800 shrink-0" onclick="navigate('view-ca-thi')">Quản lý Ca thi</button>
         
         <!-- Danh sách & Lịch thi -->
         <div class="shrink-0">
-            <button id="nav-btn-danh-sach-lich" class="nav-btn px-4 py-3 text-sm font-semibold border-r border-red-800 transition-colors hover:bg-red-800 flex items-center gap-1" onclick="toggleDropdownFixed('dropdown-dsl', event)">
+            <button id="nav-btn-danh-sach-lich" class="nav-btn px-4 py-3 text-base font-semibold border-r border-red-800 transition-colors hover:bg-red-800 flex items-center gap-1" onclick="navigate('view-danh-sach-lich'); toggleDropdownFixed('dropdown-dsl', event)">
                 Danh sách & Lịch thi <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
             </button>
             <div id="dropdown-dsl" class="hidden-view fixed bg-white text-gray-800 border border-gray-200 shadow-xl min-w-[210px] py-1 rounded-b-md z-[100] animate-fade-in-down">
-                <button onclick="navigate('view-danh-sach-lich'); switchDslTab('ds');" class="w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-red-50 hover:text-[#9e1c22] flex items-center gap-2 border-b border-gray-100"><i data-lucide="file-spreadsheet" class="w-4 h-4 text-indigo-600"></i> Lập danh sách thi</button>
-                <button onclick="navigate('view-danh-sach-lich'); switchDslTab('lich');" class="w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-red-50 hover:text-[#9e1c22] flex items-center gap-2"><i data-lucide="calendar" class="w-4 h-4 text-red-600"></i> Lập lịch thi</button>
+                <button onclick="navigate('view-danh-sach-lich'); switchDslTab('ds');" class="w-full text-left px-4 py-2.5 text-base font-semibold hover:bg-red-50 hover:text-[#9e1c22] flex items-center gap-2 border-b border-gray-100"><i data-lucide="file-spreadsheet" class="w-4 h-4 text-indigo-600"></i> Lập danh sách thi</button>
+                <button onclick="navigate('view-danh-sach-lich'); switchDslTab('lich');" class="w-full text-left px-4 py-2.5 text-base font-semibold hover:bg-red-50 hover:text-[#9e1c22] flex items-center gap-2"><i data-lucide="calendar" class="w-4 h-4 text-red-600"></i> Lập lịch thi</button>
             </div>
         </div>
 
         <!-- Quản lý Phòng thi -->
         <div class="shrink-0">
-            <button id="nav-btn-phong-thi" class="nav-btn px-4 py-3 text-sm font-semibold border-r border-red-800 transition-colors hover:bg-red-800 flex items-center gap-1" onclick="toggleDropdownFixed('dropdown-pt', event)">
+            <button id="nav-btn-phong-thi" class="nav-btn px-4 py-3 text-base font-semibold border-r border-red-800 transition-colors hover:bg-red-800 flex items-center gap-1" onclick="navigate('view-phong-thi'); toggleDropdownFixed('dropdown-pt', event)">
                 Quản lý Phòng thi <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
             </button>
             <div id="dropdown-pt" class="hidden-view fixed bg-white text-gray-800 border border-gray-200 shadow-xl min-w-[200px] py-1 rounded-b-md z-[100] animate-fade-in-down">
-                <button onclick="navigate('view-phong-thi'); switchTabPhongThi('danh-sach');" class="w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-red-50 hover:text-[#9e1c22] flex items-center gap-2 border-b border-gray-100"><i data-lucide="list" class="w-4 h-4 text-blue-600"></i> Danh sách Phòng thi</button>
-                <button onclick="navigate('view-phong-thi'); switchTabPhongThi('phan-cong');" class="w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-red-50 hover:text-[#9e1c22] flex items-center gap-2"><i data-lucide="check-square" class="w-4 h-4 text-green-600"></i> Phân công Phòng thi</button>
+                <button onclick="navigate('view-phong-thi'); switchTabPhongThi('danh-sach');" class="w-full text-left px-4 py-2.5 text-base font-semibold hover:bg-red-50 hover:text-[#9e1c22] flex items-center gap-2 border-b border-gray-100"><i data-lucide="list" class="w-4 h-4 text-blue-600"></i> Danh sách Phòng thi</button>
+                <button onclick="navigate('view-phong-thi'); switchTabPhongThi('phan-cong');" class="w-full text-left px-4 py-2.5 text-base font-semibold hover:bg-red-50 hover:text-[#9e1c22] flex items-center gap-2"><i data-lucide="check-square" class="w-4 h-4 text-green-600"></i> Phân công Phòng thi</button>
             </div>
         </div>
 
         <!-- In sao Đề thi -->
         <div class="shrink-0">
-            <button id="nav-btn-in-sao" class="nav-btn px-4 py-3 text-sm font-semibold border-r border-red-800 transition-colors hover:bg-red-800 flex items-center gap-1" onclick="toggleDropdownFixed('dropdown-is', event)">
+            <button id="nav-btn-in-sao" class="nav-btn px-4 py-3 text-base font-semibold border-r border-red-800 transition-colors hover:bg-red-800 flex items-center gap-1" onclick="navigate('view-in-sao'); toggleDropdownFixed('dropdown-is', event)">
                 Quản lý in sao <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
             </button>
             <div id="dropdown-is" class="hidden-view fixed bg-white text-gray-800 border border-gray-200 shadow-xl min-w-[210px] py-1 rounded-b-md z-[100] animate-fade-in-down">
-                <button onclick="navigate('view-in-sao'); switchTabInSao('lap-dot');" class="w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-red-50 hover:text-[#9e1c22] flex items-center gap-2 border-b border-gray-100"><i data-lucide="file-plus" class="w-4 h-4 text-blue-600"></i> Lập đợt in sao</button>
-                <button onclick="navigate('view-in-sao'); switchTabInSao('nhat-ky');" class="w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-red-50 hover:text-[#9e1c22] flex items-center gap-2 border-b border-gray-100"><i data-lucide="edit-3" class="w-4 h-4 text-amber-600"></i> Cập nhật nhật ký</button>
-                <button onclick="navigate('view-in-sao'); switchTabInSao('xac-nhan');" class="w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-red-50 hover:text-[#9e1c22] flex items-center gap-2"><i data-lucide="check-circle" class="w-4 h-4 text-purple-600"></i> Xác nhận biên bản</button>
+                <button onclick="navigate('view-in-sao'); switchTabInSao('lap-dot');" class="w-full text-left px-4 py-2.5 text-base font-semibold hover:bg-red-50 hover:text-[#9e1c22] flex items-center gap-2 border-b border-gray-100"><i data-lucide="file-plus" class="w-4 h-4 text-blue-600"></i> Lập đợt in sao</button>
+                <button onclick="navigate('view-in-sao'); switchTabInSao('nhat-ky');" class="w-full text-left px-4 py-2.5 text-base font-semibold hover:bg-red-50 hover:text-[#9e1c22] flex items-center gap-2 border-b border-gray-100"><i data-lucide="edit-3" class="w-4 h-4 text-amber-600"></i> Cập nhật nhật ký</button>
+                <button onclick="navigate('view-in-sao'); switchTabInSao('xac-nhan');" class="w-full text-left px-4 py-2.5 text-base font-semibold hover:bg-red-50 hover:text-[#9e1c22] flex items-center gap-2"><i data-lucide="check-circle" class="w-4 h-4 text-purple-600"></i> Xác nhận biên bản</button>
             </div>
         </div>
 
         <!-- Rà soát Đề thi -->
-        <button id="nav-btn-rasoat-de" class="nav-btn px-4 py-3 text-sm font-semibold border-r border-red-800 transition-colors hover:bg-red-800 shrink-0" onclick="navigate('view-rasoat-de')">Rà soát Đề thi</button>
+        <button id="nav-btn-rasoat-de" class="nav-btn px-4 py-3 text-base font-semibold border-r border-red-800 transition-colors hover:bg-red-800 shrink-0" onclick="navigate('view-rasoat-de')">Rà soát Đề thi</button>
 
-        <!-- Đối soát Nhập điểm -->
+        <!-- Quản lý Phúc khảo -->
         <div class="shrink-0">
-            <button id="nav-btn-nhap-diem" class="nav-btn px-4 py-3 text-sm font-semibold border-r border-red-800 transition-colors hover:bg-red-800 flex items-center gap-1" onclick="toggleDropdownFixed('dropdown-nd', event)">
-                Đối soát Nhập điểm lần 2 <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+            <button id="nav-btn-phuc-khao" class="nav-btn px-4 py-3 text-base font-semibold border-r border-red-800 transition-colors hover:bg-red-800 flex items-center gap-1" onclick="navigate('view-phuc-khao'); switchPhucKhaoMode('xu-ly'); toggleDropdownFixed('dropdown-pk', event)">
+                Quản lý Phúc khảo <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
             </button>
-            <div id="dropdown-nd" class="hidden-view fixed bg-white text-gray-800 border border-gray-200 shadow-xl min-w-[210px] py-1 rounded-b-md z-[100] animate-fade-in-down">
-                <button onclick="navigate('view-nhap-diem'); switchNdTab('phach');" class="w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-red-50 hover:text-[#9e1c22] flex items-center gap-2 border-b border-gray-100"><i data-lucide="key" class="w-4 h-4 text-blue-600"></i> Nhập điểm theo phách</button>
-                <button onclick="navigate('view-nhap-diem'); switchNdTab('sbd');" class="w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-red-50 hover:text-[#9e1c22] flex items-center gap-2"><i data-lucide="user-check" class="w-4 h-4 text-green-600"></i> Nhập điểm theo SBD</button>
+            <div id="dropdown-pk" class="hidden-view fixed bg-white text-gray-800 border border-gray-200 shadow-xl min-w-[210px] py-1 rounded-b-md z-[100] animate-fade-in-down">
+                <button onclick="navigate('view-phuc-khao'); switchPhucKhaoMode('xu-ly');" class="w-full text-left px-4 py-2.5 text-base font-semibold hover:bg-red-50 hover:text-[#9e1c22] flex items-center gap-2 border-b border-gray-100"><i data-lucide="file-text" class="w-4 h-4 text-blue-600"></i> Xử lý đơn phúc khảo</button>
+                <button onclick="navigate('view-phuc-khao'); switchPhucKhaoMode('nhap-diem');" class="w-full text-left px-4 py-2.5 text-base font-semibold hover:bg-red-50 hover:text-[#9e1c22] flex items-center gap-2"><i data-lucide="edit-3" class="w-4 h-4 text-green-600"></i> Nhập điểm phúc khảo</button>
             </div>
         </div>
 
-        <!-- Quản lý Đơn phúc khảo -->
-        <button id="nav-btn-phuc-khao" class="nav-btn px-4 py-3 text-sm font-semibold border-r border-red-800 transition-colors hover:bg-red-800 shrink-0" onclick="navigate('view-phuc-khao')">Quản lý Đơn phúc khảo</button>
-
         <!-- Quản lý Giao nhận -->
         <div class="shrink-0">
-            <button id="nav-btn-giao-nhan" class="nav-btn px-4 py-3 text-sm font-semibold border-r border-red-800 transition-colors hover:bg-red-800 flex items-center gap-1" onclick="toggleDropdownFixed('dropdown-gn', event)">
+            <button id="nav-btn-giao-nhan" class="nav-btn px-4 py-3 text-base font-semibold border-r border-red-800 transition-colors hover:bg-red-800 flex items-center gap-1" onclick="navigate('view-ban-giao-bai'); switchGiaoNhanTab('tao'); toggleDropdownFixed('dropdown-gn', event)">
                 Quản lý Giao nhận <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
             </button>
             <div id="dropdown-gn" class="hidden-view fixed bg-white text-gray-800 border border-gray-200 shadow-xl min-w-[220px] py-1 rounded-b-md z-[100] animate-fade-in-down">
-                <button onclick="navigate('view-giao-nhan'); switchGiaoNhanTab('tao');" class="w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-red-50 hover:text-[#9e1c22] flex items-center gap-2 border-b border-gray-100"><i data-lucide="send" class="w-4 h-4 text-blue-600"></i> Tạo phiếu bàn giao</button>
-                <button onclick="navigate('view-giao-nhan'); switchGiaoNhanTab('nhan');" class="w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-red-50 hover:text-[#9e1c22] flex items-center gap-2 border-b border-gray-100"><i data-lucide="inbox" class="w-4 h-4 text-emerald-600"></i> Phiếu chờ nhận</button>
-                <button onclick="navigate('view-giao-nhan'); switchGiaoNhanTab('lich-su');" class="w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-red-50 hover:text-[#9e1c22] flex items-center gap-2"><i data-lucide="history" class="w-4 h-4 text-amber-600"></i> Lịch sử phiếu giao nhận</button>
+                <button onclick="navigate('view-ban-giao-bai'); switchGiaoNhanTab('tao');" class="w-full text-left px-4 py-2.5 text-base font-semibold hover:bg-red-50 hover:text-[#9e1c22] flex items-center gap-2 border-b border-gray-100"><i data-lucide="send" class="w-4 h-4 text-blue-600"></i> Tạo phiếu bàn giao</button>
+                <button onclick="navigate('view-nhan-bai'); switchGiaoNhanTab('nhan');" class="w-full text-left px-4 py-2.5 text-base font-semibold hover:bg-red-50 hover:text-[#9e1c22] flex items-center gap-2 border-b border-gray-100"><i data-lucide="inbox" class="w-4 h-4 text-emerald-600"></i> Phiếu chờ nhận</button>
+                <button onclick="navigate('view-ban-giao-bai'); switchGiaoNhanTab('lich-su');" class="w-full text-left px-4 py-2.5 text-base font-semibold hover:bg-red-50 hover:text-[#9e1c22] flex items-center gap-2"><i data-lucide="history" class="w-4 h-4 text-amber-600"></i> Lịch sử phiếu giao nhận</button>
             </div>
         </div>
 
         <!-- Quản lý Cán bộ coi thi -->
         <div class="shrink-0">
-            <button id="nav-btn-gio-coi" class="nav-btn px-4 py-3 text-sm font-semibold transition-colors hover:bg-red-800 flex items-center gap-1" onclick="toggleDropdownFixed('dropdown-cbct', event)">
+            <button id="nav-btn-gio-coi" class="nav-btn px-4 py-3 text-base font-semibold transition-colors hover:bg-red-800 flex items-center gap-1" onclick="navigate('view-gio-coi'); toggleDropdownFixed('dropdown-cbct', event)">
                 Quản lý Cán bộ coi thi <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
             </button>
             <div id="dropdown-cbct" class="hidden-view fixed bg-white text-gray-800 border border-gray-200 shadow-xl min-w-[230px] py-1 rounded-b-md z-[100] animate-fade-in-down">
-                <button onclick="navigate('view-gio-coi'); switchCbctTab('phan-cong');" class="w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-red-50 hover:text-[#9e1c22] flex items-center gap-2 border-b border-gray-100"><i data-lucide="user-plus" class="w-4 h-4 text-blue-600"></i> Phân công & Xác nhận</button>
-                <button onclick="navigate('view-gio-coi'); switchCbctTab('tong-hop');" class="w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-red-50 hover:text-[#9e1c22] flex items-center gap-2"><i data-lucide="calculator" class="w-4 h-4 text-green-600"></i> Tổng hợp Giờ coi thi</button>
+                <button onclick="navigate('view-gio-coi'); switchCbctTab('phan-cong');" class="w-full text-left px-4 py-2.5 text-base font-semibold hover:bg-red-50 hover:text-[#9e1c22] flex items-center gap-2 border-b border-gray-100"><i data-lucide="user-plus" class="w-4 h-4 text-blue-600"></i> Phân công & Xác nhận</button>
+                <button onclick="navigate('view-gio-coi'); switchCbctTab('tong-hop');" class="w-full text-left px-4 py-2.5 text-base font-semibold hover:bg-red-50 hover:text-[#9e1c22] flex items-center gap-2"><i data-lucide="calculator" class="w-4 h-4 text-green-600"></i> Tổng hợp Giờ coi thi</button>
             </div>
         </div>
     </nav>

@@ -12,7 +12,7 @@ class PhucKhaoService:
     @staticmethod
     def lay_danh_sach_don(trang_thai=None, search=None):
         queryset = DonPhucKhao.objects.select_related(
-            'sinh_vien', 'ma_phach', 'lich_thi__lop_hp__hoc_phan', 'hoc_phan', 'nguoi_duyet'
+            'sinh_vien', 'ma_phach', 'lich_thi__lop_hp__hoc_phan', 'hoc_phan'
         ).all()
         if trang_thai:
             queryset = queryset.filter(trang_thai=trang_thai)
@@ -57,29 +57,16 @@ class PhucKhaoService:
             don.diem_phuc_khao_2 = diem_2
         if diem_cuoi is not None:
             don.diem_phuc_khao_cuoi = diem_cuoi
+            # Theo quy trình: cập nhật bảng điểm ngay sau khi nhập điểm phúc khảo (không có bước duyệt)
+            if don.ma_phach:
+                ts = getattr(don.ma_phach, 'thi_sinh', None)
+                if ts:
+                    ts.diem_thi = diem_cuoi
+                    ts.save()
         if file_bien_ban is not None:
             don.file_bien_ban = file_bien_ban
         don.trang_thai = trang_thai
         don.save()
-        return don
-
-    @staticmethod
-    @transaction.atomic
-    def phe_duyet_phuc_khao(ma_don, nguoi_duyet_user=None):
-        don = DonPhucKhao.objects.get(ma_don=ma_don)
-        don.trang_thai = "DaPheDuyet"
-        if nguoi_duyet_user:
-            don.nguoi_duyet = nguoi_duyet_user
-        don.ngay_duyet = timezone.now()
-        don.save()
-
-        # Đồng bộ điểm phúc khảo cuối vào thí sinh nếu có
-        if don.ma_phach and don.diem_phuc_khao_cuoi is not None:
-            ts = getattr(don.ma_phach, 'thi_sinh', None)
-            if ts:
-                ts.diem_thi = don.diem_phuc_khao_cuoi
-                ts.save()
-
         return don
 
 class TuiPhachTKTService:

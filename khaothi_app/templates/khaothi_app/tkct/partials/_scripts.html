@@ -511,7 +511,7 @@
 
     function handleGhepPhongSubmit() {
         if (selectedPhongTaoTui.length === 0) {
-            showGlobalToast("Lỗi ghép phòng", "Vui lòng chọn ít nhất 1 phòng thi để ghép", "error");
+            showGlobalToast("Lỗi ghép túi", "Vui lòng chọn ít nhất 1 phòng thi để ghép", "error");
             return;
         }
         const firstRoom = phongThiData.find(x => x.id === selectedPhongTaoTui[0]);
@@ -522,7 +522,7 @@
         });
 
         if (diffSubject) {
-            showGlobalToast("Lỗi ghép phòng", "Các phòng thi được ghép bắt buộc phải thuộc cùng một học phần", "error");
+            showGlobalToast("Lỗi ghép túi", "Các phòng thi được ghép bắt buộc phải thuộc cùng một học phần", "error");
             return;
         }
 

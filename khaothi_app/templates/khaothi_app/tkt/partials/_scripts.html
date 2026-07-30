@@ -733,6 +733,7 @@
         const scoreSection = document.getElementById('pk-score-input-section');
         if (scoreSection) scoreSection.classList.remove('hidden-view');
 
+        switchPhucKhaoMode(window.currentPhucKhaoMode || 'xu-ly');
         initIcons();
     }
     window.selectDonPhucKhao = selectDonPhucKhao;
@@ -1396,4 +1397,1624 @@
         initIcons();
         setTimeout(() => toast.classList.add('hidden-view'), 4000);
     }
+
+
+    // ==========================================================
+    // UC: QUẢN LÝ PHÒNG THI
+    // ==========================================================
+    function switchTabPhongThi(tab) {
+        const tabDs = document.getElementById('phong-thi-danh-sach-tab');
+        const tabPc = document.getElementById('phong-thi-phan-cong-tab');
+        if (tabDs) tabDs.classList.add('hidden-view');
+        if (tabPc) tabPc.classList.add('hidden-view');
+        
+        const btnDs = document.getElementById('btn-pt-tab-ds');
+        const btnPc = document.getElementById('btn-pt-tab-pc');
+        if(btnDs && btnPc) {
+            btnDs.className = "px-4 py-2 rounded-md font-bold text-xs transition flex items-center gap-2 text-gray-600 hover:bg-gray-200 shadow-none";
+            btnPc.className = "px-4 py-2 rounded-md font-bold text-xs transition flex items-center gap-2 text-gray-600 hover:bg-gray-200 shadow-none";
+        }
+
+        if (tab === 'danh-sach') {
+            if (tabDs) tabDs.classList.remove('hidden-view');
+            if (btnDs) btnDs.className = "px-4 py-2 rounded-md font-bold text-xs transition flex items-center gap-2 bg-blue-100 text-blue-800 shadow-xs";
+            renderPhongThiTable();
+        } else {
+            if (tabPc) tabPc.classList.remove('hidden-view');
+            if (btnPc) btnPc.className = "px-4 py-2 rounded-md font-bold text-xs transition flex items-center gap-2 bg-blue-100 text-blue-800 shadow-xs";
+            renderPCLichThi();
+            renderPhanCongTable();
+        }
+        if (typeof initIcons !== "undefined") initIcons();
+    }
+
+    function renderPhongThiTable() {
+        const tbody = document.getElementById('phong-thi-tbody');
+        if (!tbody) return;
+        const search = (document.getElementById('pt-search')?.value || '').toLowerCase().trim();
+        
+        const filtered = phongThiData.filter(pt => {
+            const ten = (pt.ten || pt.name || '').toLowerCase();
+            const ma = (pt.ma || pt.id || '').toLowerCase();
+            return ten.includes(search) || ma.includes(search);
+        });
+
+        tbody.innerHTML = filtered.map((pt, i) => {
+            const roomCode = pt.ma || pt.id || `P${101 + i}`;
+            const roomName = pt.ten || pt.name || roomCode;
+            const cap = pt.sucChua || pt.capacity || 40;
+            const loc = pt.viTri || pt.location || 'Toà nhà A';
+            const st = pt.trangThai || pt.status || 'Khả dụng';
+            const isAvailable = (st === 'Khả dụng' || st === 'KhaDung' || st === 'Available');
+
+            return `
+                <tr class="bg-white border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer" onclick="showPhongThiDetailModal('${roomCode}')">
+                    <td class="select-col-phong-thi ${selectModesState['phong-thi'] > 0 ? '' : 'hidden'} px-3 py-3 text-center" onclick="event.stopPropagation();">
+                        ${renderSelectCheckbox('phong-thi', '', roomCode)}
+                    </td>
+                    <td class="px-4 py-3 font-bold font-mono text-gray-800">${roomCode}</td>
+                    <td class="px-4 py-3 font-bold text-blue-900">${roomName}</td>
+                    <td class="px-4 py-3 text-center font-bold text-gray-800">${cap}</td>
+                    <td class="px-4 py-3 text-gray-700">${loc}</td>
+                    <td class="px-4 py-3">
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${isAvailable ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${isAvailable ? 'Khả dụng' : st}</span>
+                    </td>
+                    <td class="px-4 py-3 text-center" onclick="event.stopPropagation();">
+                        <div class="flex items-center justify-center gap-2">
+                            <button class="text-blue-600 hover:text-blue-800 p-1.5 rounded hover:bg-blue-50 transition-colors" title="Sửa thông tin phòng thi" onclick="showPhongThiEditModal('${roomCode}')">
+                                <i data-lucide="edit-2" class="w-4 h-4 pointer-events-none"></i>
+                            </button>
+                            <button class="text-rose-600 hover:text-rose-800 p-1.5 rounded hover:bg-rose-50 transition-colors" title="Xóa phòng thi" onclick="handleDeletePhongThi('${roomCode}')">
+                                <i data-lucide="trash-2" class="w-4 h-4 pointer-events-none"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('') || `<tr><td colspan="7" class="text-center py-6 text-gray-500 text-xs italic">Không tìm thấy phòng thi nào.</td></tr>`;
+        if (typeof initIcons !== "undefined") initIcons();
+    }
+
+    function showPhongThiDetailModal(code) {
+        const pt = phongThiData.find(p => p.ma === code || p.id === code || p.name === code || p.ten === code);
+        const roomCode = pt ? (pt.ma || pt.id || code) : code;
+        const roomName = pt ? (pt.ten || pt.name || code) : code;
+        const cap = pt ? (pt.sucChua || pt.capacity || 40) : 40;
+        const loc = pt ? (pt.viTri || pt.location || 'Toà nhà A') : 'Toà nhà A';
+        const type = pt ? (pt.loai || 'Phòng thường') : 'Phòng thường';
+        const st = pt ? (pt.trangThai || pt.status || 'Khả dụng') : 'Khả dụng';
+        const isAvailable = (st === 'Khả dụng' || st === 'KhaDung' || st === 'Available');
+
+        document.getElementById('pt-detail-ma').innerText = roomCode;
+        document.getElementById('pt-detail-ten').innerText = roomName;
+        document.getElementById('pt-detail-suc-chua').innerText = `${cap} thí sinh`;
+        document.getElementById('pt-detail-vi-tri').innerText = loc;
+        document.getElementById('pt-detail-loai').innerText = type;
+        
+        document.getElementById('pt-detail-trang-thai').innerHTML = isAvailable 
+            ? `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">Khả dụng</span>`
+            : `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700">${st}</span>`;
+
+        document.getElementById('modal-phong-thi-detail').classList.remove('hidden-view');
+        if (typeof initIcons !== "undefined") initIcons();
+    }
+
+    function hidePhongThiDetailModal() {
+        document.getElementById('modal-phong-thi-detail').classList.add('hidden-view');
+    }
+
+    function showPhongThiEditModal(code) {
+        const pt = phongThiData.find(p => p.ma === code || p.id === code || p.name === code || p.ten === code);
+        if (!pt) {
+            showGlobalToast("Thông báo", "Không tìm thấy dữ liệu phòng thi.", "warning");
+            return;
+        }
+        switchTabPhongThi('danh-sach');
+        const tenEl = document.getElementById('pt-ten');
+        const capEl = document.getElementById('pt-suc-chua');
+        const locEl = document.getElementById('pt-vi-tri');
+        const typeEl = document.getElementById('pt-loai');
+        const stEl = document.getElementById('pt-trang-thai');
+
+        if (tenEl) tenEl.value = pt.ten || pt.name || '';
+        if (capEl) capEl.value = pt.sucChua || pt.capacity || 40;
+        if (locEl) locEl.value = pt.viTri || 'Toà nhà A';
+        if (typeEl) typeEl.value = pt.loai || 'Phòng thường';
+        if (stEl) stEl.value = pt.trangThai || 'Khả dụng';
+
+        showGlobalToast("Thông tin phòng thi", `Đã đưa thông tin phòng ${pt.ten || pt.name} lên form để chỉnh sửa.`, "info");
+    }
+
+    function handleDeletePhongThi(code) {
+        const pt = phongThiData.find(p => p.ma === code || p.id === code || p.name === code || p.ten === code);
+        const roomName = pt ? (pt.ten || pt.name || code) : code;
+        showDeleteConfirmModal(
+            `Bạn có chắc chắn muốn xóa phòng thi "${roomName}" (${code})? Hành động này không thể hoàn tác.`,
+            function() {
+                phongThiData = phongThiData.filter(p => p.ma !== code && p.id !== code && p.name !== code && p.ten !== code);
+                renderPhongThiTable();
+                showGlobalToast("Thành công", `Đã xóa phòng thi ${roomName} thành công.`, "success");
+                if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
+            }
+        );
+    }
+
+    function handleCreatePhongThi() {
+        const ten = document.getElementById('pt-ten').value.trim();
+        const sucChua = parseInt(document.getElementById('pt-suc-chua').value);
+        const viTri = document.getElementById('pt-vi-tri').value;
+        const loai = document.getElementById('pt-loai').value;
+        const trangThai = document.getElementById('pt-trang-thai').value;
+
+        if (!ten || !sucChua || sucChua <= 0) {
+            showGlobalToast("Thêm thất bại", "Vui lòng nhập tên phòng và sức chứa hợp lệ.", "error");
+            return;
+        }
+        if (phongThiData.some(p => (p.ten || p.name || '').toLowerCase() === ten.toLowerCase())) {
+            showGlobalToast("Thêm thất bại", "Tên phòng thi này đã tồn tại trong hệ thống.", "error");
+            return;
+        }
+
+        const ma = "PT" + Date.now().toString().slice(-4);
+        phongThiData.unshift({ id: ma, ma, ten, sucChua, viTri, loai, trangThai });
+        
+        document.getElementById('pt-ten').value = '';
+        document.getElementById('pt-suc-chua').value = '';
+        renderPhongThiTable();
+        showGlobalToast("Thành công", `Đã thêm phòng thi ${ten} (${ma}) thành công.`, "success");
+    
+        if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
+    }
+
+    function renderPCLichThi() {
+        const sel = document.getElementById('pc-lich-thi');
+        if (!sel) return;
+        sel.innerHTML = '<option value="">-- Chọn ca thi / lịch thi --</option>' + 
+            lichThiData.map(lt => `<option value="${lt.id}">${lt.subjectName} - ${lt.time || 'Ca thi'} (${lt.id})</option>`).join('');
+    }
+
+    function updatePCInfo() {
+        const selId = document.getElementById('pc-lich-thi').value;
+        const lt = lichThiData.find(l => l.id === selId);
+        
+        document.getElementById('pc-so-luong').innerText = lt ? lt.soLuong : '0';
+        document.getElementById('pc-ngay-thi').innerText = lt ? lt.date : '-';
+        document.getElementById('pc-ca-thi').innerText = lt ? lt.time : '-';
+
+        const pSel = document.getElementById('pc-phong-thi');
+        if (!pSel) return;
+        pSel.innerHTML = phongThiData.filter(p => (p.trangThai || p.status) === 'Khả dụng').map(p => 
+            `<option value="${p.id || p.ma}" data-cap="${p.sucChua || p.capacity}">${p.ten || p.name} (Chứa: ${p.sucChua || p.capacity} SV) - ${p.viTri || 'Toà nhà A'}</option>`
+        ).join('');
+        const lbl = document.getElementById('pc-tong-suc-chua');
+        if (lbl) lbl.innerText = '0';
+    }
+
+    function updatePCCapacity() {
+        const pSel = document.getElementById('pc-phong-thi');
+        let total = 0;
+        Array.from(pSel.selectedOptions).forEach(opt => total += parseInt(opt.getAttribute('data-cap') || 0));
+        const lbl = document.getElementById('pc-tong-suc-chua');
+        if (lbl) {
+            lbl.innerText = total;
+            const required = parseInt(document.getElementById('pc-so-luong').innerText) || 0;
+            if (total >= required && required > 0) lbl.classList.replace('text-blue-700', 'text-green-600');
+            else lbl.classList.replace('text-green-600', 'text-blue-700');
+        }
+    }
+
+    function handlePhanCongPhong() {
+        const ltId = document.getElementById('pc-lich-thi').value;
+        const pSel = document.getElementById('pc-phong-thi');
+        const selectedRooms = Array.from(pSel.selectedOptions).map(opt => opt.value);
+        
+        if (!ltId) return showGlobalToast("Lỗi", "Vui lòng chọn ca thi / lịch thi cần phân công.", "error");
+        if (selectedRooms.length === 0) return showGlobalToast("Lỗi", "Vui lòng chọn ít nhất một phòng thi.", "error");
+
+        const lt = lichThiData.find(l => l.id === ltId);
+        
+        const mappedRoomNames = selectedRooms.map(rid => {
+            const p = phongThiData.find(x => x.id === rid || x.ma === rid);
+            return p ? (p.ten || p.name) : rid;
+        }).join(', ');
+
+        if (lt) lt.room = mappedRoomNames;
+
+        let existIndex = phanCongPhongData.findIndex(pc => pc.ltId === ltId);
+        let phanCongObj = {
+            id: 'PC' + Date.now().toString().slice(-4),
+            ltId: ltId,
+            subjectName: lt ? lt.subjectName : 'Học phần',
+            date: lt ? lt.date : '',
+            caThi: lt ? lt.time : 'Ca 1',
+            soLuong: lt ? lt.soLuong : 40,
+            roomIds: selectedRooms,
+            roomNames: mappedRoomNames
+        };
+
+        if (existIndex > -1) {
+            phanCongPhongData[existIndex] = phanCongObj;
+        } else {
+            phanCongPhongData.unshift(phanCongObj);
+        }
+
+        renderPhanCongTable();
+        if (typeof renderLichThiTable === 'function') renderLichThiTable();
+        showGlobalToast("Thành công", `Đã phân công ${selectedRooms.length} phòng cho ca thi ${lt ? lt.subjectName : ''}.`, "success");
+    
+        if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
+    }
+
+    function renderPhanCongTable() {
+        const tbody = document.getElementById('phan-cong-tbody');
+        if (!tbody) return;
+
+        if (!phanCongPhongData) phanCongPhongData = [];
+        
+        tbody.innerHTML = phanCongPhongData.map(pc => {
+            const pcId = pc.id || pc.ltId || 'PC001';
+            return `
+                <tr class="bg-white border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer" onclick="showPhanCongDetailModal('${pcId}')">
+                    <td class="select-col-phan-cong ${selectModesState['phan-cong'] > 0 ? '' : 'hidden'} px-3 py-3 text-center" onclick="event.stopPropagation();">
+                        ${renderSelectCheckbox('phan-cong', '', pcId)}
+                    </td>
+                    <td class="px-4 py-3 font-bold text-gray-900">${pc.subjectName || ''}</td>
+                    <td class="px-4 py-3 text-gray-700 font-medium whitespace-nowrap">${pc.date || ''}</td>
+                    <td class="px-4 py-3 text-gray-700 font-medium whitespace-nowrap">${pc.caThi || 'Ca 1'}</td>
+                    <td class="px-4 py-3 text-center font-bold text-gray-800 whitespace-nowrap">${pc.soLuong || 40} SV</td>
+                    <td class="px-4 py-3 text-blue-700 font-bold whitespace-nowrap">${pc.roomNames || 'Chưa xếp'}</td>
+                    <td class="px-4 py-3 text-center whitespace-nowrap" onclick="event.stopPropagation();">
+                        <div class="flex items-center justify-center gap-2">
+                            <button class="text-blue-600 hover:text-blue-800 p-1.5 rounded hover:bg-blue-50 transition-colors" title="Chỉnh sửa phân công" onclick="showPhanCongEditModal('${pcId}')">
+                                <i data-lucide="edit-2" class="w-4 h-4 pointer-events-none"></i>
+                            </button>
+                            <button class="text-rose-600 hover:text-rose-800 p-1.5 rounded hover:bg-rose-50 transition-colors" title="Xóa phân công" onclick="handleDeletePhanCong('${pcId}')">
+                                <i data-lucide="trash-2" class="w-4 h-4 pointer-events-none"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('') || `<tr><td colspan="7" class="text-center py-6 text-gray-500 text-xs italic">Chưa có phân bổ phòng nào.</td></tr>`;
+        if (typeof initIcons !== "undefined") initIcons();
+    }
+
+    function showPhanCongDetailModal(pcId) {
+        const pc = phanCongPhongData.find(x => x.id === pcId || x.ltId === pcId);
+        if (!pc) {
+            showGlobalToast("Lỗi", "Không tìm thấy thông tin phân công phòng", "error");
+            return;
+        }
+        document.getElementById('pc-detail-id').innerText = pc.id || pc.ltId;
+        document.getElementById('pc-detail-subject').innerText = pc.subjectName;
+        document.getElementById('pc-detail-count').innerText = `${pc.soLuong || 40} Sinh viên`;
+        document.getElementById('pc-detail-date').innerText = pc.date || '--';
+        document.getElementById('pc-detail-shift').innerText = pc.caThi || 'Ca 1';
+        document.getElementById('pc-detail-rooms').innerText = pc.roomNames || 'Chưa xếp';
+        document.getElementById('modal-phan-cong-detail').classList.remove('hidden-view');
+        if (typeof initIcons !== "undefined") initIcons();
+    }
+
+    function hidePhanCongDetailModal() {
+        document.getElementById('modal-phan-cong-detail').classList.add('hidden-view');
+    }
+
+    function showPhanCongEditModal(pcId) {
+        const pc = phanCongPhongData.find(x => x.id === pcId || x.ltId === pcId);
+        if (!pc) {
+            showGlobalToast("Lỗi", "Không tìm thấy thông tin phân công phòng thi.", "error");
+            return;
+        }
+
+        document.getElementById('edit-pc-id').value = pc.id || pc.ltId;
+        document.getElementById('edit-pc-subject').value = pc.subjectName || '';
+        document.getElementById('edit-pc-date').value = pc.date || '--';
+        document.getElementById('edit-pc-shift').value = pc.caThi || 'Ca 1';
+        document.getElementById('edit-pc-count').value = pc.soLuong || 40;
+
+        const roomsSelect = document.getElementById('edit-pc-rooms');
+        if (roomsSelect) {
+            roomsSelect.innerHTML = phongThiData.filter(p => (p.trangThai || p.status) === 'Khả dụng').map(p => {
+                const isSelected = (pc.roomIds && pc.roomIds.includes(p.id || p.ma)) || (pc.roomNames && pc.roomNames.includes(p.ten || p.name));
+                return `<option value="${p.id || p.ma}" data-cap="${p.sucChua || p.capacity}" ${isSelected ? 'selected' : ''}>${p.ten || p.name} (Chứa: ${p.sucChua || p.capacity} SV) - ${p.viTri || 'Toà nhà A'}</option>`;
+            }).join('');
+        }
+
+        document.getElementById('modal-phan-cong-edit').classList.remove('hidden-view');
+        if (typeof initIcons !== "undefined") initIcons();
+    }
+
+    function hidePhanCongEditModal() {
+        const modal = document.getElementById('modal-phan-cong-edit');
+        if (modal) modal.classList.add('hidden-view');
+    }
+
+    function handleSavePhanCongEdit() {
+        const pcId = document.getElementById('edit-pc-id').value;
+        const pc = phanCongPhongData.find(x => x.id === pcId || x.ltId === pcId);
+        if (!pc) return;
+
+        const countVal = parseInt(document.getElementById('edit-pc-count').value) || 40;
+        const roomsSelect = document.getElementById('edit-pc-rooms');
+        const selectedOptions = Array.from(roomsSelect.selectedOptions);
+        const selectedRoomIds = selectedOptions.map(opt => opt.value);
+
+        if (selectedRoomIds.length === 0) {
+            showGlobalToast("Lỗi", "Vui lòng chọn ít nhất một phòng thi.", "error");
+            return;
+        }
+
+        const mappedRoomNames = selectedRoomIds.map(rid => {
+            const p = phongThiData.find(x => x.id === rid || x.ma === rid);
+            return p ? (p.ten || p.name) : rid;
+        }).join(', ');
+
+        pc.soLuong = countVal;
+        pc.roomIds = selectedRoomIds;
+        pc.roomNames = mappedRoomNames;
+
+        const lt = lichThiData.find(l => l.id === pc.ltId || l.id === pcId);
+        if (lt) {
+            lt.soLuong = countVal;
+            lt.room = mappedRoomNames;
+        }
+
+        renderPhanCongTable();
+        if (typeof renderLichThiTable === 'function') renderLichThiTable();
+        hidePhanCongEditModal();
+        showGlobalToast("Thành công", `Đã cập nhật phân công phòng cho môn ${pc.subjectName}.`, "success");
+
+        if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
+    }
+
+    function handleDeletePhanCong(pcId) {
+        const pc = phanCongPhongData.find(x => x.id === pcId || x.ltId === pcId);
+        if (!pc) return;
+        showDeleteConfirmModal(
+            `Bạn có chắc chắn muốn xóa phân bổ phòng cho môn ${pc.subjectName}? Hành động này không thể hoàn tác.`,
+            function() {
+                phanCongPhongData = phanCongPhongData.filter(x => x.id !== pcId && x.ltId !== pcId);
+                const lt = lichThiData.find(l => l.id === pc.ltId || l.id === pcId);
+                if (lt) lt.room = "Chưa phân công";
+                renderPhanCongTable();
+                if (typeof renderLichThiTable === 'function') renderLichThiTable();
+                showGlobalToast("Thành công", `Đã xóa phân bổ phòng của môn ${pc.subjectName} thành công.`, "success");
+                if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
+            }
+        );
+    }
+    
+    // ==========================================================
+    // UC: IN SAO ĐỀ THI
+    // ==========================================================
+    function switchTabInSao(tab) {
+        document.getElementById('in-sao-lap-dot-tab').classList.add('hidden-view');
+        document.getElementById('in-sao-nhat-ky-tab').classList.add('hidden-view');
+        document.getElementById('in-sao-xac-nhan-tab').classList.add('hidden-view');
+        
+        const btnLd = document.getElementById('btn-is-tab-ld');
+        const btnNk = document.getElementById('btn-is-tab-nk');
+        const btnXn = document.getElementById('btn-is-tab-xn');
+
+        if(btnLd && btnNk && btnXn) {
+            btnLd.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 text-gray-600 hover:bg-gray-100 font-sans shadow-none";
+            btnNk.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 text-gray-600 hover:bg-gray-100 font-sans shadow-none";
+            btnXn.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 text-gray-600 hover:bg-gray-100 font-sans shadow-none";
+        }
+
+        if (tab === 'lap-dot') {
+            document.getElementById('in-sao-lap-dot-tab').classList.remove('hidden-view');
+            if(btnLd) btnLd.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 bg-blue-100 text-blue-800 shadow-sm font-sans";
+            
+            // Populate Lịch thi
+            const sel = document.getElementById('is-lich-thi');
+            sel.innerHTML = '<option value="">-- Chọn lịch thi / ca thi --</option>' + 
+                lichThiData.map(lt => `<option value="${lt.id}">${lt.subjectName} (${lt.id})</option>`).join('');
+            renderInSaoListPanel();
+        } else if (tab === 'nhat-ky') {
+            document.getElementById('in-sao-nhat-ky-tab').classList.remove('hidden-view');
+            if(btnNk) btnNk.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 bg-blue-100 text-blue-800 shadow-sm font-sans";
+            renderInSaoNKList();
+        } else if (tab === 'xac-nhan') {
+            document.getElementById('in-sao-xac-nhan-tab').classList.remove('hidden-view');
+            if(btnXn) btnXn.className = "text-left px-4 py-3 rounded font-semibold transition flex items-center gap-2 bg-blue-100 text-blue-800 shadow-sm font-sans";
+            renderInSaoBBList();
+        }
+    }
+
+    function handleCreateInSao() {
+        const sel = document.getElementById('is-lich-thi');
+        const ltId = sel.value;
+        const soLuong = parseInt(document.getElementById('is-so-luong').value);
+        const ngay = document.getElementById('is-ngay').value;
+        const noiIn = document.getElementById('is-noi-in').value.trim();
+        const giamSat = document.getElementById('is-giam-sat').value.trim();
+        const ghiChu = document.getElementById('is-ghi-chu').value.trim();
+
+        if (!soLuong || soLuong <= 0 || !ngay || !noiIn || !giamSat) {
+            showGlobalToast("Lỗi nhập liệu", "Vui lòng nhập đầy đủ các trường bắt buộc (số lượng, ngày, nơi in, cán bộ giám sát).", "error");
+            return;
+        }
+
+        // Lấy tên học phần và kỳ thi
+        let subjectName = "Không xác định";
+        let kyThiTen = "";
+        if (ltId) {
+            const lt = lichThiData.find(l => l.id === ltId);
+            subjectName = lt ? lt.subjectName : (sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : "Không xác định");
+            if (lt && lt.kyThiId) {
+                const kt = kyThiData.find(k => k.id === lt.kyThiId);
+                if (kt) kyThiTen = kt.name || "";
+            }
+            if (!kyThiTen && kyThiData.length > 0) {
+                kyThiTen = kyThiData[0].name || "";
+            }
+        } else if (kyThiData.length > 0) {
+            kyThiTen = kyThiData[0].name || "";
+        }
+
+        const ma = "IS" + Date.now().toString().slice(-4);
+        
+        inSaoData.unshift({
+            id: ma,
+            ltId: ltId || "",
+            subjectName: subjectName,
+            kyThiTen: kyThiTen,
+            soLuong: soLuong,
+            ngay: ngay,
+            noiIn: noiIn,
+            giamSat: giamSat,
+            ghiChu: ghiChu,
+            trangThai: "Chờ cập nhật"
+        });
+
+        document.getElementById('is-so-luong').value = '';
+        document.getElementById('is-ngay').value = '';
+        document.getElementById('is-noi-in').value = '';
+        document.getElementById('is-giam-sat').value = '';
+        document.getElementById('is-ghi-chu').value = '';
+        
+        renderInSaoListPanel();
+        showGlobalToast("Thành công", `Đã lập đợt in sao ${ma} thành công. Vui lòng cập nhật nhật ký khi thực hiện.`, "success");
+    
+        if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
+    }
+
+    function autoCreateInSao() {
+        const defaultShifts = [
+            { id: "LT-ENG101", subjectName: "Tiếng Anh GTQT 3", caThi: "Ca 1 (07:30 - 09:30)", date: "15/08/2026", soLuong: 120 },
+            { id: "LT-BUS201", subjectName: "Quản trị dự án", caThi: "Ca 2 (09:45 - 11:45)", date: "16/08/2026", soLuong: 90 },
+            { id: "LT-CS101", subjectName: "Nhập môn Lập trình", caThi: "Ca 3 (13:00 - 15:00)", date: "17/08/2026", soLuong: 60 }
+        ];
+
+        let targetList = (lichThiData && lichThiData.length > 0) ? lichThiData : defaultShifts;
+        let createdCount = 0;
+
+        targetList.forEach((item, idx) => {
+            const shiftName = item.time || item.caThi || `Ca ${idx + 1}`;
+            const subjName = item.subjectName || `Học phần Ca ${idx + 1}`;
+            const exists = inSaoData.some(is => is.ltId === item.id || (is.subjectName === subjName && is.caThi === shiftName));
+            
+            if (!exists) {
+                const ma = "IS" + (1000 + inSaoData.length + createdCount);
+                let ktTen = "";
+                if (item.kyThiId) {
+                    const kt = kyThiData.find(k => k.id === item.kyThiId);
+                    if (kt) ktTen = kt.name || "";
+                }
+                if (!ktTen && kyThiData.length > 0) ktTen = kyThiData[0].name || "";
+                inSaoData.unshift({
+                    id: ma,
+                    ltId: item.id || `LT-AUTO-${idx+1}`,
+                    subjectName: subjName,
+                    kyThiTen: ktTen,
+                    caThi: shiftName,
+                    soLuong: (item.soLuong || 40) + 5,
+                    ngay: item.date || "2026-08-15",
+                    noiIn: "Phòng khảo thí",
+                    giamSat: "Trần Văn Vũ",
+                    ghiChu: "",
+                    trangThai: "Chờ cập nhật"
+                });
+                createdCount++;
+            }
+        });
+
+        if (createdCount > 0) {
+            renderInSaoListPanel();
+            showGlobalToast("Thành công", `Đã tự động tạo đầy đủ ${createdCount} đợt in sao đề thi cho tất cả các ca thi!`, "success");
+            if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
+        } else {
+            showGlobalToast("Thông báo", "Tất cả các ca thi hiện tại đều đã được tạo đợt in sao đề thi.", "info");
+        }
+    }
+
+    // Render danh sách đợt in sao bên cạnh form
+    function renderInSaoListPanel() {
+        const listItems = document.getElementById('in-sao-list-items');
+        const emptyEl = document.getElementById('in-sao-list-empty');
+        const countEl = document.getElementById('in-sao-list-count');
+        if (!listItems || !emptyEl || !countEl) return;
+
+        countEl.textContent = inSaoData.length;
+
+        if (inSaoData.length === 0) {
+            listItems.innerHTML = '';
+            emptyEl.style.display = 'flex';
+            return;
+        }
+        emptyEl.style.display = 'none';
+
+        listItems.innerHTML = inSaoData.map(is => {
+            let statusClass = "bg-gray-100 text-gray-600";
+            let statusIcon = "clock";
+            if (is.trangThai === "Chờ cập nhật") { statusClass = "bg-yellow-100 text-yellow-700"; statusIcon = "clock"; }
+            else if (is.trangThai === "Chờ xác nhận") { statusClass = "bg-blue-100 text-blue-700"; statusIcon = "loader"; }
+            else if (is.trangThai === "Hoàn tất") { statusClass = "bg-green-100 text-green-700"; statusIcon = "check-circle"; }
+
+            return `
+                <div class="px-4 py-3 cursor-pointer hover:bg-blue-50 transition-colors flex items-center gap-3" onclick="showInSaoDetail('${is.id}')">
+                    ${renderSelectCheckbox('in-sao', '', is.id)}
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-sm text-gray-800">${is.id}</span>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${statusClass}">${is.trangThai}</span>
+                        </div>
+                        <p class="text-xs text-gray-500 truncate mt-0.5">${is.subjectName} · ${is.soLuong} bản · ${is.ngay}</p>
+                    </div>
+                    <button class="del-btn-in-sao text-red-600 hover:text-red-800 p-1 hover:bg-red-50 rounded transition-all shrink-0" onclick="event.stopPropagation(); handleDeleteInSao('${is.id}')" title="Xóa đợt in sao">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                    <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400 shrink-0"></i>
+                </div>
+            `;
+        }).join('');
+        initIcons();
+    }
+
+    function showInSaoDetail(id) {
+        const is = inSaoData.find(x => x.id === id);
+        if (!is) return;
+
+        const detailPanel = document.getElementById('in-sao-detail-panel');
+        if (!detailPanel) return;
+
+        const idEl = document.getElementById('is-detail-id');
+        const statusEl = document.getElementById('is-detail-status');
+        const subjectEl = document.getElementById('is-detail-subject');
+        const countEl = document.getElementById('is-detail-count');
+        const dateEl = document.getElementById('is-detail-date');
+        const placeEl = document.getElementById('is-detail-place');
+        const supervisorEl = document.getElementById('is-detail-supervisor');
+        const noteEl = document.getElementById('is-detail-note');
+
+        if (idEl) idEl.textContent = is.id;
+        if (statusEl) {
+            let statusClass = "bg-gray-100 text-gray-700";
+            if (is.trangThai === "Chờ cập nhật") statusClass = "bg-yellow-100 text-yellow-700";
+            else if (is.trangThai === "Chờ xác nhận") statusClass = "bg-blue-100 text-blue-700";
+            else if (is.trangThai === "Hoàn tất") statusClass = "bg-green-100 text-green-700";
+            else if (is.trangThai === "Cần xử lý lại") statusClass = "bg-red-100 text-red-700";
+            statusEl.className = `px-2 py-0.5 rounded-full text-[10px] font-bold ${statusClass}`;
+            statusEl.textContent = is.trangThai;
+        }
+        if (subjectEl) subjectEl.textContent = is.subjectName || 'N/A';
+        if (countEl) countEl.textContent = is.soLuong ? `${is.soLuong} bản` : '0 bản';
+        if (dateEl) dateEl.textContent = is.ngay || 'N/A';
+        if (placeEl) placeEl.textContent = is.noiIn || 'N/A';
+        if (supervisorEl) supervisorEl.textContent = is.giamSat || 'N/A';
+        if (noteEl) noteEl.textContent = is.ghiChu || 'Không có';
+
+        detailPanel.classList.remove('hidden');
+        detailPanel.style.display = 'block';
+        initIcons();
+    }
+
+    function closeInSaoDetail() {
+        const detailPanel = document.getElementById('in-sao-detail-panel');
+        if (detailPanel) {
+            detailPanel.classList.add('hidden');
+            detailPanel.style.display = 'none';
+        }
+    }
+
+    function handleDeleteInSao(id) {
+        showDeleteConfirmModal(
+            `Bạn có chắc chắn muốn xóa đợt in sao "${id}" không? Toàn bộ dữ liệu đợt in sao này sẽ bị xóa khỏi hệ thống.`,
+            function() {
+                inSaoData = inSaoData.filter(x => x.id !== id);
+
+                const currentDetailId = document.getElementById('is-detail-id');
+                if (currentDetailId && currentDetailId.textContent === id) {
+                    closeInSaoDetail();
+                }
+
+                renderInSaoListPanel();
+                if (typeof renderInSaoNKList === 'function') renderInSaoNKList();
+                if (typeof renderInSaoBBList === 'function') renderInSaoBBList();
+
+                showGlobalToast("Thành công", `Đã xóa thành công đợt in sao ${id}.`, "success");
+                if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
+            }
+        );
+    }
+
+    function renderInSaoNKList() {
+        const tbody = document.getElementById('in-sao-nk-tbody');
+        if (!tbody) return;
+        
+        const filterHpSel = document.getElementById('filter-nk-hoc-phan');
+        if (filterHpSel && filterHpSel.options.length <= 1) {
+            const subjects = Array.from(new Set(inSaoData.map(s => s.subjectName).filter(Boolean)));
+            filterHpSel.innerHTML = '<option value="">-- Tất cả học phần --</option>' + subjects.map(s => `<option value="${s}">${s}</option>`).join('');
+        }
+
+        const hpVal = filterHpSel ? filterHpSel.value : '';
+        const stVal = document.getElementById('filter-nk-trang-thai') ? document.getElementById('filter-nk-trang-thai').value : '';
+
+        let validList = inSaoData.filter(is => is.trangThai === "Chờ cập nhật" || is.trangThai === "Chờ xác nhận" || is.trangThai === "Hoàn tất" || is.trangThai === "Cần xử lý lại");
+        if (hpVal) validList = validList.filter(is => is.subjectName === hpVal);
+        if (stVal) validList = validList.filter(is => is.trangThai === stVal);
+
+        tbody.innerHTML = validList.map(is => {
+            let statusClass = "bg-gray-100 text-gray-700";
+            if (is.trangThai === "Chờ cập nhật") statusClass = "bg-yellow-100 text-yellow-700";
+            else if (is.trangThai === "Chờ xác nhận") statusClass = "bg-blue-100 text-blue-700";
+            else if (is.trangThai === "Hoàn tất") statusClass = "bg-green-100 text-green-700";
+            else if (is.trangThai === "Cần xử lý lại") statusClass = "bg-red-100 text-red-700";
+
+            let ckStatus = "Chưa in";
+            if (is.trangThai !== "Chờ cập nhật") ckStatus = "Đã in xong";
+
+            let actionBtn = '';
+            if (is.trangThai === "Chờ cập nhật") {
+                actionBtn = `<button class="text-blue-600 hover:text-blue-800 font-bold text-xs hover:underline flex items-center gap-1.5 mx-auto" onclick="event.stopPropagation(); openModalNhatKy('${is.id}')"><i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Cập nhật NK & Checklist</button>`;
+            } else if (is.trangThai === "Chờ xác nhận") {
+                actionBtn = `<button class="text-emerald-700 hover:text-emerald-900 font-bold text-xs hover:underline flex items-center gap-1.5 mx-auto" onclick="event.stopPropagation(); openModalNhatKy('${is.id}')"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Đã cập nhật (Sửa)</button>`;
+            } else if (is.trangThai === "Hoàn tất") {
+                actionBtn = `<button class="text-gray-600 hover:text-gray-800 font-bold text-xs hover:underline flex items-center gap-1.5 mx-auto" onclick="event.stopPropagation(); openModalNhatKy('${is.id}')"><i data-lucide="eye" class="w-3.5 h-3.5"></i> Xem nhật ký</button>`;
+            } else if (is.trangThai === "Cần xử lý lại") {
+                actionBtn = `<button class="text-red-600 hover:text-red-800 font-bold text-xs hover:underline flex items-center gap-1.5 mx-auto" onclick="event.stopPropagation(); openModalNhatKy('${is.id}')"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Cập nhật lại</button>`;
+            } else {
+                actionBtn = `<button class="text-blue-600 hover:text-blue-800 font-bold text-xs hover:underline flex items-center gap-1.5 mx-auto" onclick="event.stopPropagation(); openModalNhatKy('${is.id}')"><i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Xem / Sửa NK</button>`;
+            }
+
+            return `
+                <tr class="bg-white border-b border-gray-100 hover:bg-blue-50/50 transition-colors cursor-pointer" onclick="openModalNhatKy('${is.id}')" title="Nhấn để xem chi tiết & cập nhật">
+                    <td class="select-col-in-sao-nk ${selectModesState['in-sao-nk'] > 0 ? '' : 'hidden'} px-3 py-3 text-center" onclick="event.stopPropagation()">
+                        ${renderSelectCheckbox('in-sao-nk', '', is.id)}
+                    </td>
+                    <td class="px-4 py-3 font-bold text-blue-900">${is.id}</td>
+                    <td class="px-4 py-3">${is.subjectName}</td>
+                    <td class="px-4 py-3 text-center font-semibold">${is.soLuong} / ${is.nkSoLuong || 0} bản</td>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold ${ckStatus === 'Đã in xong' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}">${ckStatus}</span>
+                    </td>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-1 rounded-full text-[10px] font-bold ${statusClass}">${is.trangThai}</span>
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        ${actionBtn}
+                    </td>
+                </tr>
+            `;
+        }).join('') || `<tr><td colspan="${selectModesState['in-sao-nk'] > 0 ? 7 : 6}" class="text-center py-4 text-gray-500 text-xs italic">Không có đợt in sao nào.</td></tr>`;
+        initIcons();
+    }
+
+    function renderInSaoBBList() {
+        const tbody = document.getElementById('in-sao-bb-tbody');
+        if (!tbody) return;
+        
+        const filterHpSel = document.getElementById('filter-is-hoc-phan');
+        if (filterHpSel && filterHpSel.options.length <= 1) {
+            const subjects = Array.from(new Set(inSaoData.map(s => s.subjectName).filter(Boolean)));
+            filterHpSel.innerHTML = '<option value="">-- Tất cả học phần --</option>' + subjects.map(s => `<option value="${s}">${s}</option>`).join('');
+        }
+
+        const hpVal = filterHpSel ? filterHpSel.value : '';
+        const stVal = document.getElementById('filter-is-trang-thai') ? document.getElementById('filter-is-trang-thai').value : '';
+
+        let validList = inSaoData.filter(is => is.trangThai === "Chờ xác nhận" || is.trangThai === "Hoàn tất" || is.trangThai === "Cần xử lý lại" || is.nkSoLuong);
+
+        if (hpVal) {
+            validList = validList.filter(is => is.subjectName === hpVal);
+        }
+        if (stVal) {
+            validList = validList.filter(is => is.trangThai === stVal);
+        }
+
+        tbody.innerHTML = validList.map(is => {
+            let statusClass = "bg-gray-100 text-gray-700";
+            let resText = "Chờ kiểm tra";
+
+            if (is.trangThai === "Chờ xác nhận") {
+                statusClass = "bg-yellow-100 text-yellow-700";
+                resText = "Chờ kiểm tra";
+            } else if (is.trangThai === "Hoàn tất") {
+                statusClass = "bg-green-100 text-green-700";
+                resText = "Khớp (Hoàn tất)";
+            } else if (is.trangThai === "Cần xử lý lại") {
+                statusClass = "bg-red-100 text-red-700";
+                resText = "Không khớp (Cần xử lý lại)";
+            }
+
+            let actionBtn = '';
+            if (is.trangThai === "Chờ xác nhận") {
+                actionBtn = `<button class="text-blue-600 hover:text-blue-800 font-bold text-xs hover:underline flex items-center gap-1.5 mx-auto" onclick="event.stopPropagation(); showModalKiemTraInSao('${is.id}')"><i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Đối chiếu & Kiểm tra</button>`;
+            } else if (is.trangThai === "Hoàn tất") {
+                actionBtn = `<button class="text-emerald-700 hover:text-emerald-900 font-bold text-xs hover:underline flex items-center gap-1.5 mx-auto" onclick="event.stopPropagation(); showModalKiemTraInSao('${is.id}')"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Đã đối chiếu (Xem)</button>`;
+            } else if (is.trangThai === "Cần xử lý lại") {
+                actionBtn = `<button class="text-red-600 hover:text-red-800 font-bold text-xs hover:underline flex items-center gap-1.5 mx-auto" onclick="event.stopPropagation(); showModalKiemTraInSao('${is.id}')"><i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> Cần xử lý lại (Xem)</button>`;
+            } else {
+                actionBtn = `<button class="text-gray-500 hover:text-gray-700 font-bold text-xs hover:underline flex items-center gap-1.5 mx-auto" onclick="event.stopPropagation(); showModalKiemTraInSao('${is.id}')"><i data-lucide="eye" class="w-3.5 h-3.5"></i> Xem chi tiết</button>`;
+            }
+
+            return `
+                <tr class="bg-white border-b border-gray-100 hover:bg-blue-50/50 transition-colors cursor-pointer" onclick="showModalKiemTraInSao('${is.id}')" title="Nhấn để xem chi tiết đối chiếu">
+                    <td class="select-col-in-sao-bb ${selectModesState['in-sao-bb'] > 0 ? '' : 'hidden'} px-3 py-3 text-center" onclick="event.stopPropagation()">
+                        ${renderSelectCheckbox('in-sao-bb', '', is.id)}
+                    </td>
+                    <td class="px-4 py-3 font-bold text-blue-900">${is.id}</td>
+                    <td class="px-4 py-3 font-semibold text-gray-800">${is.subjectName}</td>
+                    <td class="px-4 py-3 text-center">${is.nkSoLuong || 0} bản / ${is.nkNiemPhong || 0} túi</td>
+                    <td class="px-4 py-3 text-gray-600">${is.giamSat || 'N/A'}</td>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-1 rounded-full text-[10px] font-bold ${statusClass}">${resText}</span>
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        ${actionBtn}
+                    </td>
+                </tr>
+            `;
+        }).join('') || `<tr><td colspan="${selectModesState['in-sao-bb'] > 0 ? 7 : 6}" class="text-center py-4 text-gray-500 text-xs italic">Không tìm thấy đợt in sao phù hợp.</td></tr>`;
+        initIcons();
+    }
+
+    function openModalBulkKiemTra() {
+        const checkedCbs = document.querySelectorAll('.select-cb-in-sao-bb:checked');
+        if (checkedCbs.length === 0) {
+            showGlobalToast("Thông báo", "Vui lòng chọn ít nhất một đợt in sao để đối chiếu kiểm tra.", "warning");
+            return;
+        }
+
+        const ids = Array.from(checkedCbs).map(cb => cb.getAttribute('data-id')).filter(id => id);
+        const primaryId = ids[0];
+        showModalKiemTraInSao(primaryId);
+        document.getElementById('kt-is-id').value = ids.join(',');
+    }
+
+    function openModalBulkNhanThongTin() {
+        const checkedCbs = document.querySelectorAll('.select-cb-in-sao-bb:checked');
+        if (checkedCbs.length > 0) {
+            const ids = Array.from(checkedCbs).map(cb => cb.getAttribute('data-id')).filter(id => id);
+            const validIds = ids.filter(id => {
+                const item = inSaoData.find(x => x.id === id);
+                return item && item.trangThai === "Hoàn tất";
+            });
+
+            if (validIds.length === 0) {
+                showGlobalToast("Cảnh báo", "Không có đợt in sao nào trong các mục đã chọn đã hoàn tất đối chiếu để xuất nhãn.", "warning");
+                return;
+            }
+            printNhanThongTin(validIds.join(','));
+            return;
+        }
+
+        const completedItems = inSaoData.filter(is => is.trangThai === "Hoàn tất");
+        if (completedItems.length === 0) {
+            showGlobalToast("Thông báo", "Chưa có đợt in sao nào được đối chiếu hoàn tất để xuất nhãn thông tin.", "warning");
+            return;
+        }
+
+        printNhanThongTin(completedItems.map(x => x.id).join(','));
+    }
+
+    function printNhanThongTin(rawId) {
+        if (!rawId) return;
+        const ids = rawId.split(',').map(s => s.trim()).filter(s => s);
+
+        const container = document.getElementById('nhan-thong-tin-preview-container');
+        if (!container) return;
+
+        let labelHtml = '';
+        let validCount = 0;
+
+        ids.forEach(id => {
+            const is = inSaoData.find(x => x.id === id);
+            if (!is) return;
+
+            if (is.trangThai !== "Hoàn tất") {
+                showGlobalToast("Cảnh báo", `Đợt in sao ${id} chưa đối chiếu hoàn tất. Chỉ đợt đã đối chiếu mới có thể xuất nhãn.`, "warning");
+                return;
+            }
+
+            validCount++;
+            const totalBags = parseInt(is.nkNiemPhong || 0);
+            const totalQty = parseInt(is.nkSoLuong || is.soLuong || 0);
+
+            labelHtml += `
+                <div class="printable-label bg-white border-2 border-dashed border-gray-400 p-4 rounded-lg space-y-2 text-xs font-sans max-w-lg mx-auto">
+                    <div class="text-center border-b border-gray-300 pb-2">
+                        <h4 class="font-bold text-sm uppercase text-gray-900 tracking-wide">VIỆN NGHIÊN CỨU VÀ ĐÀO TẠO VIỆT - ANH</h4>
+                        <p class="font-extrabold text-xs uppercase text-indigo-900 mt-0.5 tracking-wider">NHÃN THÔNG TIN TÚI ĐỀ THI</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-x-3 gap-y-1.5 pt-1 text-gray-800">
+                        <div class="col-span-2"><span class="font-bold text-gray-600">Kỳ thi:</span> <span class="font-semibold text-gray-900">${is.kyThiTen || is.kyThi || '—'}</span></div>
+                        <div class="col-span-2"><span class="font-bold text-gray-600">Học phần:</span> <span class="font-bold text-gray-900">${is.subjectName || '—'}</span></div>
+                        <div><span class="font-bold text-gray-600">Mã đợt in sao:</span> <span class="font-bold text-indigo-900">${is.id}</span></div>
+                        <div><span class="font-bold text-gray-600">Số túi niêm phong:</span> <span class="font-extrabold text-red-800">${totalBags > 0 ? totalBags + ' túi' : '—'}</span></div>
+                        <div><span class="font-bold text-gray-600">Tổng số bản in:</span> <span class="font-bold text-gray-900">${totalQty} bản</span></div>
+                        <div><span class="font-bold text-gray-600">Thời gian in sao:</span> <span>${is.nkThoiGian ? String(is.nkThoiGian).replace('T', ' ').slice(0,16) : 'N/A'}</span></div>
+                        <div><span class="font-bold text-gray-600">CB thực hiện in:</span> <span>${is.nkNguoiIn || '—'}</span></div>
+                        <div><span class="font-bold text-gray-600">CB Giám sát đối chiếu:</span> <span>${is.giamSat || 'N/A'}</span></div>
+                        <div class="col-span-2 border-t border-gray-200 pt-1.5 mt-1">
+                            <span class="text-green-700 font-bold flex items-center gap-1 text-[11px]"><i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Đã đối chiếu &amp; Niêm phong</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        if (validCount === 0) return;
+
+        container.innerHTML = labelHtml;
+        const modal = document.getElementById('modal-nhan-thong-tin');
+        if (modal) modal.classList.remove('hidden-view');
+        initIcons();
+    }
+
+    function closeModalNhanThongTin() {
+        const modal = document.getElementById('modal-nhan-thong-tin');
+        if (modal) modal.classList.add('hidden-view');
+    }
+
+    function triggerPrintLabel() {
+        const printContainer = document.getElementById('nhan-thong-tin-preview-container');
+        if (!printContainer) return;
+        const printContent = printContainer.innerHTML;
+        const win = window.open('', '', 'height=650,width=850');
+        if (!win) return;
+        win.document.write('<html><head><title>In nhãn thông tin túi đề thi - VNUK</title>');
+        win.document.write('<script src="https://cdn.tailwindcss.com"></' + 'script>');
+        win.document.write('<style>@media print { body { padding: 10px; } .printable-label { page-break-inside: avoid; margin-bottom: 20px; border: 2px solid #000 !important; } }</style>');
+        win.document.write('</head><body class="p-6 bg-white">');
+        win.document.write(printContent);
+        win.document.write('</body></html>');
+        win.document.close();
+        win.focus();
+        setTimeout(() => {
+            win.print();
+            win.close();
+        }, 600);
+    }
+
+    const DEFAULT_QUALITY_CRITERIA_LIST = [
+        { id: "TC_01", title: "Số lượng bản in chính xác & đủ đề dự phòng" },
+        { id: "TC_02", title: "Chất lượng in rõ nét, không mờ nhòe/mất chữ/lệch trang" },
+        { id: "TC_03", title: "Quy cách đóng ghim, thứ tự trang chính xác" },
+        { id: "TC_04", title: "Đóng gói niêm phong túi đề thi & dán tem niêm phong đúng quy định" },
+        { id: "TC_05", title: "Tiêu hủy toàn bộ bản in hỏng, in thử và bản in thừa" }
+    ];
+
+    function openModalNhatKy(id) {
+        const idInput = document.getElementById('nk-is-id');
+        if (idInput) idInput.value = id;
+        const is = inSaoData.find(x => x.id === id);
+        const isLocked = is && is.trangThai === "Hoàn tất";
+
+        const nhomDeEl = document.getElementById('nk-nhom-de');
+        const thoiGianEl = document.getElementById('nk-thoi-gian');
+        const soLuongEl = document.getElementById('nk-so-luong');
+        const niemPhongEl = document.getElementById('nk-niem-phong');
+        const nguoiInEl = document.getElementById('nk-nguoi-in');
+        const ghiChuEl = document.getElementById('nk-ghi-chu');
+        
+        if (is) {
+            if (nhomDeEl) nhomDeEl.value = is.nhomDe || '';
+            if (thoiGianEl) thoiGianEl.value = is.nkThoiGian ? String(is.nkThoiGian).replace(' ', 'T').slice(0, 16) : new Date().toISOString().slice(0, 16);
+            if (soLuongEl) soLuongEl.value = is.nkSoLuong || is.soLuong || '';
+            if (niemPhongEl) niemPhongEl.value = is.nkNiemPhong || Math.ceil((is.soLuong || 10) / 40);
+            if (nguoiInEl) nguoiInEl.value = is.nkNguoiIn || 'Cán bộ in sao';
+            if (ghiChuEl) ghiChuEl.value = is.nkGhiChu || '';
+        } else {
+            if (nhomDeEl) nhomDeEl.value = '';
+            if (thoiGianEl) thoiGianEl.value = new Date().toISOString().slice(0, 16);
+            if (soLuongEl) soLuongEl.value = '';
+            if (niemPhongEl) niemPhongEl.value = '';
+            if (nguoiInEl) nguoiInEl.value = '';
+            if (ghiChuEl) ghiChuEl.value = '';
+        }
+
+        // Khóa input khi đã đối chiếu hoàn tất
+        if (thoiGianEl) thoiGianEl.disabled = isLocked;
+        if (soLuongEl) soLuongEl.disabled = isLocked;
+        if (niemPhongEl) niemPhongEl.disabled = isLocked;
+        if (nguoiInEl) nguoiInEl.disabled = isLocked;
+        if (ghiChuEl) ghiChuEl.disabled = isLocked;
+
+        const nkSaveBtn = document.getElementById('btn-save-nhat-ky');
+        const nkNotice = document.getElementById('nk-locked-notice');
+        if (isLocked) {
+            if (nkSaveBtn) nkSaveBtn.classList.add('hidden');
+            if (nkNotice) nkNotice.classList.remove('hidden-view');
+        } else {
+            if (nkSaveBtn) nkSaveBtn.classList.remove('hidden');
+            if (nkNotice) nkNotice.classList.add('hidden-view');
+        }
+
+        // Render checklist tiêu chí chất lượng
+        const container = document.getElementById('nk-tieu-chi-container');
+        if (container) {
+            let itemCriteria = (is && is.checklist) ? is.checklist.filter(c => c.loai_muc === 'TieuChi' || c.loaiMuc === 'TieuChi') : [];
+            let listToRender = (itemCriteria.length > 0) ? itemCriteria : DEFAULT_QUALITY_CRITERIA_LIST;
+            
+            container.innerHTML = listToRender.map((tc, idx) => {
+                const code = tc.ma_muc || tc.maMuc || tc.id || `TC_0${idx+1}`;
+                const title = tc.ten_muc || tc.tenMuc || tc.title;
+                const isChecked = tc.da_dat !== undefined ? tc.da_dat : true;
+                return `
+                    <label class="flex items-start gap-2 ${isLocked ? 'cursor-not-allowed opacity-75' : 'cursor-pointer hover:bg-gray-100'} p-1.5 rounded transition-colors border border-transparent hover:border-gray-200">
+                        <input type="checkbox" class="nk-tc-cb text-blue-600 mt-0.5 rounded focus:ring-blue-500" value="${code}" ${isChecked ? 'checked' : ''} ${isLocked ? 'disabled' : ''} />
+                        <span class="text-gray-700 leading-snug"><span class="font-bold text-blue-900">${code}:</span> ${title}</span>
+                    </label>
+                `;
+            }).join('');
+        }
+
+        const modal = document.getElementById('modal-nhat-ky-in-sao');
+        if (modal) modal.classList.remove('hidden-view');
+        initIcons();
+    }
+
+    function openModalBulkNhatKy() {
+        const checkedCbs = document.querySelectorAll('.select-cb-in-sao-nk:checked');
+        if (checkedCbs.length === 0) {
+            showGlobalToast("Thông báo", "Vui lòng chọn ít nhất một đợt in sao để cập nhật nhật ký.", "warning");
+            return;
+        }
+
+        const ids = Array.from(checkedCbs).map(cb => cb.getAttribute('data-id')).filter(id => id);
+        const idInput = document.getElementById('nk-is-id');
+        if (idInput) idInput.value = ids.join(',');
+
+        const nhomDeEl = document.getElementById('nk-nhom-de');
+        const thoiGianEl = document.getElementById('nk-thoi-gian');
+        const soLuongEl = document.getElementById('nk-so-luong');
+        const niemPhongEl = document.getElementById('nk-niem-phong');
+        const nguoiInEl = document.getElementById('nk-nguoi-in');
+        const ghiChuEl = document.getElementById('nk-ghi-chu');
+
+        if (nhomDeEl) nhomDeEl.value = '';
+        if (thoiGianEl) thoiGianEl.value = new Date().toISOString().slice(0, 16);
+        if (soLuongEl) soLuongEl.value = '';
+        if (niemPhongEl) niemPhongEl.value = '';
+        if (nguoiInEl) nguoiInEl.value = 'Cán bộ in sao';
+        if (ghiChuEl) ghiChuEl.value = '';
+
+        if (thoiGianEl) thoiGianEl.disabled = false;
+        if (soLuongEl) soLuongEl.disabled = false;
+        if (niemPhongEl) niemPhongEl.disabled = false;
+        if (nguoiInEl) nguoiInEl.disabled = false;
+        if (ghiChuEl) ghiChuEl.disabled = false;
+
+        const nkSaveBtn = document.getElementById('btn-save-nhat-ky');
+        const nkNotice = document.getElementById('nk-locked-notice');
+        if (nkSaveBtn) nkSaveBtn.classList.remove('hidden');
+        if (nkNotice) nkNotice.classList.add('hidden-view');
+
+        const container = document.getElementById('nk-tieu-chi-container');
+        if (container) {
+            container.innerHTML = DEFAULT_QUALITY_CRITERIA_LIST.map((tc) => `
+                <label class="flex items-start gap-2 cursor-pointer hover:bg-gray-100 p-1.5 rounded transition-colors">
+                    <input type="checkbox" class="nk-tc-cb text-blue-600 mt-0.5 rounded focus:ring-blue-500" value="${tc.id}" checked />
+                    <span class="text-gray-700 leading-snug"><span class="font-bold text-blue-900">${tc.id}:</span> ${tc.title}</span>
+                </label>
+            `).join('');
+        }
+
+        const modal = document.getElementById('modal-nhat-ky-in-sao');
+        if (modal) modal.classList.remove('hidden-view');
+        initIcons();
+    }
+
+    function closeModalNhatKy() {
+        const modal = document.getElementById('modal-nhat-ky-in-sao');
+        if (modal) modal.classList.add('hidden-view');
+    }
+
+    function handleSaveNhatKy() {
+        const rawId = document.getElementById('nk-is-id') ? document.getElementById('nk-is-id').value : '';
+        if (!rawId) return;
+
+        const ids = rawId.split(',').map(s => s.trim()).filter(s => s);
+        const nhomDeEl = document.getElementById('nk-nhom-de');
+        const nhomDe = nhomDeEl ? nhomDeEl.value.trim() : '';
+        const thoiGian = document.getElementById('nk-thoi-gian') ? document.getElementById('nk-thoi-gian').value : '';
+        const soLuong = document.getElementById('nk-so-luong') ? document.getElementById('nk-so-luong').value : '';
+        const niemPhong = document.getElementById('nk-niem-phong') ? document.getElementById('nk-niem-phong').value : '';
+        const nguoiIn = document.getElementById('nk-nguoi-in') ? document.getElementById('nk-nguoi-in').value.trim() : '';
+        const ghiChu = document.getElementById('nk-ghi-chu') ? document.getElementById('nk-ghi-chu').value.trim() : '';
+
+        const checkedCriteria = Array.from(document.querySelectorAll('.nk-tc-cb:checked')).map(cb => cb.value);
+
+        if (!thoiGian || !soLuong || !niemPhong || parseInt(soLuong) <= 0 || parseInt(niemPhong) <= 0) {
+            showGlobalToast("Thông tin không hợp lệ", "Vui lòng nhập đầy đủ: số lượng bản in, số túi niêm phong và thời gian thực hiện.", "error");
+            return;
+        }
+
+        let count = 0;
+        ids.forEach(id => {
+            const is = inSaoData.find(x => x.id === id);
+            if (is) {
+                is.nkThoiGian = thoiGian;
+                is.nkSoLuong = soLuong;
+                is.nkNiemPhong = niemPhong;
+                is.nkNguoiIn = nguoiIn;
+                is.nkGhiChu = ghiChu;
+                if (nhomDe) is.nhomDe = nhomDe;
+                is.tieuChiChecked = checkedCriteria;
+                is.trangThai = "Chờ xác nhận";
+                count++;
+            }
+        });
+
+        if (count === 0) {
+            showGlobalToast("Lỗi", "Không tìm thấy đợt in sao để cập nhật.", "error");
+            return;
+        }
+
+        if (selectModesState['in-sao-nk']) {
+            selectModesState['in-sao-nk'] = 0;
+            const btn = document.getElementById('btn-select-in-sao-nk');
+            const btnSpan = btn ? btn.querySelector('span') : null;
+            if (btnSpan) btnSpan.innerText = "Chọn";
+            document.querySelectorAll('.select-cb-in-sao-nk, .select-col-in-sao-nk').forEach(el => el.classList.add('hidden'));
+            const bulkBtn = document.getElementById('btn-update-all-in-sao-nk');
+            if (bulkBtn) bulkBtn.classList.add('hidden');
+        }
+
+        closeModalNhatKy();
+        renderInSaoNKList();
+        if (typeof renderInSaoBBList === 'function') renderInSaoBBList();
+
+        showGlobalToast("Thành công", `Đã lưu nhật ký cho ${count} đợt in sao. Trạng thái chuyển sang "Chờ xác nhận".`, "success");
+        if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
+    }
+
+    function showModalKiemTraInSao(id) {
+        const is = inSaoData.find(x => x.id === id);
+        if (!is) return;
+
+        const isLocked = is.trangThai === "Hoàn tất";
+
+        const idInput = document.getElementById('kt-is-id');
+        if (idInput) idInput.value = id;
+        const codeEl = document.getElementById('kt-is-code');
+        if (codeEl) codeEl.textContent = is.id;
+        const subjectEl = document.getElementById('kt-is-subject');
+        if (subjectEl) subjectEl.textContent = `${is.subjectName} ${is.nhomDe ? '(' + is.nhomDe + ')' : ''}`;
+        const qtyEl = document.getElementById('kt-is-qty');
+        if (qtyEl) qtyEl.textContent = is.nkSoLuong || is.soLuong || 0;
+        const npEl = document.getElementById('kt-is-np');
+        if (npEl) npEl.textContent = is.nkNiemPhong || 0;
+        const timeEl = document.getElementById('kt-is-time');
+        if (timeEl) timeEl.textContent = is.nkThoiGian ? String(is.nkThoiGian).replace('T', ' ') : 'Chưa ghi nhận';
+
+        // Render bảng xem lại checklist tiêu chí do CBIS đã tích
+        const container = document.getElementById('kt-tieu-chi-container');
+        if (container) {
+            let itemCriteria = (is.checklist) ? is.checklist.filter(c => c.loai_muc === 'TieuChi' || c.loaiMuc === 'TieuChi') : [];
+            let listToRender = (itemCriteria.length > 0) ? itemCriteria : DEFAULT_QUALITY_CRITERIA_LIST;
+            let checkedList = is.tieuChiChecked || [];
+
+            container.innerHTML = listToRender.map((tc, idx) => {
+                const code = tc.ma_muc || tc.maMuc || tc.id || `TC_0${idx+1}`;
+                const title = tc.ten_muc || tc.tenMuc || tc.title;
+                const isPassed = (tc.da_dat !== undefined ? tc.da_dat : (checkedList.includes(code) || checkedList.length === 0));
+                
+                return `
+                    <div class="flex items-center justify-between p-2 rounded ${isPassed ? 'bg-green-50 border border-green-200 text-green-900' : 'bg-red-50 border border-red-200 text-red-900'}">
+                        <span class="leading-snug"><span class="font-bold">${code}:</span> ${title}</span>
+                        ${isPassed 
+                            ? `<span class="px-2 py-0.5 rounded bg-green-200 text-green-800 font-bold text-[10px] flex items-center gap-1 shrink-0"><i data-lucide="check-circle" class="w-3 h-3"></i> Đạt</span>` 
+                            : `<span class="px-2 py-0.5 rounded bg-red-200 text-red-800 font-bold text-[10px] flex items-center gap-1 shrink-0"><i data-lucide="alert-triangle" class="w-3 h-3"></i> Chưa đạt</span>`
+                        }
+                    </div>
+                `;
+            }).join('');
+        }
+
+        const radioKhop = document.querySelector('input[name="kt-res-radio"][value="Khop"]');
+        const radioKhongKhop = document.querySelector('input[name="kt-res-radio"][value="KhongKhop"]');
+        if (is.trangThai === "Cần xử lý lại" || is.ketQuaKiemTra === "KhongKhop") {
+            if (radioKhongKhop) radioKhongKhop.checked = true;
+        } else {
+            if (radioKhop) radioKhop.checked = true;
+        }
+
+        document.querySelectorAll('input[name="kt-res-radio"]').forEach(r => r.disabled = isLocked);
+        const gcInput = document.getElementById('kt-ghi-chu-input');
+        if (gcInput) {
+            gcInput.disabled = isLocked;
+            gcInput.value = is.ghiChuKiemTra || is.nhanXetGiamSat || '';
+        }
+
+        const pwInput = document.getElementById('kt-confirm-password');
+        if (pwInput) pwInput.value = '';
+        const pwError = document.getElementById('kt-confirm-password-error');
+        if (pwError) pwError.classList.add('hidden-view');
+
+        const pwContainer = document.getElementById('kt-password-container');
+        if (isLocked) {
+            if (pwContainer) pwContainer.classList.add('hidden');
+        } else {
+            if (pwContainer) pwContainer.classList.remove('hidden');
+        }
+
+        const ktSaveBtn = document.getElementById('btn-save-kiem-tra');
+        const ktNotice = document.getElementById('kt-locked-notice');
+        if (isLocked) {
+            if (ktSaveBtn) ktSaveBtn.classList.add('hidden');
+            if (ktNotice) ktNotice.classList.remove('hidden-view');
+        } else {
+            if (ktSaveBtn) ktSaveBtn.classList.remove('hidden');
+            if (ktNotice) ktNotice.classList.add('hidden-view');
+        }
+
+        const modal = document.getElementById('modal-kiem-tra-in-sao');
+        if (modal) modal.classList.remove('hidden-view');
+        initIcons();
+    }
+
+    function closeModalKiemTraInSao() {
+        document.getElementById('modal-kiem-tra-in-sao').classList.add('hidden-view');
+    }
+
+    function handleSaveKiemTraInSao() {
+        const rawId = document.getElementById('kt-is-id') ? document.getElementById('kt-is-id').value : '';
+        if (!rawId) return;
+
+        const ids = rawId.split(',').map(s => s.trim()).filter(s => s);
+        const firstIs = inSaoData.find(x => x.id === ids[0]);
+        const isLocked = firstIs && firstIs.trangThai === "Hoàn tất";
+
+        if (!isLocked) {
+            const pwInput = document.getElementById('kt-confirm-password');
+            const pwVal = pwInput ? pwInput.value.trim() : '';
+            const pwError = document.getElementById('kt-confirm-password-error');
+
+            if (!pwVal) {
+                showGlobalToast("Lỗi xác nhận", "Vui lòng nhập mật khẩu xác nhận.", "error");
+                if (pwError) {
+                    pwError.textContent = "Mật khẩu không được để trống!";
+                    pwError.classList.remove('hidden-view');
+                }
+                return;
+            }
+            if (pwVal !== "123456") {
+                showGlobalToast("Lỗi xác nhận", "Mật khẩu xác nhận không chính xác!", "error");
+                if (pwError) {
+                    pwError.textContent = "Mật khẩu xác nhận không chính xác! Hãy kiểm tra lại";
+                    pwError.classList.remove('hidden-view');
+                }
+                return;
+            }
+        }
+
+        const radioChecked = document.querySelector('input[name="kt-res-radio"]:checked');
+        const ketQua = radioChecked ? radioChecked.value : 'Khop';
+        const ghiChuKT = document.getElementById('kt-ghi-chu-input') ? document.getElementById('kt-ghi-chu-input').value.trim() : '';
+
+        let count = 0;
+        ids.forEach(id => {
+            const is = inSaoData.find(x => x.id === id);
+            if (!is) return;
+ 
+            is.ketQuaKiemTra = ketQua;
+            is.ghiChuKiemTra = ghiChuKT;
+
+            if (ketQua === 'Khop') {
+                is.trangThai = "Hoàn tất";
+            } else {
+                is.trangThai = "Cần xử lý lại";
+            }
+            count++;
+        });
+
+        if (count === 0) {
+            showGlobalToast("Lỗi", "Không tìm thấy đợt in sao để lưu kết quả.", "error");
+            return;
+        }
+
+        if (selectModesState['in-sao-bb']) {
+            selectModesState['in-sao-bb'] = 0;
+            const btn = document.getElementById('btn-select-in-sao-bb');
+            const btnSpan = btn ? btn.querySelector('span') : null;
+            if (btnSpan) btnSpan.innerText = "Chọn";
+            document.querySelectorAll('.select-cb-in-sao-bb, .select-col-in-sao-bb').forEach(el => el.classList.add('hidden'));
+            const bulkBtnKT = document.getElementById('btn-update-all-in-sao-bb');
+            if (bulkBtnKT) bulkBtnKT.classList.add('hidden');
+        }
+
+        closeModalKiemTraInSao();
+        renderInSaoNKList();
+        renderInSaoBBList();
+
+        if (ketQua === 'Khop') {
+            showGlobalToast("Thành công", `Đã đối chiếu & kiểm tra chất lượng: Kết quả KHỚP. ${count > 1 ? count + ' đợt' : 'Đợt'} in sao chuyển sang trạng thái Hoàn tất.`, "success");
+        } else {
+            showGlobalToast("Cần xử lý lại", `Phát hiện sai lệch! Đã chuyển ${count > 1 ? count + ' đợt' : 'đợt'} in sao về trạng thái Cần xử lý lại.`, "warning");
+        }
+
+        if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
+    }
+
+    function showIsKyXacNhanModal(id) {
+        const is = inSaoData.find(x => x.id === id);
+        if(!is) return;
+        
+        document.getElementById('ky-xn-is-id').value = id;
+        document.getElementById('ky-xn-is-code').innerText = is.id;
+        document.getElementById('ky-xn-is-subject').innerText = is.subjectName;
+        document.getElementById('ky-xn-is-qty').innerText = is.nkSoLuong || 0;
+        
+        document.getElementById('ky-xn-is-nhan-xet').value = '';
+        document.getElementById('ky-xn-is-pw').value = '';
+        document.getElementById('ky-xn-is-error').classList.add('hidden-view');
+        
+        document.getElementById('modal-is-ky-xac-nhan').classList.remove('hidden-view');
+        initIcons();
+    }
+
+    function hideIsKyXacNhanModal() {
+        document.getElementById('modal-is-ky-xac-nhan').classList.add('hidden-view');
+    }
+
+    function confirmIsKyXacNhanExecute() {
+        const id = document.getElementById('ky-xn-is-id').value;
+        const pw = document.getElementById('ky-xn-is-pw').value;
+        const nhanXet = document.getElementById('ky-xn-is-nhan-xet').value;
+        
+        if (pw === "123456") {
+            const is = inSaoData.find(x => x.id === id);
+            if(is) {
+                const signTime = new Date().toISOString();
+                const signData = `${id}-${is.nkSoLuong || 0}-${is.nkNiemPhong || 0}-${signTime}`;
+                let hash = 0;
+                for (let i = 0; i < signData.length; i++) {
+                    hash = (hash << 5) - hash + signData.charCodeAt(i);
+                    hash |= 0;
+                }
+                const cryptoSignature = "SHA256-RSA:" + btoa(signData + hash).slice(-30);
+                
+                is.trangThai = "Hoàn tất";
+                is.chuKySo = cryptoSignature;
+                is.nhanXetGiamSat = nhanXet;
+                
+                hideIsKyXacNhanModal();
+                showGlobalToast("Thành công", "Đã xác nhận biên bản giám sát in sao.", "success");
+                renderInSaoBBList();
+                
+                if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
+            }
+        } else {
+            document.getElementById('ky-xn-is-error').classList.remove('hidden-view');
+        }
+    }
+    
+    // ==========================================================
+    // UC: RÀ SOÁT ĐỀ THI (TKT)
+    // ==========================================================
+    function renderRasoatDeList() {
+        const tbody = document.getElementById('rasoat-de-tbody');
+        if (!tbody) return;
+        
+        tbody.innerHTML = deThiData.map(dt => {
+            let statusClass = "bg-gray-100 text-gray-700";
+            if (dt.trangThai === "Chờ rà soát") statusClass = "bg-yellow-100 text-yellow-700";
+            else if (dt.trangThai === "Đạt") statusClass = "bg-green-100 text-green-700";
+            else if (dt.trangThai === "Chờ chỉnh sửa") statusClass = "bg-red-100 text-red-700";
+
+            let actionBtn = "";
+            if (dt.trangThai === "Chờ rà soát" || dt.trangThai === "Chờ chỉnh sửa") {
+                actionBtn = `<button class="text-blue-600 hover:text-blue-800 font-bold" onclick="openModalRasoat('${dt.id}', '${dt.hocPhan}')">Rà soát</button>`;
+            } else {
+                actionBtn = `<span class="text-green-600 font-bold"><i data-lucide="check" class="w-4 h-4 inline"></i></span>`;
+            }
+
+            return `
+                <tr class="bg-white border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer" onclick="showDeThiDetail('${dt.id}')">
+                    <td class="select-col-rasoat-de ${selectModesState['rasoat-de'] > 0 ? '' : 'hidden'} px-3 py-3 text-center" onclick="event.stopPropagation();">
+                        ${renderSelectCheckbox('rasoat-de')}
+                    </td>
+                    <td class="px-4 py-3 font-bold">${dt.id}</td>
+                    <td class="px-4 py-3">${dt.hocPhan}</td>
+                    <td class="px-4 py-3">${dt.nguoiNop}</td>
+                    <td class="px-4 py-3 text-blue-600 font-medium hover:underline" onclick="event.stopPropagation();"><i data-lucide="file-text" class="w-4 h-4 inline mr-1"></i>${dt.fileName}</td>
+                    <td class="px-4 py-3 text-xs text-gray-600 max-w-[200px] truncate" title="${dt.ghiChu || '-'}">${dt.ghiChu || '-'}</td>
+                    <td class="px-4 py-3 text-center">
+                        <span class="px-2 py-1 rounded-full text-[10px] font-bold ${statusClass}">${dt.trangThai}</span>
+                    </td>
+                    <td class="px-4 py-3 text-center" onclick="event.stopPropagation();">
+                        ${actionBtn}
+                    </td>
+                </tr>
+            `;
+        }).join('') || `<tr><td colspan="7" class="text-center py-4 text-gray-500 text-xs italic">Không có đề thi nào đang chờ rà soát.</td></tr>`;
+        initIcons();
+    }
+
+    function showDeThiDetail(id) {
+        const dt = deThiData.find(x => x.id === id);
+        if (!dt) return;
+
+        document.getElementById('dt-detail-id').innerText = dt.id;
+        
+        let statusClass = "bg-gray-100 text-gray-700";
+        if (dt.trangThai === "Chờ rà soát") statusClass = "bg-yellow-100 text-yellow-700";
+        else if (dt.trangThai === "Đạt") statusClass = "bg-green-100 text-green-700";
+        else if (dt.trangThai === "Chờ chỉnh sửa") statusClass = "bg-red-100 text-red-700";
+        
+        document.getElementById('dt-detail-status').innerHTML = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${statusClass}">${dt.trangThai}</span>`;
+        document.getElementById('dt-detail-subject').innerText = dt.hocPhan;
+        document.getElementById('dt-detail-submitter').innerText = dt.nguoiNop || "-";
+        document.getElementById('dt-detail-time').innerText = dt.thoiGian || "-";
+        document.getElementById('dt-detail-file-name').innerText = dt.fileName || "-";
+        document.getElementById('dt-detail-note').innerText = dt.ghiChu || "-";
+        document.getElementById('dt-detail-review').innerText = dt.nhanXet || "-";
+
+        document.getElementById('modal-detail-de-thi').classList.remove('hidden-view');
+        initIcons();
+    }
+
+    function closeDeThiDetail() {
+        document.getElementById('modal-detail-de-thi').classList.add('hidden-view');
+    }
+
+    function openModalRasoat(id, tenMon) {
+        document.getElementById('rs-ma-de').value = id;
+        document.getElementById('rs-ten-mon').innerText = tenMon;
+        document.getElementById('rs-trang-thai').value = 'Đạt';
+        document.getElementById('rs-nhan-xet').value = '';
+        document.getElementById('modal-rasoat-de').classList.remove('hidden-view');
+    }
+
+    function closeModalRasoat() {
+        document.getElementById('modal-rasoat-de').classList.add('hidden-view');
+    }
+
+    function handleSaveRasoat() {
+        const id = document.getElementById('rs-ma-de').value;
+        const trangThai = document.getElementById('rs-trang-thai').value;
+        const nhanXet = document.getElementById('rs-nhan-xet').value.trim();
+        
+        const dt = deThiData.find(x => x.id === id);
+        if (!dt) return;
+
+        dt.trangThai = trangThai;
+        dt.nhanXet = nhanXet;
+
+        closeModalRasoat();
+        renderRasoatDeList();
+        
+        if (trangThai === 'Đạt') {
+            showGlobalToast("Đã duyệt", `Đề thi môn ${dt.hocPhan} đã đạt yêu cầu rà soát.`, "success");
+        } else {
+            showGlobalToast("Yêu cầu chỉnh sửa", `Đã gửi yêu cầu chỉnh sửa đề thi môn ${dt.hocPhan}.`, "warning");
+        }
+    
+        if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
+    }
+
+    // ==========================================================
+    // CHI TIẾT MODAL VIEWERS (Kỳ thi, Ca thi, Phòng thi)
+    // ==========================================================
+    function showKyThiDetailModal(id) {
+        const kt = kyThiData.find(x => x.id === id);
+        if (!kt) return;
+
+        document.getElementById('mkt-name').innerText = kt.name;
+        document.getElementById('mkt-id').innerText = kt.id;
+        document.getElementById('mkt-year-semester').innerText = `${kt.year} | ${kt.semester}`;
+        document.getElementById('mkt-dot').innerText = kt.dot || 'Không có';
+        document.getElementById('mkt-duration').innerText = kt.duration || 'Không rõ';
+        document.getElementById('mkt-mota').innerText = kt.mota || 'Không có mô tả';
+
+        // Render ca thi trực thuộc
+        const tbody = document.getElementById('mkt-shifts-tbody');
+        tbody.innerHTML = '';
+        const shifts = caThiData.filter(c => c.kyThiId === id);
+        if (shifts.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-gray-500 italic">Kỳ thi này chưa có ca thi nào.</td></tr>`;
+        } else {
+            shifts.forEach(c => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50 text-gray-700">
+                        <td class="px-4 py-2 font-semibold text-[#9e1c22] border-b">${c.name}</td>
+                        <td class="px-4 py-2 font-mono border-b">${c.date}</td>
+                        <td class="px-4 py-2 font-medium border-b">${c.start} - ${c.end}</td>
+                        <td class="px-4 py-2 border-b">${c.note || 'Không'}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        document.getElementById('modal-ky-thi-detail').classList.remove('hidden-view');
+        if (typeof initIcons !== "undefined") initIcons();
+    }
+
+    function hideKyThiDetailModal() {
+        document.getElementById('modal-ky-thi-detail').classList.add('hidden-view');
+    }
+
+    function showCaThiDetailModal(id) {
+        const c = caThiData.find(x => x.id === id);
+        if (!c) return;
+
+        document.getElementById('mct-name').innerText = c.name;
+        document.getElementById('mct-id').innerText = c.id;
+        document.getElementById('mct-date').innerText = c.date;
+        document.getElementById('mct-time').innerText = `${c.start} - ${c.end}`;
+        
+        const kt = kyThiData.find(x => x.id === c.kyThiId);
+        document.getElementById('mct-parent-exam').innerText = kt ? `${kt.name} (${kt.semester})` : 'Không xác định';
+        document.getElementById('mct-note').innerText = c.note || 'Không có ghi chú';
+
+        // Render môn thi trong ca này
+        const tbody = document.getElementById('mct-classes-tbody');
+        tbody.innerHTML = '';
+        const classes = lichThiData.filter(l => l.date === c.date && l.shiftName === c.name);
+        if (classes.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-gray-500 italic">Không có môn thi/học phần nào diễn ra trong ca này.</td></tr>`;
+        } else {
+            classes.forEach(l => {
+                const svCount = (lopThiDiemData[l.id] || []).length;
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50 text-gray-700">
+                        <td class="px-4 py-2 font-semibold text-gray-800 border-b">${l.subjectName}</td>
+                        <td class="px-4 py-2 font-mono text-gray-500 border-b">${l.id || 'N/A'}</td>
+                        <td class="px-4 py-2 font-bold text-center text-[#9e1c22] border-b">${svCount > 0 ? svCount : '--'}</td>
+                        <td class="px-4 py-2 font-mono text-center font-bold text-gray-700 border-b">${l.room}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        document.getElementById('modal-ca-thi-detail').classList.remove('hidden-view');
+        if (typeof initIcons !== "undefined") initIcons();
+    }
+
+    function hideCaThiDetailModal() {
+        document.getElementById('modal-ca-thi-detail').classList.add('hidden-view');
+    }
+
+    function showPhongThiDetailModal(ma) {
+        const pt = phongThiData.find(x => x.ma === ma || x.id === ma);
+        if (!pt) return;
+
+        document.getElementById('mpt-name').innerText = pt.ten;
+        document.getElementById('mpt-id').innerText = pt.ma;
+        document.getElementById('mpt-capacity').innerText = pt.sucChua;
+        document.getElementById('mpt-location').innerText = pt.viTri || 'Chưa xếp tòa';
+        document.getElementById('mpt-type').innerText = pt.loai || 'Phòng thường';
+
+        const statusEl = document.getElementById('mpt-status');
+        const isKhaDung = pt.trangThai === 'Khả dụng' || pt.trangThai === 'KhaDung';
+        statusEl.innerText = isKhaDung ? 'Khả dụng' : pt.trangThai;
+        if (isKhaDung) {
+            statusEl.className = "px-2 py-0.5 rounded text-xs font-bold bg-green-100 text-green-700";
+        } else if (pt.trangThai === 'Đang bảo trì') {
+            statusEl.className = "px-2 py-0.5 rounded text-xs font-bold bg-yellow-100 text-yellow-700";
+        } else {
+            statusEl.className = "px-2 py-0.5 rounded text-xs font-bold bg-red-100 text-red-700";
+        }
+
+        document.getElementById('modal-phong-thi-detail').classList.remove('hidden-view');
+        if (typeof initIcons !== "undefined") initIcons();
+    }
+
+    function hidePhongThiDetailModal() {
+        document.getElementById('modal-phong-thi-detail').classList.add('hidden-view');
+    }
+
+    function showPhongThiEditModal(ma) {
+        const pt = phongThiData.find(x => x.ma === ma || x.id === ma);
+        if (!pt) return;
+
+        document.getElementById('edit-pt-ma').value = pt.ma;
+        document.getElementById('edit-pt-ten').value = pt.ten;
+        document.getElementById('edit-pt-suc-chua').value = pt.sucChua;
+        document.getElementById('edit-pt-vi-tri').value = pt.viTri || 'Toà nhà A';
+        document.getElementById('edit-pt-loai').value = pt.loai || 'Phòng thường';
+        document.getElementById('edit-pt-trang-thai').value = (pt.trangThai === 'Khả dụng' || pt.trangThai === 'KhaDung') ? 'Khả dụng' : pt.trangThai;
+
+        document.getElementById('modal-phong-thi-edit').classList.remove('hidden-view');
+        if (typeof initIcons !== "undefined") initIcons();
+    }
+
+    function hidePhongThiEditModal() {
+        document.getElementById('modal-phong-thi-edit').classList.add('hidden-view');
+    }
+
+    function handleSavePhongThiEdit() {
+        const ma = document.getElementById('edit-pt-ma').value;
+        const ten = document.getElementById('edit-pt-ten').value.trim();
+        const sucChua = parseInt(document.getElementById('edit-pt-suc-chua').value);
+        const viTri = document.getElementById('edit-pt-vi-tri').value;
+        const loai = document.getElementById('edit-pt-loai').value;
+        const trangThai = document.getElementById('edit-pt-trang-thai').value;
+
+        if (!ten || !sucChua || sucChua <= 0) {
+            showGlobalToast("Cập nhật thất bại", "Vui lòng nhập tên phòng và sức chứa hợp lệ.", "error");
+            return;
+        }
+
+        // Kiểm tra trùng lặp tên phòng mới với các phòng khác
+        if (phongThiData.some(p => p.ma !== ma && p.id !== ma && p.ten.toLowerCase() === ten.toLowerCase())) {
+            showGlobalToast("Cập nhật thất bại", "Tên phòng thi này đã tồn tại trong hệ thống.", "error");
+            return;
+        }
+
+        const ptIndex = phongThiData.findIndex(x => x.ma === ma || x.id === ma);
+        if (ptIndex !== -1) {
+            phongThiData[ptIndex].ten = ten;
+            phongThiData[ptIndex].sucChua = sucChua;
+            phongThiData[ptIndex].viTri = viTri;
+            phongThiData[ptIndex].loai = loai;
+            phongThiData[ptIndex].trangThai = trangThai;
+
+            renderPhongThiTable();
+            showGlobalToast("Thành công", `Đã cập nhật phòng thi ${ten} thành công.`, "success");
+            hidePhongThiEditModal();
+
+            if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
+        } else {
+            showGlobalToast("Cập nhật thất bại", "Không tìm thấy phòng thi cần chỉnh sửa.", "error");
+        }
+    }
+
+
+    window.currentPhucKhaoMode = 'xu-ly';
+    function switchPhucKhaoMode(mode) {
+        window.currentPhucKhaoMode = mode;
+        const scoreSection = document.getElementById('pk-score-input-section');
+        const scoreTitle = document.getElementById('pk-score-input-title');
+        const thScore = document.getElementById('pk-th-score');
+        const btnLuuDiem = document.getElementById('pk-btn-luu-diem');
+        const btnInBienBan = document.getElementById('pk-btn-in-bien-ban');
+        
+        const tbody = document.getElementById('pk-tbody');
+        const inputs = tbody ? tbody.querySelectorAll('input') : [];
+        
+        const p = selectedPhucKhaoDon;
+        const isDaRut = p && (p.trang_thai === 'Đã rút bài' || p.trang_thai === 'DangXuLy' || p.trang_thai === 'Đang xử lý' || p.trang_thai === 'DaHoanThanh' || p.trang_thai === 'Đã hoàn thành');
+        
+        if (isDaRut && scoreSection) {
+            scoreSection.classList.remove('hidden-view');
+        }
+        
+        if (mode === 'xu-ly') {
+            if (scoreTitle) scoreTitle.classList.add('hidden-view');
+            if (thScore) thScore.classList.add('hidden-view');
+            if (btnLuuDiem) btnLuuDiem.classList.add('hidden');
+            if (btnInBienBan) btnInBienBan.classList.remove('hidden');
+            inputs.forEach(inp => {
+                const td = inp.closest('td');
+                if (td) td.classList.add('hidden-view');
+            });
+        } else {
+            if (scoreTitle) scoreTitle.classList.remove('hidden-view');
+            if (thScore) thScore.classList.remove('hidden-view');
+            if (btnLuuDiem) btnLuuDiem.classList.remove('hidden');
+            if (btnInBienBan) btnInBienBan.classList.add('hidden');
+            inputs.forEach(inp => {
+                const td = inp.closest('td');
+                if (td) td.classList.remove('hidden-view');
+            });
+        }
+    }
+    window.switchPhucKhaoMode = switchPhucKhaoMode;
+
+
 </script>
