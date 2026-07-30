@@ -1189,7 +1189,7 @@
                         <div><strong>Học phần thi:</strong> ${hpName}</div>
                         <div><strong>Mã đợt phúc khảo:</strong> ${p.ma_don}</div>
                         ${isCompleted ? `<div><strong>Thí sinh nộp đơn:</strong> ${svName}</div>` : `<div><strong>Mã túi bài gốc:</strong> ${tuiBaiCode}</div>`}
-                        ${isCompleted ? `<div><strong>Điểm gốc ban đầu:</strong> ${p.diem_goc || '0.0'}</div>` : `<div><strong>Số lượng bài phách rút:</strong> 04 bài phách</div>`}
+                        ${isCompleted ? `<div><strong>Điểm ban đầu:</strong> ${p.diem_goc || '0.0'}</div>` : `<div><strong>Số lượng bài phách rút:</strong> 04 bài phách</div>`}
                         ${isCompleted ? `<div><strong>Điểm phúc khảo chính thức:</strong> <span style="font-weight:bold; color:#1e40af;">${p.diem_phuc_khao_cuoi || p.diem_goc}</span></div>` : ''}
                         ${isCompleted ? `<div><strong>Trạng thái:</strong> Đã công nhận kết quả</div>` : ''}
                     </div>
@@ -1383,7 +1383,7 @@
                     <div class="flex items-center gap-2 text-xs text-gray-500 mt-2">
                         <span class="font-medium text-gray-700">${svName}</span>
                         <span class="ml-auto"></span>
-                        <span class="font-bold px-1.5 py-0.5 bg-blue-50 text-blue-800 rounded">Điểm gốc: ${p.diem_goc || '0.0'}</span>
+                        <span class="font-bold px-1.5 py-0.5 bg-blue-50 text-blue-800 rounded">Điểm: ${p.diem_goc || '0.0'}</span>
                     </div>
                 </div>
             `;

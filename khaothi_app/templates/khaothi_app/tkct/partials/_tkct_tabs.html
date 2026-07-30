@@ -1,35 +1,35 @@
 <nav class="bg-[#9e1c22] text-white px-8 flex relative z-50 shadow-md">
-    <button id="nav-btn-home" class="nav-btn px-6 py-3 text-sm font-semibold border-r border-red-800 border-b-4 border-transparent transition-colors hover:bg-red-800" onclick="navigate('view-home')">
+    <button id="nav-btn-home" class="nav-btn px-6 py-3 text-base font-semibold border-r border-red-800 border-b-4 border-transparent transition-colors hover:bg-red-800" onclick="navigate('view-home')">
         Trang chủ
     </button>
     <div class="relative group">
-        <button id="nav-btn-tui-bai" class="nav-btn px-6 py-3 text-sm font-semibold border-r border-red-800 border-b-4 border-transparent flex items-center gap-2 transition-colors hover:bg-red-800" onclick="toggleDropdown('dropdown-tui-bai', event)">
+        <button id="nav-btn-tui-bai" class="nav-btn px-6 py-3 text-base font-semibold border-r border-red-800 border-b-4 border-transparent flex items-center gap-2 transition-colors hover:bg-red-800" onclick="toggleDropdown('dropdown-tui-bai', event)">
             Quản lý túi bài thi <i data-lucide="chevron-down" class="w-4 h-4" id="icon-tui-bai"></i>
         </button>
         <div id="dropdown-tui-bai" class="dropdown-menu hidden-view absolute top-full left-0 bg-white border border-gray-200 shadow-xl min-w-[280px] flex-col text-gray-800 rounded-b-md overflow-hidden animate-fade-in-down">
-            <button class="text-left px-5 py-3 text-sm hover:bg-gray-50 border-b border-gray-100 flex items-center gap-3 transition-colors" onclick="navigate('view-tao-tui-bai')">
+            <button class="text-left px-5 py-3 text-base hover:bg-gray-50 border-b border-gray-100 flex items-center gap-3 transition-colors" onclick="navigate('view-tao-tui-bai')">
                 <i data-lucide="folder-open" class="w-4 h-4 text-blue-600"></i> <span id="text-tao-tui-bai" class="font-bold text-[#9e1c22]">Tạo túi bài thi</span>
             </button>
-            <button class="text-left px-5 py-3 text-sm hover:bg-gray-50 border-b border-gray-100 flex items-center gap-3 transition-colors" onclick="navigate('view-tra-cuu-tui')">
+            <button class="text-left px-5 py-3 text-base hover:bg-gray-50 border-b border-gray-100 flex items-center gap-3 transition-colors" onclick="navigate('view-tra-cuu-tui')">
                 <i data-lucide="search" class="w-4 h-4 text-blue-600"></i> <span id="text-tra-cuu-tui">Tra cứu túi bài thi</span>
             </button>
-            <button class="text-left px-5 py-3 text-sm hover:bg-gray-50 border-b border-gray-100 flex items-center gap-3 transition-colors" onclick="navigate('view-nhap-doi-chieu')">
+            <button class="text-left px-5 py-3 text-base hover:bg-gray-50 border-b border-gray-100 flex items-center gap-3 transition-colors" onclick="navigate('view-nhap-doi-chieu')">
                 <i data-lucide="file-check-2" class="w-4 h-4 text-yellow-600"></i> <span id="text-nhap-doi-chieu">Nhập đối chiếu mã phách</span>
             </button>
-            <button class="text-left px-5 py-3 text-sm hover:bg-red-50 flex items-center gap-3 transition-colors text-red-600 font-semibold" onclick="navigate('view-khoa-phach')">
+            <button class="text-left px-5 py-3 text-base hover:bg-red-50 flex items-center gap-3 transition-colors text-red-600 font-semibold" onclick="navigate('view-khoa-phach')">
                 <i data-lucide="lock" class="w-4 h-4"></i> <span id="text-khoa-phach">Khóa danh sách mã phách</span>
             </button>
         </div>
     </div>
     <div class="relative group">
-        <button id="nav-btn-giao-nhan" class="nav-btn px-6 py-3 text-sm font-semibold border-r border-red-800 border-b-4 border-transparent flex items-center gap-2 transition-colors hover:bg-red-800" onclick="toggleDropdown('dropdown-giao-nhan', event)">
+        <button id="nav-btn-giao-nhan" class="nav-btn px-6 py-3 text-base font-semibold border-r border-red-800 border-b-4 border-transparent flex items-center gap-2 transition-colors hover:bg-red-800" onclick="toggleDropdown('dropdown-giao-nhan', event)">
             Quản lý Giao nhận <i data-lucide="chevron-down" class="w-4 h-4" id="icon-giao-nhan"></i>
         </button>
         <div id="dropdown-giao-nhan" class="dropdown-menu hidden-view absolute top-full left-0 bg-white border border-gray-200 shadow-xl min-w-[250px] flex-col text-gray-800 rounded-b-md overflow-hidden animate-fade-in-down">
-            <button class="text-left px-5 py-3 text-sm hover:bg-gray-50 border-b border-gray-100 flex items-center gap-3 transition-colors font-semibold text-gray-700" onclick="navigateGiaoNhan('nhan')">
+            <button class="text-left px-5 py-3 text-base hover:bg-gray-50 border-b border-gray-100 flex items-center gap-3 transition-colors font-semibold text-gray-700" onclick="navigateGiaoNhan('nhan')">
                 <i data-lucide="inbox" class="w-4 h-4 text-red-600"></i> Nhận bài thi gốc
             </button>
-            <button class="text-left px-5 py-3 text-sm hover:bg-gray-50 flex items-center gap-3 transition-colors font-semibold text-gray-700" onclick="navigateGiaoNhan('tao')">
+            <button class="text-left px-5 py-3 text-base hover:bg-gray-50 flex items-center gap-3 transition-colors font-semibold text-gray-700" onclick="navigateGiaoNhan('tao')">
                 <i data-lucide="send" class="w-4 h-4 text-green-600"></i> Bàn giao túi bài thi
             </button>
         </div>

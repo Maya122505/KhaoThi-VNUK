@@ -151,12 +151,16 @@ for i in range(1, 53):
         status = "Khoa đã phê duyệt"
     elif i <= 12:
         status = "Đã đối chiếu hợp lệ"
-    elif i <= 25:
+    elif i <= 20:
         status = "Đang chấm"
-    elif i <= 40:
+    elif i <= 28:
         status = "Chờ khớp điểm"
+    elif i <= 33:
+        status = "Đã tạo phách"
+    elif i <= 38:
+        status = "Chưa làm phách"
 
-    if i <= 12 or (25 < i <= 40):
+    if i <= 12 or (20 < i <= 28):
         for p in phach_list:
             scores_dict[p] = { "grader1": round(4.0 + (int(p[-2:]) * 0.15) % 6.0, 1), "grader2": round(4.0 + (int(p[-2:]) * 0.15) % 6.0, 1) }
             
@@ -689,77 +693,79 @@ def seed_database_relational():
         # Create TuiBaiThi
         tui_bai_obj = None
         if lt_obj:
+            tui_bai_trang_thai = "DaThuHoi" if tp["status"] == "Chưa làm phách" else "DaDocPhach"
             tui_bai_obj = TuiBaiThi.objects.create(
                 ma_tui_bai=f"TBT-{tp['id'].split('-')[-1]}",
                 lich_thi=lt_obj,
                 so_luong_bai=tp["papers"],
-                trang_thai="DaDocPhach"
+                trang_thai=tui_bai_trang_thai
             )
             
-        tui_obj = TuiPhach.objects.create(
-            ma_tui=tp["id"],
-            ca_thi_id="CT-001",
-            tui_bai_thi=tui_bai_obj,
-            so_luong_bai=tp["papers"],
-            mat_khau_khoa=tp["password"],
-            trang_thai=tp["status"]
-        )
-        
-        # PhanCongChamThi
-        if tp["grader1"]:
-            gv1 = GiangVien.objects.filter(ma_giang_vien=tp["grader1"]).first()
-            if gv1:
-                PhanCongChamThi.objects.create(tui_phach=tui_obj, giang_vien=gv1, vai_tro="Grader 1", trang_thai="ChuaCham")
-        if tp["grader2"]:
-            gv2 = GiangVien.objects.filter(ma_giang_vien=tp["grader2"]).first()
-            if gv2:
-                PhanCongChamThi.objects.create(tui_phach=tui_obj, giang_vien=gv2, vai_tro="Grader 2", trang_thai="ChuaCham")
+        if tp["status"] != "Chưa làm phách":
+            tui_obj = TuiPhach.objects.create(
+                ma_tui=tp["id"],
+                ca_thi_id="CT-001",
+                tui_bai_thi=tui_bai_obj,
+                so_luong_bai=tp["papers"],
+                mat_khau_khoa=tp["password"],
+                trang_thai=tp["status"]
+            )
+            
+            # PhanCongChamThi
+            if tp["grader1"]:
+                gv1 = GiangVien.objects.filter(ma_giang_vien=tp["grader1"]).first()
+                if gv1:
+                    PhanCongChamThi.objects.create(tui_phach=tui_obj, giang_vien=gv1, vai_tro="Grader 1", trang_thai="ChuaCham")
+            if tp["grader2"]:
+                gv2 = GiangVien.objects.filter(ma_giang_vien=tp["grader2"]).first()
+                if gv2:
+                    PhanCongChamThi.objects.create(tui_phach=tui_obj, giang_vien=gv2, vai_tro="Grader 2", trang_thai="ChuaCham")
 
-        # MaPhach & Diem
-        for idx, phach in enumerate(tp["phachGoc"]):
-            # Create a dummy student for each phach
-            sv_id = f"SV-P{tp['id'].split('-')[-1]}-{idx:02d}"
-            sv_obj, _ = SinhVien.objects.get_or_create(
-                ma_sinh_vien=sv_id,
-                defaults={"ho_ten": f"Sinh viên Phách {phach}", "is_eligible": True}
-            )
-            # Create DanhSachThiSinh
-            ts_obj, _ = DanhSachThiSinh.objects.get_or_create(
-                lich_thi=lt_obj,
-                sinh_vien=sv_obj,
-                defaults={"sbd": f"SBD-{idx:03d}", "trang_thai_diem_danh": "CoMat"}
-            )
-            mp_obj = MaPhach.objects.create(
-                ma_phach=phach,
-                tui_phach=tui_obj,
-                thi_sinh=ts_obj,
-                trang_thai="DaRop"
-            )
-            
-            # Scores
-            if phach in tp["scores"]:
-                g1_score = tp["scores"][phach].get("grader1")
-                g2_score = tp["scores"][phach].get("grader2")
-                
-                if g1_score is not None and tp["grader1"]:
-                    gv1 = GiangVien.objects.filter(ma_giang_vien=tp["grader1"]).first()
-                    if gv1:
-                        DiemThi.objects.create(ma_phach=mp_obj, lan_cham=1, diem=g1_score, can_bo=gv1)
-                if g2_score is not None and tp["grader2"]:
-                    gv2 = GiangVien.objects.filter(ma_giang_vien=tp["grader2"]).first()
-                    if gv2:
-                        DiemThi.objects.create(ma_phach=mp_obj, lan_cham=2, diem=g2_score, can_bo=gv2)
-                
-                # DoiSoatDiem
-                diff = abs(g1_score - g2_score) if (g1_score is not None and g2_score is not None) else 0.0
-                ds_status = "Khop" if diff == 0 else "Lech"
-                DoiSoatDiem.objects.create(
-                    ma_phach=mp_obj,
-                    diem_lan_1=g1_score,
-                    diem_lan_2=g2_score,
-                    chenh_lech=diff,
-                    trang_thai=ds_status
+            # MaPhach & Diem
+            for idx, phach in enumerate(tp["phachGoc"]):
+                # Create a dummy student for each phach
+                sv_id = f"SV-P{tp['id'].split('-')[-1]}-{idx:02d}"
+                sv_obj, _ = SinhVien.objects.get_or_create(
+                    ma_sinh_vien=sv_id,
+                    defaults={"ho_ten": f"Sinh viên Phách {phach}", "is_eligible": True}
                 )
+                # Create DanhSachThiSinh
+                ts_obj, _ = DanhSachThiSinh.objects.get_or_create(
+                    lich_thi=lt_obj,
+                    sinh_vien=sv_obj,
+                    defaults={"sbd": f"SBD-{idx:03d}", "trang_thai_diem_danh": "CoMat"}
+                )
+                mp_obj = MaPhach.objects.create(
+                    ma_phach=phach,
+                    tui_phach=tui_obj,
+                    thi_sinh=ts_obj,
+                    trang_thai="DaRop"
+                )
+                
+                # Scores
+                if phach in tp["scores"]:
+                    g1_score = tp["scores"][phach].get("grader1")
+                    g2_score = tp["scores"][phach].get("grader2")
+                    
+                    if g1_score is not None and tp["grader1"]:
+                        gv1 = GiangVien.objects.filter(ma_giang_vien=tp["grader1"]).first()
+                        if gv1:
+                            DiemThi.objects.create(ma_phach=mp_obj, lan_cham=1, diem=g1_score, can_bo=gv1)
+                    if g2_score is not None and tp["grader2"]:
+                        gv2 = GiangVien.objects.filter(ma_giang_vien=tp["grader2"]).first()
+                        if gv2:
+                            DiemThi.objects.create(ma_phach=mp_obj, lan_cham=2, diem=g2_score, can_bo=gv2)
+                    
+                    # DoiSoatDiem
+                    diff = abs(g1_score - g2_score) if (g1_score is not None and g2_score is not None) else 0.0
+                    ds_status = "Khop" if diff == 0 else "Lech"
+                    DoiSoatDiem.objects.create(
+                        ma_phach=mp_obj,
+                        diem_lan_1=g1_score,
+                        diem_lan_2=g2_score,
+                        chenh_lech=diff,
+                        trang_thai=ds_status
+                    )
                 
     # Seed 10: PhieuGiaoNhan & ChiTietGiaoNhan
     for pg in INITIAL_PHIEU_GIAO_NHAN:
