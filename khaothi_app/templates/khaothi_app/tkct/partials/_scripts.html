@@ -104,7 +104,7 @@
         sessionStorage.setItem('tkct_activeViewId', viewId);
 
         document.querySelectorAll('.nav-btn').forEach(btn => {
-            btn.classList.remove('bg-[#801418]', 'border-[#005691]', 'font-bold');
+            btn.classList.remove('bg-[#801418]', 'border-b-white', 'font-bold');
             btn.classList.add('border-transparent');
         });
         closeAllDropdowns();
@@ -117,7 +117,7 @@
         const activeBtn = document.getElementById(activeBtnId);
         if (activeBtn) {
             activeBtn.classList.remove('border-transparent');
-            activeBtn.classList.add('bg-[#801418]', 'border-[#005691]', 'font-bold');
+            activeBtn.classList.add('bg-[#801418]', 'border-b-white', 'font-bold');
         }
 
         if (viewId === 'view-home') renderDashboard();
