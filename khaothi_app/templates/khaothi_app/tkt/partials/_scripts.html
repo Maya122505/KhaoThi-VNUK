@@ -183,26 +183,27 @@
         sessionStorage.setItem('tkt_activeViewId', viewId);
 
         document.querySelectorAll('.nav-btn').forEach(btn => {
-            btn.classList.remove('bg-[#801418]', 'border-[#005691]', 'font-bold');
+            btn.classList.remove('bg-[#801418]', 'border-b-white', 'font-bold');
             btn.classList.add('border-transparent');
         });
         closeAllDropdowns();
 
         activeViewId = viewId;
         let activeBtnId = 'nav-btn-home';
-        if (viewId === 'view-ky-thi' || viewId === 'view-ca-thi') activeBtnId = 'nav-btn-ky-thi';
+        if (viewId === 'view-ky-thi') activeBtnId = 'nav-btn-ky-thi';
+        else if (viewId === 'view-ca-thi') activeBtnId = 'nav-btn-ca-thi';
         else if (viewId === 'view-danh-sach-lich') activeBtnId = 'nav-btn-danh-sach-lich';
-        else if (viewId === 'view-nhap-diem') activeBtnId = 'nav-btn-nhap-diem';
+        else if (viewId === 'view-phong-thi') activeBtnId = 'nav-btn-phong-thi';
+        else if (viewId === 'view-in-sao') activeBtnId = 'nav-btn-in-sao';
+        else if (viewId === 'view-rasoat-de') activeBtnId = 'nav-btn-rasoat-de';
         else if (viewId === 'view-phuc-khao') activeBtnId = 'nav-btn-phuc-khao';
         else if (viewId.includes('giao-nhan') || viewId.includes('nhan-bai') || viewId.includes('ban-giao-bai')) activeBtnId = 'nav-btn-giao-nhan';
         else if (viewId === 'view-gio-coi') activeBtnId = 'nav-btn-gio-coi';
-        else if (viewId === 'view-phong-thi') activeBtnId = 'nav-btn-phong-thi';
-        else if (viewId === 'view-in-sao') activeBtnId = 'nav-btn-in-sao';
 
         const activeBtn = document.getElementById(activeBtnId);
         if (activeBtn) {
             activeBtn.classList.remove('border-transparent');
-            activeBtn.classList.add('bg-[#801418]', 'border-[#005691]', 'font-bold');
+            activeBtn.classList.add('bg-[#801418]', 'border-b-white', 'font-bold');
         }
 
         // Thay vì render từ state ảo, gọi hàm fetch dữ liệu tương ứng
