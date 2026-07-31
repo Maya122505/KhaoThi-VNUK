@@ -1,0 +1,17 @@
+<!-- Modal Chi tiết Hồ sơ (Lịch thi / Đề thi) chuẩn giao diện TKT -->
+<div id="modal-chi-tiet-ldp" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden-view flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-lg overflow-hidden animate-fade-in-down flex flex-col max-h-[90vh]">
+        <div class="bg-gray-50 border-b border-gray-200 p-4 flex justify-between items-center">
+            <h3 class="font-bold text-lg text-gray-800 flex items-center gap-2" id="ldp-detail-title">
+                <i data-lucide="info" class="w-5 h-5 text-gray-500"></i> Chi tiết Hồ sơ
+            </h3>
+            <button onclick="hideLdpDetailModal()" class="text-gray-400 hover:text-gray-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <div class="p-6 space-y-4 overflow-y-auto" id="ldp-detail-body">
+            <!-- Dynamic content -->
+        </div>
+        <div class="p-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-2" id="ldp-detail-footer">
+            <button onclick="hideLdpDetailModal()" class="bg-[#9e1c22] text-white font-bold py-2 px-6 rounded hover:bg-red-800 transition-colors">Đóng</button>
+        </div>
+    </div>
+</div>

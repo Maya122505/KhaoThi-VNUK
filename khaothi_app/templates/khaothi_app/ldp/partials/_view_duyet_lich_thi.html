@@ -1,0 +1,56 @@
+<!-- View: Phê duyệt Lịch thi -->
+<div id="view-duyet-lich-thi" class="view-section hidden-view animate-fade-in flex flex-col h-full space-y-6">
+    <div class="mb-2 border-b border-gray-200 pb-4">
+        <h2 class="text-2xl font-bold text-blue-900 mb-1 flex items-center gap-2">
+            <i data-lucide="calendar-check" class="text-blue-600"></i> Phê duyệt Lịch thi Kết thúc Học phần
+        </h2>
+        <p class="text-sm text-gray-600">Kiểm tra, xem xét thông tin ca thi, phòng thi và phê duyệt kế hoạch tổ chức thi chính thức.</p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-3 border-b border-gray-100">
+            <!-- Thanh tìm kiếm -->
+            <div class="relative flex-1 max-w-md">
+                <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input type="text" id="search-duyet-lich" value="" autocomplete="off" onkeyup="renderDuyetLichThi()" placeholder="Tìm theo mã lịch thi, học phần, phòng thi..." class="w-full pl-9 pr-4 py-2 border border-gray-300 rounded text-xs focus:border-red-800 outline-none" />
+            </div>
+
+            <!-- Bộ lọc trạng thái & Thao tác chọn hàng loạt -->
+            <div class="flex items-center gap-2">
+                <button id="btn-select-duyet-lich" onclick="toggleSelectMode('duyet-lich')" class="bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 font-bold px-3 py-1.5 text-xs rounded transition-colors flex items-center gap-1.5"><i data-lucide="check-square" class="w-3.5 h-3.5 text-gray-600"></i> <span>Chọn</span></button>
+                <button id="btn-approve-all-duyet-lich" onclick="handleApproveSelected('duyet-lich')" class="text-emerald-700 hover:text-emerald-800 font-bold px-2.5 py-1.5 text-xs transition-colors items-center gap-1.5 hidden cursor-pointer"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i> <span>Phê duyệt chọn</span></button>
+                <button id="btn-reject-all-duyet-lich" onclick="handleRejectSelected('duyet-lich')" class="text-rose-700 hover:text-rose-800 font-bold px-2.5 py-1.5 text-xs transition-colors items-center gap-1.5 hidden cursor-pointer"><i data-lucide="x-circle" class="w-4 h-4 text-rose-600"></i> <span>Từ chối chọn</span></button>
+                <span class="text-xs font-bold text-gray-600 ml-2">LỌC TRẠNG THÁI:</span>
+                <div class="inline-flex rounded shadow-sm" role="group">
+                    <button onclick="filterDuyetLichThiStatus('all')" id="flt-status-all" class="flt-status-btn px-3 py-1.5 text-xs font-bold bg-[#9e1c22] text-white rounded-l border border-[#9e1c22]">Tất cả</button>
+                    <button onclick="filterDuyetLichThiStatus('cho-duyet')" id="flt-status-cho-duyet" class="flt-status-btn px-3 py-1.5 text-xs font-bold bg-white text-gray-700 hover:bg-gray-50 border-t border-b border-r border-gray-300">Chờ duyệt</button>
+                    <button onclick="filterDuyetLichThiStatus('da-duyet')" id="flt-status-da-duyet" class="flt-status-btn px-3 py-1.5 text-xs font-bold bg-white text-gray-700 hover:bg-gray-50 border-t border-b border-r border-gray-300">Đã phê duyệt</button>
+                    <button onclick="filterDuyetLichThiStatus('tu-choi')" id="flt-status-tu-choi" class="flt-status-btn px-3 py-1.5 text-xs font-bold bg-white text-gray-700 hover:bg-gray-50 border-t border-b border-r border-gray-300 rounded-r">Từ chối</button>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Bảng danh sách lịch thi -->
+        <div class="overflow-x-auto overflow-y-auto max-h-[420px] border border-gray-200 rounded-lg">
+            <table class="w-full text-left text-xs border-collapse">
+                <thead class="bg-gray-50 text-gray-700 font-bold uppercase tracking-wider border-b border-gray-200 sticky top-0 bg-gray-50 z-10">
+                    <tr>
+                        <th class="select-col-duyet-lich hidden px-3 py-3 border-b text-center w-8"></th>
+                        <th class="px-4 py-3 text-center w-12 whitespace-nowrap">STT</th>
+                        <th class="px-4 py-3 whitespace-nowrap">Mã Lịch thi</th>
+                        <th class="px-4 py-3 whitespace-nowrap">Học phần</th>
+                        <th class="px-4 py-3 text-center whitespace-nowrap">Ca thi & Ngày thi</th>
+                        <th class="px-4 py-3 text-center whitespace-nowrap">Phòng thi</th>
+                        <th class="px-4 py-3 whitespace-nowrap">Cán bộ coi thi</th>
+                        <th class="px-4 py-3 text-center whitespace-nowrap">Trạng thái</th>
+                        <th class="px-4 py-3 text-center whitespace-nowrap min-w-[160px]">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="duyet-lich-thi-tbody" class="divide-y divide-gray-200">
+                    <!-- Dynamic rendering -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

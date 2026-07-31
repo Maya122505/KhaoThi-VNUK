@@ -1,0 +1,55 @@
+<div id="view-ca-thi" class="view-section hidden-view animate-fade-in">
+    <div class="mb-6 border-b border-gray-200 pb-4">
+        <h2 class="text-2xl font-bold text-blue-900 mb-1 flex items-center gap-2"><i data-lucide="clock" class="text-blue-600"></i> Quản lý Ca thi</h2>
+        <p class="text-sm text-gray-600">Thiết lập các ca thi chi tiết và phân bổ lịch thi phù hợp.</p>
+    </div>
+
+    <div class="grid grid-cols-3 gap-6">
+        <!-- Form Tạo ca thi (chiếm 1 cột) -->
+        <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6 h-fit">
+            <h3 class="font-bold text-lg text-gray-800 mb-4 border-b pb-2 flex items-center gap-2 text-[#9e1c22]"><i data-lucide="plus-circle" class="w-5 h-5"></i> Tạo ca thi mới</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Thuộc kỳ thi</label>
+                    <select id="ct-vca-kythi-select" class="w-full p-2 border border-gray-300 rounded text-sm bg-white focus:border-red-800 outline-none"></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Tên ca thi</label>
+                    <input id="ct-vca-ten" type="text" placeholder="Ví dụ: Ca 1" class="w-full p-2 border border-gray-300 rounded text-sm bg-white focus:border-red-800 outline-none" />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Ngày thi</label>
+                    <input id="ct-vca-ngay" type="date" class="w-full p-2 border border-gray-300 rounded text-sm focus:border-red-800 outline-none" />
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Giờ bắt đầu</label>
+                        <input id="ct-vca-gio-bd" type="time" class="w-full p-2 border border-gray-300 rounded text-sm focus:border-red-800 outline-none" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Giờ kết thúc</label>
+                        <input id="ct-vca-gio-kt" type="time" class="w-full p-2 border border-gray-300 rounded text-sm focus:border-red-800 outline-none" />
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1 uppercase">Ghi chú</label>
+                    <input id="ct-vca-ghichu" type="text" placeholder="Không bắt buộc" class="w-full p-2 border border-gray-300 rounded text-sm focus:border-red-800 outline-none" />
+                </div>
+                <button onclick="handleCreateCaThi()" class="w-full bg-[#9e1c22] text-white font-bold py-2.5 rounded shadow hover:bg-red-800 transition-colors">Tạo ca thi</button>
+            </div>
+        </div>
+
+        <!-- Danh sách ca thi hiện hữu (chiếm 2 cột) -->
+        <div class="col-span-2 bg-white border border-gray-200 rounded-lg shadow-sm p-6 flex flex-col h-[600px]">
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                <h3 class="font-bold text-lg text-gray-800 flex items-center gap-2 text-[#9e1c22]"><i data-lucide="list" class="w-5 h-5"></i> Danh sách ca thi hiện có</h3>
+                <div class="flex items-center gap-2">
+                    <button id="btn-select-vca-ca-thi" onclick="toggleSelectMode('vca-ca-thi')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-3 py-1 text-xs rounded transition-colors flex items-center gap-1.5"><i data-lucide="check-square" class="w-3.5 h-3.5 text-gray-600"></i> <span>Chọn</span></button>
+                    <button id="btn-delete-all-vca-ca-thi" onclick="handleDeleteSelected('vca-ca-thi')" class="bg-red-600 hover:bg-red-700 text-white font-bold p-1.5 rounded transition-colors flex items-center justify-center hidden shadow-sm" title="Xóa các mục đã chọn"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                </div>
+            </div>
+            <p class="text-xs text-gray-400 mb-2 italic">Mẹo: Nhấn vào thẻ ca thi để xem chi tiết danh sách phòng thi và môn thi diễn ra.</p>
+            <div class="flex-1 overflow-y-auto space-y-3" id="ca-thi-vca-list-div"></div>
+        </div>
+    </div>
+</div>
