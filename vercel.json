@@ -2,6 +2,10 @@
   "version": 2,
   "builds": [
     {
+      "src": "staticfiles/**",
+      "use": "@vercel/static"
+    },
+    {
       "src": "khaothi_project/wsgi.py",
       "use": "@vercel/python",
       "config": {
