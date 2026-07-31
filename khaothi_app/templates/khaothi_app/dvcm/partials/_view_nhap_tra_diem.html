@@ -3,13 +3,13 @@
     <div class="flex justify-between items-center border-b pb-4 mb-4">
         <div>
             <h2 class="text-2xl font-bold text-blue-900 flex items-center gap-2">
-                <i data-lucide="award" class="text-blue-600"></i> Phê duyệt Bảng điểm
+                <i data-lucide="award" class="text-blue-600"></i> Phê duyệt điểm thi kết thúc học phần
             </h2>
         </div>
         <div class="flex items-center gap-3">
             <button id="btn-batch-duyet-diem-dvcm" onclick="executeBatchDuyetDiemDVCM()" disabled
                 class="bg-[#9e1c22] opacity-50 cursor-not-allowed text-white text-sm font-bold px-5 py-2.5 rounded shadow flex items-center gap-2 transition-all">
-                <i data-lucide="check-circle" class="w-4 h-4"></i> PHÊ DUYỆT BẢNG ĐIỂM (<span id="count-checked-duyet-dvcm">0</span>)
+                <i data-lucide="check-circle" class="w-4 h-4"></i> PHÊ DUYỆT ĐIỂM THI KẾT THÚC HỌC PHẦN (<span id="count-checked-duyet-dvcm">0</span>)
             </button>
         </div>
     </div>
@@ -22,7 +22,7 @@
                 <div class="flex justify-between items-center text-sm font-bold text-gray-700">
                     <div class="flex items-center gap-2">
                         <input type="checkbox" id="check-all-duyet-dvcm" onchange="toggleSelectAllDuyetDVCM(this.checked)" class="w-4 h-4 cursor-pointer accent-[#9e1c22]" title="Chọn tất cả bài chờ duyệt">
-                        <span>Danh sách bảng điểm</span>
+                        <span>Danh sách điểm thi KTHP</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <select id="duyet-filter-select-dvcm" onchange="renderNhapTraDiem()" class="text-xs p-1 border rounded border-gray-300 bg-white font-semibold text-gray-700 outline-none cursor-pointer">
@@ -48,7 +48,7 @@
             <!-- Empty state when no item selected -->
             <div id="entry-panel-empty" class="bg-white rounded-lg border border-dashed border-gray-300 p-12 text-center text-gray-400 italic text-sm flex flex-col items-center justify-center h-full min-h-[450px]">
                 <i data-lucide="file-spreadsheet" class="w-12 h-12 text-gray-300 mb-3"></i>
-                <span class="font-semibold text-gray-500 text-base mb-1">Xem chi tiết bảng điểm</span>
+                <span class="font-semibold text-gray-500 text-base mb-1">Xem chi tiết điểm thi KTHP</span>
                 <span>Vui lòng chọn một túi bài thi ở danh sách bên trái để kiểm tra điểm thi trước khi phê duyệt.</span>
             </div>
 
@@ -87,7 +87,7 @@
                 </div>
 
                 <div class="bg-blue-50 border border-blue-100 p-3 rounded text-xs text-blue-800 flex justify-between items-center mt-3">
-                    <span><i data-lucide="shield-check" class="w-4 h-4 inline-block mr-1 text-blue-600"></i> Bảng điểm đã được Giảng viên chấm thi nộp & kiểm tra đầy đủ.</span>
+                    <span><i data-lucide="shield-check" class="w-4 h-4 inline-block mr-1 text-blue-600"></i> Điểm thi đã được Giảng viên chấm thi nộp & kiểm tra đầy đủ.</span>
                 </div>
             </div>
         </div>

@@ -17,6 +17,8 @@
     let activeViewId = "view-home";
     let currentGvCode = "GV001";
     let activeTuiId = "";
+    let gnHistCurrentPage = 1;
+    const gnHistPageSize = 10;
 
     // Temp storage for scoring
     let tempScoring = {};
@@ -43,7 +45,11 @@
             phongThiGocData = data.phongThiGocData;
             tuiPhachData = data.tuiPhachData;
             phieuGiaoNhanData = data.phieuGiaoNhanData;
-            canBoCoiThiData = data.canBoCoiThiData;
+            canBoCoiThiData = (data.canBoCoiThiData || []).map(g => ({
+                ...g,
+                id: g.code || g.id,
+                code: g.code || g.id
+            }));
             phucKhaoData = data.phucKhaoData;
             isStateLoaded = true;
         } catch(e) {
@@ -185,11 +191,11 @@
             } else {
                 bags.forEach(b => {
                     listTuiDiv.innerHTML += `
-                        <label class="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-xl hover:border-[#9e1c22] cursor-pointer transition-all shadow-sm">
-                            <input type="checkbox" value="${b.id}" class="w-4 h-4 text-[#9e1c22] rounded border-gray-300 focus:ring-[#9e1c22]" />
+                        <label class="flex items-center gap-2.5 py-2 px-2.5 bg-white border border-gray-200/80 rounded-md hover:border-[#9e1c22] cursor-pointer transition-all">
+                            <input type="checkbox" value="${b.id}" class="w-3.5 h-3.5 text-[#9e1c22] rounded border-gray-300 focus:ring-[#9e1c22]" />
                             <div class="flex-1">
-                                <span class="font-bold text-gray-800 text-sm font-mono">${b.id}</span>
-                                <span class="text-gray-500 text-xs block mt-0.5">${b.subjectName} (${b.papers} bài)</span>
+                                <span class="font-extrabold text-gray-800 text-[12px] font-mono">${b.id}</span>
+                                <span class="text-gray-500 text-[10.5px] block mt-0.5">${b.subjectName} (${b.papers} bài)</span>
                             </div>
                         </label>
                     `;
@@ -273,7 +279,22 @@
         if (histGiaoTbody) {
             histGiaoTbody.innerHTML = '';
             const handovers = phieuGiaoNhanData.filter(p => p.sender === currentGvCode || p.sender === "gv");
-            handovers.forEach(p => {
+
+            // Sort by ID descending
+            handovers.sort((a, b) => {
+                const aId = a.id || a.ma_phieu || '';
+                const bId = b.id || b.ma_phieu || '';
+                return bId.localeCompare(aId);
+            });
+
+            const totalHistPages = Math.ceil(handovers.length / gnHistPageSize) || 1;
+            if (gnHistCurrentPage > totalHistPages) gnHistCurrentPage = totalHistPages;
+            if (gnHistCurrentPage < 1) gnHistCurrentPage = 1;
+
+            const startIdx = (gnHistCurrentPage - 1) * gnHistPageSize;
+            const pageHandovers = handovers.slice(startIdx, startIdx + gnHistPageSize);
+
+            pageHandovers.forEach(p => {
                 let stBadge = `<span class="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-xs font-bold">${p.status}</span>`;
                 let rejectInfo = "";
                 if (p.status === "Đã hoàn tất") stBadge = `<span class="bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-bold">✓ Đã tiếp nhận</span>`;
@@ -298,6 +319,20 @@
                     </tr>
                 `;
             });
+
+            // Update Pagination Controls for History
+            const histInfo = document.getElementById('gn-hist-pagination-info');
+            if (histInfo) {
+                histInfo.innerText = `Trang ${gnHistCurrentPage} / ${totalHistPages}`;
+            }
+            const prevBtn = document.getElementById('gn-hist-btn-prev');
+            if (prevBtn) {
+                prevBtn.disabled = gnHistCurrentPage === 1;
+            }
+            const nextBtn = document.getElementById('gn-hist-btn-next');
+            if (nextBtn) {
+                nextBtn.disabled = gnHistCurrentPage === totalHistPages;
+            }
         }
 
         initIcons();
@@ -692,5 +727,10 @@
         initIcons();
 
         setTimeout(() => toast.classList.add('hidden-view'), 4000);
+    }
+
+    window.changeGnHistPage = function (dir) {
+        gnHistCurrentPage += dir;
+        renderGiaoNhan();
     }
 </script>

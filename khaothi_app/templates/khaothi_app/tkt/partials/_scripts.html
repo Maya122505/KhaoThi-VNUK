@@ -111,7 +111,11 @@
             phongThiData = data.phongThiData || [];
             tuiPhachData = data.tuiPhachData || [];
             phieuGiaoNhanData = data.phieuGiaoNhanData || [];
-            canBoCoiThiData = data.canBoCoiThiData || [];
+            canBoCoiThiData = (data.canBoCoiThiData || []).map(g => ({
+                ...g,
+                id: g.code || g.id,
+                code: g.code || g.id
+            }));
             phucKhaoData = data.phucKhaoData || [];
             auditLogsData = data.auditLogsData || [];
             systemConfigsData = data.systemConfigsData || {};
@@ -582,6 +586,8 @@
     let filteredLichThiBanGiao = [];
     let currentGnPage = 1;
     const gnItemsPerPage = 6; // Display exactly 6 cards (3 rows x 2 cols) to keep column height compact!
+    let gnHistCurrentPage = 1;
+    const gnHistPageSize = 10;
     const selectedGiaoNhanLichIds = new Set();
     let allLichSuPhieu = [];
 
@@ -680,7 +686,21 @@
             if (!lich_su_phieu || lich_su_phieu.length === 0) {
                 histTbody.innerHTML = `<tr><td colspan="${colCount}" class="text-center p-4 text-gray-500">Chưa có lịch sử giao nhận.</td></tr>`;
             } else {
-                lich_su_phieu.forEach(p => {
+                // Sort by ID descending
+                lich_su_phieu.sort((a, b) => {
+                    const aId = a.ma_phieu || '';
+                    const bId = b.ma_phieu || '';
+                    return bId.localeCompare(aId);
+                });
+
+                const totalHistPages = Math.ceil(lich_su_phieu.length / gnHistPageSize) || 1;
+                if (gnHistCurrentPage > totalHistPages) gnHistCurrentPage = totalHistPages;
+                if (gnHistCurrentPage < 1) gnHistCurrentPage = 1;
+
+                const startIdx = (gnHistCurrentPage - 1) * gnHistPageSize;
+                const pageHandovers = lich_su_phieu.slice(startIdx, startIdx + gnHistPageSize);
+
+                pageHandovers.forEach(p => {
                     let stBadge = `<span class="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-xs font-bold">${p.trang_thai}</span>`;
                     if (p.trang_thai === "Đã hoàn tất" || p.trang_thai === "Đã tiếp nhận") {
                         stBadge = `<span class="bg-green-100 text-green-800 px-2.5 py-1 rounded text-xs font-bold shadow-xs">✓ Đã tiếp nhận</span>`;
@@ -724,6 +744,20 @@
                         `;
                     }
                 });
+
+                // Update Pagination Controls for History
+                const histInfo = document.getElementById('gn-hist-pagination-info');
+                if (histInfo) {
+                    histInfo.innerText = `Trang ${gnHistCurrentPage} / ${totalHistPages}`;
+                }
+                const prevBtn = document.getElementById('gn-hist-btn-prev');
+                if (prevBtn) {
+                    prevBtn.disabled = gnHistCurrentPage === 1;
+                }
+                const nextBtn = document.getElementById('gn-hist-btn-next');
+                if (nextBtn) {
+                    nextBtn.disabled = gnHistCurrentPage === totalHistPages;
+                }
             }
         });
         initIcons();
@@ -765,18 +799,22 @@
         pageItems.forEach(lt => {
             const isChecked = selectedGiaoNhanLichIds.has(lt.ma_lich_thi);
             const tenHp = lt.ten_hoc_phan || '';
-            const headerTitle = tenHp ? `${lt.ma_lich_thi} - ${tenHp}` : lt.ma_lich_thi;
+            const bgBadge = 'bg-amber-50 text-amber-700 border-amber-100';
 
             listDiv.innerHTML += `
-                 <label class="gn-item flex items-start gap-3 p-3 rounded-lg border bg-white border-slate-200 hover:border-blue-400 hover:bg-slate-50/30 cursor-pointer transition-all duration-150 shadow-sm ${isChecked ? 'bg-blue-50/80 border-blue-400 ring-1 ring-blue-400' : ''}">
+                  <label class="gn-item flex items-start gap-3 py-2.5 px-3 rounded-md border bg-white border-slate-200/80 hover:border-red-400 hover:bg-red-50/10 cursor-pointer transition-all duration-150 ${isChecked ? 'bg-red-50 border-red-500 ring-1 ring-red-500/20' : ''}">
                     <div class="flex items-center h-5 mt-0.5">
-                        <input type="checkbox" value="${lt.ma_lich_thi}" ${isChecked ? 'checked' : ''} onchange="toggleGnItemSelect('${lt.ma_lich_thi}', this.checked)" class="w-3.5 h-3.5 text-blue-600 rounded border-gray-300 focus:ring-blue-500" />
+                        <input type="checkbox" value="${lt.ma_lich_thi}" ${isChecked ? 'checked' : ''} onchange="toggleGnItemSelect('${lt.ma_lich_thi}', this.checked)" class="w-3.5 h-3.5 text-[#9e1c22] rounded border-gray-300 focus:ring-[#9e1c22]" />
                     </div>
                     <div class="flex-1 min-w-0">
-                         <div class="flex flex-col gap-1">
-                            <span class="font-extrabold text-slate-800 text-[12.5px] tracking-wide leading-tight line-clamp-1" title="${headerTitle}">${headerTitle}</span>
-                            <span class="inline-flex items-center w-fit px-1.5 py-0.5 rounded text-[10px] font-bold font-sans border bg-blue-50 text-blue-700 border-blue-100">${lt.so_luong_sv} bài</span>
+                         <div class="flex flex-col gap-0.5">
+                            <span class="font-extrabold text-slate-800 text-[12px] tracking-wide leading-tight line-clamp-1">${lt.ma_lich_thi}</span>
+                            <span class="text-slate-500 text-[11px] font-sans font-medium line-clamp-1 leading-normal">${tenHp}</span>
+                            <span class="inline-flex items-center w-fit px-1.5 py-0.5 rounded text-[10px] font-bold font-sans border ${bgBadge} mt-1">${lt.so_luong_sv} bài</span>
                         </div>
+                    </div>
+                    <div class="shrink-0 bg-slate-50 p-1.5 rounded-md text-slate-500 flex items-center justify-center border border-slate-100">
+                        <i data-lucide="package" class="w-3.5 h-3.5 text-amber-600"></i>
                     </div>
                 </label>
             `;
@@ -1086,7 +1124,7 @@
         }
 
         const infoTuiPhach = document.getElementById('pk-info-tui-phach');
-        if (infoTuiPhach) infoTuiPhach.innerText = `Bộ 4 bài: ${shuffledBundle.map(item => item.code).join(', ')}`;
+        if (infoTuiPhach) infoTuiPhach.innerText = shuffledBundle.map(item => item.code).join(', ');
 
         const btnRutBai = document.getElementById('pk-btn-rut-bai');
         const btnLuuDiem = document.getElementById('pk-btn-luu-diem');
@@ -1191,7 +1229,7 @@
             }
         });
 
-        const docTitle = isCompleted ? "BIÊN BẢN CÔNG NHẬN KẾT QUẢ PHÚC KHẢO BÀI THI" : "BIÊN BẢN BÀN GIAO & CHẤM PHÚC KHẢO ẨN DANH";
+        const docTitle = isCompleted ? "BIÊN BẢN CÔNG NHẬN KẾT QUẢ PHÚC KHẢO BÀI THI" : "BIÊN BẢN CHẤM PHÚC KHẢO";
         const docSub = isCompleted ? "(Kèm theo Quyết định công nhận điều chỉnh điểm thi của Hội đồng Khảo thí)" : "(Dùng cho Cán bộ Khảo thí & Giảng viên Chấm lại)";
 
         const printWin = window.open('', '_blank', 'width=850,height=950');
@@ -1219,7 +1257,7 @@
             <body>
                 <div class="header-top">
                     <div>
-                        <p style="margin:0;">TRƯỜNG ĐẠI HỌC VNUK</p>
+                        <p style="margin:0;">VIỆN NGHIÊN CỨU VÀ ĐÀO TẠO VIỆT - ANH</p>
                         <p style="margin:4px 0 0 0; text-decoration: underline;">HỘI ĐỒNG KHẢO THÍ</p>
                     </div>
                     <div>
@@ -1244,7 +1282,7 @@
                     </div>
                 </div>
 
-                <p style="font-weight:bold; margin-bottom:5px;">${isCompleted ? 'BẢNG KẾT QUẢ CHẤM PHÚC KHẢO ĐÃ ĐỐI SOÁT:' : 'DANH SÁCH BỘ 04 BÀI PHÁCH RÚT CHẤM ẨN DANH:'}</p>
+                <p style="font-weight:bold; margin-bottom:5px;">${isCompleted ? 'BẢNG KẾT QUẢ CHẤM PHÚC KHẢO ĐÃ ĐỐI SOÁT:' : 'DANH SÁCH BÀI THI CẦN PHÚC KHẢO:'}</p>
                 <table>
                     <thead>
                         <tr>
@@ -1753,7 +1791,7 @@
             <body>
                 <div class="header-top">
                     <div>
-                        <p style="margin:0;">TRƯỜNG ĐẠI HỌC VNUK</p>
+                        <p style="margin:0;">VIỆN NGHIÊN CỨU VÀ ĐÀO TẠO VIỆT - ANH</p>
                         <p style="margin:4px 0 0 0; text-decoration: underline;">HỘI ĐỒNG KHẢO THÍ</p>
                     </div>
                     <div>
@@ -3624,7 +3662,10 @@
             });
         }
     }
-    window.switchPhucKhaoMode = switchPhucKhaoMode;
+     window.switchPhucKhaoMode = switchPhucKhaoMode;
 
-
+     window.changeGnHistPage = function (dir) {
+         gnHistCurrentPage += dir;
+         renderGiaoNhanView();
+     }
 </script>

@@ -3,13 +3,13 @@
     <div class="flex justify-between items-center border-b pb-4 mb-4">
         <div>
             <h2 class="text-2xl font-bold text-blue-900 flex items-center gap-2">
-                <i data-lucide="award" class="text-blue-600"></i> Phê duyệt Bảng điểm
+                <i data-lucide="award" class="text-blue-600"></i> Phê duyệt điểm thi kết thúc học phần
             </h2>
         </div>
         <div class="flex items-center gap-3">
             <button id="btn-batch-duyet-diem" onclick="executeBatchDuyetDiem()" disabled
                 class="bg-[#9e1c22] opacity-50 cursor-not-allowed text-white text-sm font-bold px-5 py-2.5 rounded shadow flex items-center gap-2 transition-all">
-                <i data-lucide="check-circle" class="w-4 h-4"></i> PHÊ DUYỆT BẢNG ĐIỂM (<span id="count-checked-duyet">0</span>)
+                <i data-lucide="check-circle" class="w-4 h-4"></i> PHÊ DUYỆT ĐIỂM THI KẾT THÚC HỌC PHẦN (<span id="count-checked-duyet">0</span>)
             </button>
         </div>
     </div>
@@ -22,7 +22,7 @@
                 <div class="flex justify-between items-center text-sm font-bold text-gray-700">
                     <div class="flex items-center gap-2">
                         <input type="checkbox" id="check-all-duyet" onchange="toggleSelectAllDuyet(this.checked)" class="w-4 h-4 cursor-pointer accent-[#9e1c22]" title="Chọn tất cả bài chờ duyệt">
-                        <span>Danh sách bảng điểm</span>
+                        <span>Danh sách điểm thi KTHP</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <select id="duyet-filter-select" onchange="renderDuyetDiem()" class="text-xs p-1 border rounded border-gray-300 bg-white font-semibold text-gray-700 outline-none cursor-pointer">

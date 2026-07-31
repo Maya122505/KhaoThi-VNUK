@@ -32,7 +32,9 @@
     let giaoNhanSelectedIds = new Set();
     let giaoNhanFilteredItems = [];
     let giaoNhanCurrentPage = 1;
-    const giaoNhanPageSize = 10;
+    const giaoNhanPageSize = 6;
+    let gnHistCurrentPage = 1;
+    const gnHistPageSize = 10;
     let canBoCoiThiData = [];
     let phucKhaoData = [];
     let traCuuPageSize = 3;
@@ -51,7 +53,11 @@
             phongThiData = data.phongThiGocData;
             tuiBaiData = data.tuiPhachData;
             phieuGiaoNhanData = data.phieuGiaoNhanData;
-            canBoCoiThiData = data.canBoCoiThiData;
+            canBoCoiThiData = (data.canBoCoiThiData || []).map(g => ({
+                ...g,
+                id: g.code || g.id,
+                code: g.code || g.id
+            }));
             phucKhaoData = data.phucKhaoData;
             isStateLoaded = true;
         } catch (e) {
@@ -529,7 +535,7 @@
         const previewListDiv = document.getElementById('modal-ghep-phong-preview-list');
         const roomNamesStr = selectedPhongTaoTui.map(id => {
             const r = phongThiData.find(x => x.id === id);
-            return r ? (r.name || r.phong) : id;
+            return r ? (r.name || r.phong || r.id) : id;
         }).join(', ');
         if (previewListDiv) {
             previewListDiv.innerHTML = `Danh sách phòng: ` + roomNamesStr;
@@ -681,7 +687,12 @@
         const tbody = document.getElementById('tra-cuu-tui-tbody');
         tbody.innerHTML = '';
 
-        const list = tuiBaiData.filter(t => (filterId === "" || t.id.includes(filterId)) && (filterMon === "" || t.subjectId === filterMon));
+        const filterStatus = document.getElementById('filter-tui-status') ? document.getElementById('filter-tui-status').value : '';
+        const list = tuiBaiData.filter(t => 
+            (filterId === "" || t.id.includes(filterId)) && 
+            (filterMon === "" || t.subjectId === filterMon) &&
+            (filterStatus === "" || t.status === filterStatus)
+        );
         if (list.length === 0) {
             tbody.innerHTML = `<tr><td colspan="5" class="text-center text-gray-400 py-6 italic">Không tìm thấy túi bài thi phù hợp.</td></tr>`;
             document.getElementById('tui-pagination-info').innerText = "Hiển thị 0-0 của 0 túi";
@@ -725,6 +736,8 @@
     function resetFilterTraCuuTui() {
         document.getElementById('filter-tui-id').value = '';
         document.getElementById('filter-tui-mon').value = '';
+        const statusEl = document.getElementById('filter-tui-status');
+        if (statusEl) statusEl.value = '';
         traCuuCurrentPage = 1;
         renderViewTraCuuTui();
     }
@@ -810,8 +823,16 @@
                 for (let num = 100; num < 1000; num++) pool.push(num);
                 let seedVal = 0;
                 for (let i = 0; i < (tui.id || '').length; i++) seedVal += tui.id.charCodeAt(i);
+                
+                // Deterministic LCG random generator
+                let seed = seedVal || 12345;
+                const nextRandom = () => {
+                    seed = (seed * 9301 + 49297) % 233280;
+                    return seed / 233280;
+                };
+
                 for (let i = pool.length - 1; i > 0; i--) {
-                    const j = Math.abs((seedVal * (i + 1)) % (i + 1));
+                    const j = Math.floor(nextRandom() * (i + 1));
                     [pool[i], pool[j]] = [pool[j], pool[i]];
                 }
                 for (let k = 0; k < paperCount; k++) {
@@ -1005,14 +1026,28 @@
             document.getElementById('pw-tracuu-input').value = '';
         }
     }
-    function hidePwTraCuuModal() { document.getElementById('modal-pw-tracuu').classList.add('hidden-view'); }
-    function confirmPwTraCuuExecute() {
-        if (document.getElementById('pw-tracuu-input').value === "123456") {
-            hidePwTraCuuModal();
-            document.getElementById('detail-tui-pw').innerText = tuiBaiData.find(x => x.id === activeTuiDetailId).password;
-            isDecryptedPassword = true;
-        } else { document.getElementById('pw-tracuu-error').classList.remove('hidden-view'); }
+    function hidePwTraCuuModal() {
+        const modal = document.getElementById('modal-pw-tracuu');
+        if (modal) modal.classList.add('hidden-view');
     }
+    window.hidePwTraCuuModal = hidePwTraCuuModal;
+    
+    function confirmPwTraCuuExecute() {
+        const inputEl = document.getElementById('pw-tracuu-input');
+        const errorEl = document.getElementById('pw-tracuu-error');
+        if (!inputEl) return;
+        if (inputEl.value === "123456") {
+            hidePwTraCuuModal();
+            const tui = tuiBaiData.find(x => x.id === activeTuiDetailId);
+            const passwordToShow = tui ? (tui.password || "123456") : "123456";
+            const detailPwEl = document.getElementById('detail-tui-pw');
+            if (detailPwEl) detailPwEl.innerText = passwordToShow;
+            isDecryptedPassword = true;
+        } else {
+            if (errorEl) errorEl.classList.remove('hidden-view');
+        }
+    }
+    window.confirmPwTraCuuExecute = confirmPwTraCuuExecute;
 
     // ==========================================================
     // ĐỐI CHIẾU MÃ PHÁCH
@@ -1393,23 +1428,23 @@
                 const bgBadge = 'bg-amber-50 text-amber-700 border-amber-100';
 
                 const checkedClasses = isChecked
-                    ? 'bg-blue-50/50 border-blue-500 ring-1 ring-blue-500/20'
-                    : 'bg-white border-slate-200 hover:border-blue-400 hover:bg-slate-50/30';
+                    ? 'bg-red-50 border-red-500 ring-1 ring-red-500/20'
+                    : 'bg-white border-slate-200/80 hover:border-red-400 hover:bg-red-50/10';
 
                 listTuiDiv.innerHTML += `
-                    <label class="gn-item flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all duration-150 shadow-sm ${checkedClasses}">
+                    <label class="gn-item flex items-start gap-3 py-2.5 px-3 rounded-md border cursor-pointer transition-all duration-150 ${checkedClasses}">
                         <div class="flex items-center h-5 mt-0.5">
-                            <input type="checkbox" value="${t.id}" onchange="handleGiaoNhanCheckboxChange(this)" ${isChecked ? 'checked' : ''} class="w-3.5 h-3.5 text-blue-600 rounded border-gray-300 focus:ring-blue-500" />
+                            <input type="checkbox" value="${t.id}" onchange="handleGiaoNhanCheckboxChange(this)" ${isChecked ? 'checked' : ''} class="w-3.5 h-3.5 text-[#9e1c22] rounded border-gray-300 focus:ring-[#9e1c22]" />
                         </div>
                         <div class="flex-1 min-w-0">
                             <div class="flex flex-col gap-0.5">
-                                <span class="font-extrabold text-slate-800 text-[12.5px] tracking-wide leading-tight">${t.id}</span>
+                                <span class="font-extrabold text-slate-800 text-[12px] tracking-wide leading-tight">${t.id}</span>
                                 <span class="text-slate-500 text-[11px] font-sans font-medium line-clamp-1 leading-normal">${t.subjectName}</span>
                                 <span class="inline-flex items-center w-fit px-1.5 py-0.5 rounded text-[10px] font-bold font-sans border ${bgBadge} mt-1">${t.papers} bài</span>
                             </div>
                         </div>
-                        <div class="shrink-0 bg-slate-100 p-2 rounded-lg text-slate-500 flex items-center justify-center">
-                            <i data-lucide="package" class="w-4 h-4 text-amber-600"></i>
+                        <div class="shrink-0 bg-slate-50 p-1.5 rounded-md text-slate-500 flex items-center justify-center border border-slate-100">
+                            <i data-lucide="package" class="w-3.5 h-3.5 text-amber-600"></i>
                         </div>
                     </label>
                 `;
@@ -1524,7 +1559,22 @@
             if (tkctHandovers.length === 0) {
                 tkctHandovers = phieuGiaoNhanData;
             }
-            tkctHandovers.forEach(p => {
+
+            // Sort by ID descending (latest on top)
+            tkctHandovers.sort((a, b) => {
+                const aId = a.id || a.ma_phieu || '';
+                const bId = b.id || b.ma_phieu || '';
+                return bId.localeCompare(aId);
+            });
+
+            const totalHistPages = Math.ceil(tkctHandovers.length / gnHistPageSize) || 1;
+            if (gnHistCurrentPage > totalHistPages) gnHistCurrentPage = totalHistPages;
+            if (gnHistCurrentPage < 1) gnHistCurrentPage = 1;
+
+            const startIdx = (gnHistCurrentPage - 1) * gnHistPageSize;
+            const pageHandovers = tkctHandovers.slice(startIdx, startIdx + gnHistPageSize);
+
+            pageHandovers.forEach(p => {
                 const pid = p.id || p.ma_phieu || 'PGN-2026-001';
                 const pflow = p.flow || `${p.sender_name || 'Bên giao'} ➔ ${p.receiver_name || 'Bên nhận'}`;
                 const pqty = p.qty || (p.chi_tiet ? p.chi_tiet.length : 1);
@@ -1553,6 +1603,20 @@
                     </tr>
                 `;
             });
+
+            // Update Pagination Controls for History
+            const histInfo = document.getElementById('gn-hist-pagination-info');
+            if (histInfo) {
+                histInfo.innerText = `Trang ${gnHistCurrentPage} / ${totalHistPages}`;
+            }
+            const prevBtn = document.getElementById('gn-hist-btn-prev');
+            if (prevBtn) {
+                prevBtn.disabled = gnHistCurrentPage === 1;
+            }
+            const nextBtn = document.getElementById('gn-hist-btn-next');
+            if (nextBtn) {
+                nextBtn.disabled = gnHistCurrentPage === totalHistPages;
+            }
         }
 
         initIcons();
@@ -1788,5 +1852,10 @@
 
         setTimeout(() => toast.classList.add('hidden-view'), 4000);
         if (activeViewId === 'view-home') renderDashboard();
+    }
+
+    window.changeGnHistPage = function (dir) {
+        gnHistCurrentPage += dir;
+        renderGiaoNhan();
     }
 </script>

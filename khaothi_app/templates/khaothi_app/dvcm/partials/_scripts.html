@@ -19,7 +19,9 @@
     let giaoNhanSelectedIds = new Set();
     let giaoNhanFilteredItems = [];
     let giaoNhanCurrentPage = 1;
-    const giaoNhanPageSize = 10;
+    const giaoNhanPageSize = 6;
+    let gnHistCurrentPage = 1;
+    const gnHistPageSize = 10;
     let activeViewId = "view-home";
     let activeAssignTuiId = "";
     let activeNhapDiemTuiId = "";
@@ -49,7 +51,11 @@
             phongThiGocData = data.phongThiGocData;
             tuiPhachData = data.tuiPhachData;
             phieuGiaoNhanData = data.phieuGiaoNhanData;
-            canBoCoiThiData = data.canBoCoiThiData;
+            canBoCoiThiData = (data.canBoCoiThiData || []).map(g => ({
+                ...g,
+                id: g.code || g.id,
+                code: g.code || g.id
+            }));
             phucKhaoData = data.phucKhaoData;
             deThiData = data.deThiData || [];
             hocPhanData = data.hocPhanData || [];
@@ -391,19 +397,19 @@
             const isChecked = selectedMainTuiIds.has(t.id);
             const gv = canBoCoiThiData.find(g => g.id === t.grader1)?.name || t.grader1 || '<span class="text-red-600 font-semibold italic">Chưa phân công</span>';
             const statusBadge = t.grader1 
-                ? `<span class="bg-green-100 text-green-800 px-2.5 py-0.5 rounded-full text-xs font-bold">✓ Đã phân công</span>` 
-                : `<span class="bg-red-100 text-red-800 px-2.5 py-0.5 rounded-full text-xs font-bold">● Chưa phân công</span>`;
+                ? `<span class="bg-green-100 text-green-800 px-2.5 py-0.5 rounded-full text-xs font-bold whitespace-nowrap inline-block">✓ Đã phân công</span>` 
+                : `<span class="bg-red-100 text-red-800 px-2.5 py-0.5 rounded-full text-xs font-bold whitespace-nowrap inline-block">● Chưa phân công</span>`;
 
             tbody.innerHTML += `
                 <tr class="hover:bg-red-50/40 text-sm border-b border-gray-100 cursor-pointer ${isChecked ? 'bg-red-50/80 font-medium' : ''}" onclick="toggleSelectMainTui('${t.id}')">
                     <td class="px-3 py-3.5 text-center" onclick="event.stopPropagation()">
                         <input type="checkbox" value="${t.id}" ${isChecked ? 'checked' : ''} onchange="toggleSelectMainTui('${t.id}')" class="w-4 h-4 text-[#9e1c22] rounded cursor-pointer" />
                     </td>
-                    <td class="px-4 py-3.5 text-center font-mono font-bold text-red-950">${t.id}</td>
+                    <td class="px-4 py-3.5 text-center font-mono font-bold text-red-950 whitespace-nowrap">${t.id}</td>
                     <td class="px-4 py-3.5 text-left font-semibold text-gray-800">${t.subjectName}</td>
-                    <td class="px-4 py-3.5 text-center font-bold text-gray-700">${t.papers} bài</td>
+                    <td class="px-4 py-3.5 text-center font-bold text-gray-700 whitespace-nowrap">${t.papers} bài</td>
                     <td class="px-4 py-3.5 text-center">${statusBadge}</td>
-                    <td class="px-4 py-3.5 text-center font-bold text-gray-900">${gv}</td>
+                    <td class="px-4 py-3.5 text-center font-bold text-gray-900 whitespace-nowrap">${gv}</td>
                 </tr>
             `;
         });
@@ -770,18 +776,18 @@
             const isChecked = selectedPkIds.has(pk.id);
             const gvPk = canBoCoiThiData.find(g => g.id === pk.graderPk)?.name || pk.graderPk || '<span class="text-red-600 font-semibold italic">Chưa phân công</span>';
             const statusBadge = pk.graderPk 
-                ? `<span class="bg-green-100 text-green-800 px-2.5 py-0.5 rounded-full text-xs font-bold">✓ Đã phân công</span>` 
-                : `<span class="bg-red-100 text-red-800 px-2.5 py-0.5 rounded-full text-xs font-bold">● Chưa phân công</span>`;
+                ? `<span class="bg-green-100 text-green-800 px-2.5 py-0.5 rounded-full text-xs font-bold whitespace-nowrap inline-block">✓ Đã phân công</span>` 
+                : `<span class="bg-red-100 text-red-800 px-2.5 py-0.5 rounded-full text-xs font-bold whitespace-nowrap inline-block">● Chưa phân công</span>`;
 
             tbody.innerHTML += `
                 <tr class="hover:bg-red-50/40 text-sm border-b border-gray-100 cursor-pointer ${isChecked ? 'bg-red-50/80 font-medium' : ''}" onclick="toggleSelectPkItem('${pk.id}')">
                     <td class="px-4 py-3.5 text-center" onclick="event.stopPropagation()">
                         <input type="checkbox" value="${pk.id}" ${isChecked ? 'checked' : ''} onchange="toggleSelectPkItem('${pk.id}')" class="w-4 h-4 text-[#9e1c22] rounded cursor-pointer" />
                     </td>
-                    <td class="px-6 py-3.5 text-center font-mono font-bold text-red-950">${pk.id}</td>
+                    <td class="px-6 py-3.5 text-center font-mono font-bold text-red-950 whitespace-nowrap">${pk.id}</td>
                     <td class="px-6 py-3.5 text-left font-semibold text-gray-800">${pk.subjectName}</td>
                     <td class="px-6 py-3.5 text-center">${statusBadge}</td>
-                    <td class="px-6 py-3.5 text-center font-bold text-gray-900">${gvPk}</td>
+                    <td class="px-6 py-3.5 text-center font-bold text-gray-900 whitespace-nowrap">${gvPk}</td>
                 </tr>
             `;
         });
@@ -846,8 +852,22 @@
 
     function navigateGiaoNhan(tab) {
         activeGiaoNhanTab = tab;
-        if (tab === 'nhan') navigate('view-nhan-bai');
-        else navigate('view-ban-giao-bai');
+        if (tab === 'nhan') {
+            navigate('view-nhan-bai');
+        } else {
+            navigate('view-ban-giao-bai');
+            const selectLoai = document.getElementById('dvcm-select-pbg-loai');
+            if (selectLoai) {
+                if (tab === 'tao-tra-bai' || tab === 'tao') {
+                    selectLoai.value = "2";
+                } else if (tab === 'tao-ban-giao') {
+                    selectLoai.value = "1";
+                }
+                if (typeof handleDvcmGiaoNhanLoaiChange === 'function') {
+                    handleDvcmGiaoNhanLoaiChange();
+                }
+            }
+        }
     }
     window.navigateGiaoNhan = navigateGiaoNhan;
 
@@ -877,8 +897,8 @@
 
     function renderHome() {
         const countNhan = phieuGiaoNhanData.filter(p => p.recipient === "dvcm" && p.status === "Chờ bạn xác nhận").length;
-        const countPhanCong = tuiPhachData.filter(t => !t.grader1 || !t.grader2).length;
-        const countNhapDiem = tuiPhachData.filter(t => t.grader1 && t.grader2 && t.status !== "Đã đối chiếu hợp lệ" && t.status !== "Đã trả bài").length;
+        const countPhanCong = tuiPhachData.filter(t => !t.grader1).length;
+        const countNhapDiem = tuiPhachData.filter(t => t.grader1 && t.status !== "Đã đối chiếu hợp lệ" && t.status !== "Đã trả bài").length;
         const countPhieuGui = phieuGiaoNhanData.filter(p => p.sender === "dvcm" && p.status === "Chờ bạn xác nhận").length;
 
         document.getElementById('count-nhan-cho').innerText = countNhan;
@@ -1042,7 +1062,22 @@
         if (histGiaoTbody) {
             histGiaoTbody.innerHTML = '';
             const handovers = phieuGiaoNhanData.filter(p => p.sender === "dvcm");
-            handovers.forEach(p => {
+            
+            // Sort by ID descending
+            handovers.sort((a, b) => {
+                const aId = a.id || a.ma_phieu || '';
+                const bId = b.id || b.ma_phieu || '';
+                return bId.localeCompare(aId);
+            });
+
+            const totalHistPages = Math.ceil(handovers.length / gnHistPageSize) || 1;
+            if (gnHistCurrentPage > totalHistPages) gnHistCurrentPage = totalHistPages;
+            if (gnHistCurrentPage < 1) gnHistCurrentPage = 1;
+
+            const startIdx = (gnHistCurrentPage - 1) * gnHistPageSize;
+            const pageHandovers = handovers.slice(startIdx, startIdx + gnHistPageSize);
+
+            pageHandovers.forEach(p => {
                 let stBadge = `<span class="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-xs font-bold">${p.status}</span>`;
                 let rejectInfo = "";
                 if (p.status === "Đã hoàn tất") stBadge = `<span class="bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-bold">✓ Đã tiếp nhận</span>`;
@@ -1067,6 +1102,20 @@
                     </tr>
                 `;
             });
+
+            // Update Pagination Controls for History
+            const histInfo = document.getElementById('gn-hist-pagination-info');
+            if (histInfo) {
+                histInfo.innerText = `Trang ${gnHistCurrentPage} / ${totalHistPages}`;
+            }
+            const prevBtn = document.getElementById('gn-hist-btn-prev');
+            if (prevBtn) {
+                prevBtn.disabled = gnHistCurrentPage === 1;
+            }
+            const nextBtn = document.getElementById('gn-hist-btn-next');
+            if (nextBtn) {
+                nextBtn.disabled = gnHistCurrentPage === totalHistPages;
+            }
         }
 
         initIcons();
@@ -1134,23 +1183,23 @@
                 const bgBadge = 'bg-amber-50 text-amber-700 border-amber-100';
 
                 const checkedClasses = isChecked 
-                    ? 'bg-blue-50/50 border-blue-500 ring-1 ring-blue-500/20' 
-                    : 'bg-white border-slate-200 hover:border-blue-400 hover:bg-slate-50/30';
+                    ? 'bg-red-50 border-red-500 ring-1 ring-red-500/20' 
+                    : 'bg-white border-slate-200/80 hover:border-red-400 hover:bg-red-50/10';
 
                 listDiv.innerHTML += `
-                    <label class="gn-item flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all duration-150 shadow-sm ${checkedClasses}">
+                    <label class="gn-item flex items-start gap-3 py-2.5 px-3 rounded-md border cursor-pointer transition-all duration-150 ${checkedClasses}">
                         <div class="flex items-center h-5 mt-0.5">
-                            <input type="checkbox" value="${b.id}" onchange="handleGiaoNhanCheckboxChange(this)" ${isChecked ? 'checked' : ''} class="w-3.5 h-3.5 text-blue-600 rounded border-gray-300 focus:ring-blue-500" />
+                            <input type="checkbox" value="${b.id}" onchange="handleGiaoNhanCheckboxChange(this)" ${isChecked ? 'checked' : ''} class="w-3.5 h-3.5 text-[#9e1c22] rounded border-gray-300 focus:ring-[#9e1c22]" />
                         </div>
                         <div class="flex-1 min-w-0">
                             <div class="flex flex-col gap-0.5">
-                                <span class="font-extrabold text-slate-800 text-[12.5px] tracking-wide leading-tight">${b.id}</span>
+                                <span class="font-extrabold text-slate-800 text-[12px] tracking-wide leading-tight">${b.id}</span>
                                 <span class="text-slate-500 text-[11px] font-sans font-medium line-clamp-1 leading-normal">${b.subjectName}</span>
                                 <span class="inline-flex items-center w-fit px-1.5 py-0.5 rounded text-[10px] font-bold font-sans border ${bgBadge} mt-1">${b.papers} bài</span>
                             </div>
                         </div>
-                        <div class="shrink-0 bg-slate-100 p-2 rounded-lg text-slate-500 flex items-center justify-center">
-                            <i data-lucide="package" class="w-4 h-4 text-amber-600"></i>
+                        <div class="shrink-0 bg-slate-50 p-1.5 rounded-md text-slate-500 flex items-center justify-center border border-slate-100">
+                            <i data-lucide="package" class="w-3.5 h-3.5 text-amber-600"></i>
                         </div>
                     </label>
                 `;
@@ -1512,8 +1561,8 @@
         if (ids.length === 0) return;
 
         openConfirmModal(
-            `Xác nhận Phê duyệt Bảng điểm (${ids.length} túi bài)`,
-            `Bạn có chắc chắn muốn phê duyệt bảng điểm KTHP cấp Khoa cho ${ids.length} túi bài thi đã chọn không?`,
+            `Xác nhận Phê duyệt điểm thi KTHP (${ids.length} túi bài)`,
+            `Bạn có chắc chắn muốn phê duyệt điểm thi kết thúc học phần cấp Khoa cho ${ids.length} túi bài thi đã chọn không?`,
             () => {
                 ids.forEach(id => {
                     const t = tuiPhachData.find(x => x.id === id);
@@ -1522,7 +1571,7 @@
                         t.trang_thai = "KhoaDaPheDuyet";
                     }
                 });
-                showGlobalToast("Phê duyệt thành công", `Đã phê duyệt ${ids.length} bảng điểm KTHP cấp Khoa và chuyển Lãnh đạo phòng.`);
+                showGlobalToast("Phê duyệt thành công", `Đã phê duyệt ${ids.length} điểm thi KTHP cấp Khoa và chuyển Lãnh đạo phòng.`);
                 saveStateToServer();
                 renderNhapTraDiem();
                 closeConfirmModal();
@@ -1556,7 +1605,7 @@
         if (countSpan) countSpan.innerText = `${list.length} túi bài`;
 
         if (list.length === 0) {
-            leftList.innerHTML = `<div class="p-8 text-center text-gray-400 italic text-xs">Không tìm thấy bảng điểm nào phù hợp.</div>`;
+            leftList.innerHTML = `<div class="p-8 text-center text-gray-400 italic text-xs">Không tìm thấy điểm thi KTHP nào phù hợp.</div>`;
             const pEmpty = document.getElementById('entry-panel-empty');
             const pPanel = document.getElementById('entry-panel-form');
             if (pEmpty) pEmpty.classList.remove('hidden-view');
@@ -1649,7 +1698,9 @@
 
         document.getElementById('entry-title-tui').innerText = `Túi bài thi: ${item.id}`;
         document.getElementById('entry-title-sub').innerText = `Học phần: ${item.subjectName} (${item.subjectId || ''})`;
-        document.getElementById('entry-meta-info').innerText = `Số lượng: ${item.papers || 25} bài thi | Giám khảo: ${item.grader1 || 'GV001'} & ${item.grader2 || 'GV002'}`;
+        const graderObj = canBoCoiThiData.find(g => g.id === item.grader1 || g.code === item.grader1);
+        const graderName = graderObj ? graderObj.name : (item.grader1 || 'Chưa phân công');
+        document.getElementById('entry-meta-info').innerText = `Số lượng: ${item.papers || 25} bài thi | Giám khảo: ${graderName}`;
 
         const badgeEl = document.getElementById('entry-status-badge');
         const actionBox = document.getElementById('entry-action-container');
@@ -1923,4 +1974,9 @@
         if (typeof isStateLoaded !== "undefined" && isStateLoaded) saveStateToServer();
     }
     window.handleNopDeThi = handleNopDeThi;
+
+    window.changeGnHistPage = function (dir) {
+        gnHistCurrentPage += dir;
+        renderGiaoNhan();
+    }
 </script>

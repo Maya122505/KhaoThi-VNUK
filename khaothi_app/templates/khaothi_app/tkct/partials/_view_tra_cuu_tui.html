@@ -27,6 +27,18 @@
                 <option value="CS101">Nhập môn Lập trình</option>
                 <option value="MKT205">Marketing căn bản</option>
             </select>
+            <select id="filter-tui-status" onchange="traCuuCurrentPage=1; renderViewTraCuuTui()" class="border border-gray-300 rounded px-3 py-2 bg-white text-sm outline-none">
+                <option value="">Trạng thái: Tất cả</option>
+                <option value="Chưa làm phách">Chưa làm phách</option>
+                <option value="Đã tạo phách">Đã tạo phách</option>
+                <option value="MoiTao">Mới khởi tạo (MoiTao)</option>
+                <option value="Đang chấm">Đang chấm</option>
+                <option value="Chờ khớp điểm">Chờ khớp điểm</option>
+                <option value="Đã khóa phách">Đã khóa phách</option>
+                <option value="Đã đối chiếu hợp lệ">Đã đối chiếu hợp lệ</option>
+                <option value="Khoa đã phê duyệt">Khoa đã phê duyệt</option>
+                <option value="Đã duyệt bảng điểm">Đã duyệt bảng điểm</option>
+            </select>
             <button onclick="traCuuCurrentPage=1; renderViewTraCuuTui()"
                 class="bg-[#9e1c22] text-white px-5 py-2 rounded text-sm font-semibold hover:bg-red-800">Tìm
                 kiếm</button>

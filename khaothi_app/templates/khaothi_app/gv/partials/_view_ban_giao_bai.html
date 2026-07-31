@@ -2,7 +2,7 @@
     <div class="flex justify-between items-end border-b border-gray-200 pb-4">
         <div>
             <h2 class="text-2xl font-bold text-[#9e1c22] flex items-center gap-2">
-                <i data-lucide="send" class="w-6 h-6 text-red-600"></i> Trả bài đã chấm
+                <i data-lucide="send" class="w-6 h-6 text-red-600"></i> Tạo phiếu bàn giao
             </h2>
         </div>
     </div>
@@ -11,25 +11,25 @@
     <div class="flex flex-col lg:flex-row gap-8 bg-white border border-gray-200 rounded-lg shadow-sm p-6 min-h-[400px]">
         <!-- Left Column: Form Fields and Submit Button -->
         <div class="w-full lg:w-1/2 min-w-0 flex flex-col gap-6 border-r border-gray-100 lg:pr-8 justify-between">
-            <div class="space-y-6">
-                <h3 class="font-bold text-gray-800 text-sm mb-2 border-b pb-3 flex items-center gap-1.5">
-                    <i data-lucide="file-plus" class="w-4 h-4 text-[#9e1c22]"></i> Khởi tạo phiếu bàn giao
+            <div class="space-y-4">
+                <h3 class="font-bold text-gray-800 text-base mb-2 border-b pb-3 flex items-center gap-1.5">
+                    <i data-lucide="file-plus" class="w-5 h-5 text-[#9e1c22]"></i> Tạo phiếu bàn giao
                 </h3>
                 
                 <!-- Step 1 -->
-                <div class="bg-gray-50/50 p-4 rounded-xl border border-gray-200 shadow-sm transition-all">
-                    <label class="flex items-center mb-3">
-                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-100 text-[#9e1c22] text-xs font-bold mr-2 shadow-sm">1</span>
-                        <span class="text-sm font-bold text-gray-800">Bên tiếp nhận bàn giao</span>
+                <div class="flex flex-col gap-1.5">
+                    <label class="flex items-center mb-1.5">
+                        <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-100 text-[#9e1c22] text-xs font-bold mr-2 shadow-sm shrink-0">1</span>
+                        <span class="text-sm font-bold text-gray-700">Bên tiếp nhận bàn giao</span>
                     </label>
                     <input type="text" readonly value="Giáo vụ Khoa (dvcm)" class="w-full px-3 py-3 border border-gray-200 rounded-lg text-sm bg-gray-50 outline-none font-bold text-gray-800 shadow-sm" />
                 </div>
 
                 <!-- Step 2 -->
-                <div class="bg-gray-50/50 p-4 rounded-xl border border-gray-200 shadow-sm hover:border-red-200 transition-all">
-                    <label class="flex items-center mb-3">
-                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-100 text-[#9e1c22] text-xs font-bold mr-2 shadow-sm">2</span>
-                        <span class="text-sm font-bold text-gray-800">Đính kèm bảng điểm chi tiết đã ký (nếu có)</span>
+                <div class="flex flex-col gap-1.5">
+                    <label class="flex items-center mb-1.5">
+                        <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-100 text-[#9e1c22] text-xs font-bold mr-2 shadow-sm shrink-0">2</span>
+                        <span class="text-sm font-bold text-gray-700">Đính kèm bảng điểm chi tiết đã ký (nếu có)</span>
                     </label>
                     <input type="file" id="gv-gn-file-input" class="hidden" accept=".pdf,.jpg,.jpeg,.png" onchange="handleGvGiaoNhanFileSelect(this)">
                     <div onclick="document.getElementById('gv-gn-file-input').click()" class="border-2 border-dashed border-gray-300 rounded-xl p-5 flex flex-col items-center justify-center bg-white text-gray-400 text-center hover:bg-red-50/20 hover:border-red-300 transition-all cursor-pointer shadow-inner">
@@ -49,8 +49,8 @@
 
         <!-- Right Column: Checkbox Selection List -->
         <div class="w-full lg:w-1/2 min-w-0 flex flex-col gap-3">
-            <h3 class="font-bold text-gray-800 text-sm mb-2 border-b pb-2 flex items-center gap-1.5">
-                <i data-lucide="list-checks" class="w-4 h-4 text-green-600"></i> Chọn các túi bài thi đã chấm xong
+            <h3 class="font-bold text-gray-800 text-base mb-2 border-b pb-2 flex items-center gap-1.5">
+                <i data-lucide="list-checks" class="w-5 h-5 text-green-600"></i> Chọn các túi bài thi đã chấm xong
             </h3>
             <div class="border border-gray-200 rounded-lg p-3 bg-gray-50 flex-1 overflow-y-auto min-h-[250px] space-y-1.5" id="gv-gn-list-tui-kha-dung"></div>
         </div>
@@ -58,8 +58,8 @@
 
     <!-- History Panel below creation panel -->
     <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6 flex flex-col gap-4">
-        <h3 class="font-bold text-gray-800 text-sm border-b pb-2 flex items-center gap-1.5">
-            <i data-lucide="history" class="w-4 h-4 text-gray-600"></i> Lịch sử trả túi bài thi đã chấm
+        <h3 class="font-bold text-gray-800 text-base border-b pb-2 flex items-center gap-1.5">
+            <i data-lucide="history" class="w-5 h-5 text-gray-600"></i> Lịch sử trả túi bài thi đã chấm
         </h3>
         <div class="overflow-x-auto">
             <table class="w-full text-left text-sm">
@@ -73,6 +73,14 @@
                 </thead>
                 <tbody id="gn-lich-su-giao-tbody" class="divide-y divide-gray-100"></tbody>
             </table>
+        </div>
+        <!-- Pagination Controls for History -->
+        <div id="gn-hist-pagination" class="flex justify-between items-center text-xs border-t pt-3 bg-white px-1">
+            <span id="gn-hist-pagination-info" class="text-gray-500 font-medium">Trang 1 / 1</span>
+            <div class="flex gap-1.5">
+                <button type="button" onclick="changeGnHistPage(-1)" id="gn-hist-btn-prev" class="px-3 py-1 bg-white border border-gray-300 rounded text-gray-700 font-semibold shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">Trước</button>
+                <button type="button" onclick="changeGnHistPage(1)" id="gn-hist-btn-next" class="px-3 py-1 bg-white border border-gray-300 rounded text-gray-700 font-semibold shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">Sau</button>
+            </div>
         </div>
     </div>
 </div>

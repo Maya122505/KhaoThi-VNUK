@@ -2,7 +2,7 @@
     <div class="flex justify-between items-end border-b border-gray-200 pb-4">
         <div>
             <h2 class="text-2xl font-bold text-[#9e1c22] flex items-center gap-2">
-                <i data-lucide="send" class="w-6 h-6 text-red-600"></i> Bàn giao bài thi
+                <i data-lucide="send" class="w-6 h-6 text-red-600"></i> Tạo phiếu bàn giao
             </h2>
         </div>
     </div>
@@ -11,26 +11,24 @@
     <div class="flex flex-col lg:flex-row gap-8 bg-white border border-gray-200 rounded-lg shadow-sm p-6 min-h-[400px]">
         <!-- Left Column: Form Fields and Submit Button -->
         <div class="w-full lg:w-1/2 min-w-0 flex flex-col gap-6 border-r border-gray-100 lg:pr-8 justify-between">
-            <div class="space-y-6">
-                <h3 class="font-bold text-gray-800 text-sm mb-2 border-b pb-3 flex items-center gap-1.5">
-                    <i data-lucide="file-plus" class="w-4 h-4 text-[#9e1c22]"></i> Khởi tạo phiếu bàn giao
+            <div class="space-y-4">
+                <h3 class="font-bold text-gray-800 text-base mb-2 border-b pb-3 flex items-center gap-1.5">
+                    <i data-lucide="file-plus" class="w-5 h-5 text-[#9e1c22]"></i> Tạo phiếu bàn giao
                 </h3>
 
                 <!-- Step 1 -->
-                <div
-                    class="bg-gray-50/50 p-4 rounded-xl border border-gray-200 shadow-sm hover:border-red-200 transition-all">
-                    <label class="flex items-center mb-3">
-                        <span
-                            class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-100 text-[#9e1c22] text-xs font-bold mr-2 shadow-sm">1</span>
-                        <span class="text-sm font-bold text-gray-800">Loại quy trình bàn giao</span>
+                <div class="flex flex-col gap-1.5">
+                    <label class="flex items-center mb-1.5">
+                        <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-100 text-[#9e1c22] text-xs font-bold mr-2 shadow-sm shrink-0">1</span>
+                        <span class="text-sm font-bold text-gray-700">Loại quy trình bàn giao</span>
                     </label>
                     <div class="relative">
                         <select id="select-pbg-loai" onchange="handleGiaoNhanLoaiChange()"
                             class="w-full pl-3 pr-10 py-3 border border-gray-300 rounded-lg text-sm bg-white outline-none focus:border-[#9e1c22] focus:ring-1 focus:ring-[#9e1c22] transition-all font-medium text-gray-800 shadow-sm appearance-none">
                             <option value="1">Loại 1: Tổ Khảo thí bàn giao bài thi cho Thư ký chấm thi</option>
-                            <option value="2">Loại 2: Tổ Khảo thí bàn giao túi bài (đã rọc phách) cho Đơn vị chuyên môn
+                            <option value="2">Loại 2: Tổ Khảo thí bàn giao túi phách cho Đơn vị chuyên môn
                             </option>
-                            <option value="7">Loại 3: Tổ Khảo thí bàn giao bài thi chấm phúc khảo cho Đơn vị chuyên môna
+                            <option value="7">Loại 3: Tổ Khảo thí bàn giao hồ sơ phúc khảo cho Đơn vị chuyên môn
                             </option>
                         </select>
                         <i data-lucide="chevron-down"
@@ -39,12 +37,10 @@
                 </div>
 
                 <!-- Step 2 -->
-                <div
-                    class="bg-gray-50/50 p-4 rounded-xl border border-gray-200 shadow-sm hover:border-red-200 transition-all">
-                    <label class="flex items-center mb-3">
-                        <span
-                            class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-100 text-[#9e1c22] text-xs font-bold mr-2 shadow-sm">2</span>
-                        <span class="text-sm font-bold text-gray-800">Người tiếp nhận bàn giao</span>
+                <div class="flex flex-col gap-1.5">
+                    <label class="flex items-center mb-1.5">
+                        <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-100 text-[#9e1c22] text-xs font-bold mr-2 shadow-sm shrink-0">2</span>
+                        <span class="text-sm font-bold text-gray-700">Người tiếp nhận bàn giao</span>
                     </label>
                     <div class="relative">
                         <select id="select-pbg-user"
@@ -58,12 +54,10 @@
                 </div>
 
                 <!-- Step 3 -->
-                <div
-                    class="bg-gray-50/50 p-4 rounded-xl border border-gray-200 shadow-sm hover:border-red-200 transition-all">
-                    <label class="flex items-center mb-3">
-                        <span
-                            class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-100 text-[#9e1c22] text-xs font-bold mr-2 shadow-sm">3</span>
-                        <span class="text-sm font-bold text-gray-800">Đính kèm biên bản sự cố phòng thi (nếu có)</span>
+                <div class="flex flex-col gap-1.5">
+                    <label class="flex items-center mb-1.5">
+                        <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-100 text-[#9e1c22] text-xs font-bold mr-2 shadow-sm shrink-0">3</span>
+                        <span class="text-sm font-bold text-gray-700">Đính kèm biên bản sự cố phòng thi (nếu có)</span>
                     </label>
                     <input type="file" id="tkt-gn-file-input" class="hidden" accept=".pdf,.jpg,.jpeg,.png"
                         onchange="handleTktGiaoNhanFileSelect(this)">
@@ -87,8 +81,8 @@
 
         <!-- Right Column: Checkbox Selection List -->
         <div class="w-full lg:w-1/2 min-w-0 flex flex-col gap-3">
-            <h3 class="font-bold text-gray-800 text-sm mb-2 border-b pb-2 flex items-center gap-1.5">
-                <i data-lucide="list-checks" class="w-4 h-4 text-green-600"></i> Chọn các phòng thi cần bàn giao
+            <h3 class="font-bold text-gray-800 text-base mb-2 border-b pb-2 flex items-center gap-1.5">
+                <i data-lucide="list-checks" class="w-5 h-5 text-green-600"></i> Chọn các phòng thi cần bàn giao
             </h3>
             <!-- Search & Filter Controls -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -107,7 +101,7 @@
                     </select>
                 </div>
             </div>
-            <div class="border border-gray-200 rounded-lg p-3 bg-gray-50 flex-1 overflow-y-auto min-h-[220px] grid grid-cols-1 md:grid-cols-2 gap-2.5 content-start"
+            <div class="border border-gray-200 rounded-lg p-3 bg-gray-50 flex-1 overflow-y-auto min-h-[275px] grid grid-cols-1 md:grid-cols-2 gap-3 content-start"
                 id="gn-list-phong-goc"></div>
             <!-- Pagination Controls -->
             <div id="gn-pagination" class="flex justify-between items-center text-xs border-t pt-3 bg-white px-1">
@@ -124,8 +118,8 @@
 
     <!-- History Panel below creation panel -->
     <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6 flex flex-col gap-4">
-        <h3 class="font-bold text-gray-800 text-sm border-b pb-2 flex items-center gap-1.5">
-            <i data-lucide="history" class="w-4 h-4 text-gray-600"></i> Lịch sử bàn giao bài thi
+        <h3 class="font-bold text-gray-800 text-base border-b pb-2 flex items-center gap-1.5">
+            <i data-lucide="history" class="w-5 h-5 text-gray-600"></i> Lịch sử bàn giao bài thi
         </h3>
         <div class="overflow-x-auto">
             <table class="w-full text-left text-sm">
@@ -139,6 +133,14 @@
                 </thead>
                 <tbody id="gn-lich-su-giao-tbody" class="divide-y divide-gray-100"></tbody>
             </table>
+        </div>
+        <!-- Pagination Controls for History -->
+        <div id="gn-hist-pagination" class="flex justify-between items-center text-xs border-t pt-3 bg-white px-1">
+            <span id="gn-hist-pagination-info" class="text-gray-500 font-medium">Trang 1 / 1</span>
+            <div class="flex gap-1.5">
+                <button type="button" onclick="changeGnHistPage(-1)" id="gn-hist-btn-prev" class="px-3 py-1 bg-white border border-gray-300 rounded text-gray-700 font-semibold shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">Trước</button>
+                <button type="button" onclick="changeGnHistPage(1)" id="gn-hist-btn-next" class="px-3 py-1 bg-white border border-gray-300 rounded text-gray-700 font-semibold shadow-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">Sau</button>
+            </div>
         </div>
     </div>
 </div>

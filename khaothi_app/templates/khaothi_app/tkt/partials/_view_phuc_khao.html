@@ -2,7 +2,7 @@
     <!-- Header Page -->
     <div class="border-b border-gray-200 pb-3 flex justify-between items-center">
         <div>
-            <h2 class="text-xl font-bold text-blue-900 flex items-center gap-2">
+            <h2 class="text-2xl font-bold text-blue-900 flex items-center gap-2">
                 <i data-lucide="shield-check" class="w-6 h-6 text-blue-700"></i> 
                 Xử lý đơn phúc khảo
             </h2>
@@ -112,22 +112,27 @@
             <div id="pk-process-view" class="hidden-view p-4 flex flex-col flex-1 justify-between space-y-4 overflow-y-auto custom-scrollbar">
                 <div class="space-y-4">
                     <!-- Thông tin Túi bài thi gốc -->
-                    <div class="bg-blue-50/50 border border-blue-200 rounded-lg p-4 text-xs space-y-3 shadow-sm">
-                        <div class="flex justify-between items-center font-bold text-blue-900 border-b border-blue-200/50 pb-2">
+                    <div class="bg-amber-50/60 border border-amber-200 rounded-lg p-4 text-xs space-y-3 shadow-sm">
+                        <div class="flex justify-between items-center font-bold text-amber-900 border-b border-amber-200/60 pb-2">
                             <span class="flex items-center gap-1 text-xs">
-                                <i data-lucide="map-pin" class="w-4 h-4 text-blue-900"></i> 
+                                <i data-lucide="map-pin" class="w-4 h-4 text-amber-800"></i> 
                                 Vị trí túi phách
                             </span>
                             <button id="pk-btn-rut-bai" onclick="confirmRutBaiThi()" class="bg-[#9e1c22] hover:bg-red-800 text-white font-bold px-3 py-1.5 rounded shadow-sm text-xs flex items-center gap-1 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer">
                                 <i data-lucide="clipboard-copy" class="w-3.5 h-3.5"></i> Xác nhận rút bài thi
                             </button>
                         </div>
-                        <div class="grid grid-cols-2 gap-y-2 text-gray-700 text-xs">
-                            <div><strong>Mã túi phách:</strong> <span id="pk-info-tui-bai" class="font-mono text-gray-900 font-bold bg-white border border-gray-200 px-1 rounded">--</span></div>
-                            <div><strong>Trạng thái:</strong> <span id="pk-info-trang-thai-rut" class="font-bold text-red-600">Chưa rút bài</span></div>
-                            <div class="col-span-2 mt-1"><strong>Mã phách:</strong> <span id="pk-info-tui-phach" class="font-mono text-gray-900 font-bold bg-white border border-gray-200 px-1 rounded">--</span></div>
+                        <div class="space-y-2 text-gray-700 text-xs">
+                            <div class="flex justify-between items-center">
+                                <div><strong>Mã túi phách:</strong> <span id="pk-info-tui-bai" class="font-mono text-gray-900 font-bold bg-white border border-gray-200 px-1 rounded">--</span></div>
+                                <div class="flex items-center gap-1.5">
+                                    <strong>Trạng thái:</strong> 
+                                    <span id="pk-info-trang-thai-rut" class="font-bold text-red-600">Chưa rút bài</span>
+                                </div>
+                            </div>
+                            <div><strong>Mã phách:</strong> <span id="pk-info-tui-phach" class="font-mono text-gray-900 font-bold bg-white border border-gray-200 px-1.5 py-0.5 rounded shadow-sm bg-gray-50 border-gray-200">--</span></div>
                         </div>
-                        <div class="text-gray-700 border-t border-blue-200/50 pt-2">
+                        <div class="text-gray-700 border-t border-amber-200/60 pt-2">
                             <strong>Lý do phúc khảo:</strong> 
                             <span id="pk-info-ly-do" class="text-gray-900 font-semibold bg-white p-2 border border-gray-100 rounded-md block italic leading-relaxed mt-1">--</span>
                         </div>

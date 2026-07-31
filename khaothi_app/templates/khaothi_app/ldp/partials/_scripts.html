@@ -58,7 +58,11 @@
             phongThiGocData = data.phongThiGocData;
             tuiPhachData = data.tuiPhachData;
             phieuGiaoNhanData = data.phieuGiaoNhanData;
-            canBoCoiThiData = data.canBoCoiThiData;
+            canBoCoiThiData = (data.canBoCoiThiData || []).map(g => ({
+                ...g,
+                id: g.code || g.id,
+                code: g.code || g.id
+            }));
             phucKhaoData = data.phucKhaoData;
             deThiData = data.deThiData || [];
             systemConfigsData = data.systemConfigsData || {};
@@ -197,7 +201,7 @@
             hasActions = true;
             qaList.innerHTML += `
                 <div class="flex justify-between items-center p-3 border border-purple-100 bg-purple-50 rounded-lg">
-                    <span class="font-medium text-purple-900 text-xs">Có <strong>${countDiem} bảng điểm Khoa đã gửi</strong> đang chờ phê duyệt.</span>
+                    <span class="font-medium text-purple-900 text-xs">Có <strong>${countDiem} điểm thi KTHP Khoa đã gửi</strong> đang chờ phê duyệt.</span>
                     <button onclick="navigate('view-duyet-diem')" class="bg-purple-700 hover:bg-purple-800 text-white font-bold px-3 py-1.5 rounded text-[10px] shadow transition-colors">XEM NGAY</button>
                 </div>
             `;
@@ -256,7 +260,7 @@
         if (countSpan) countSpan.innerText = `${list.length} túi bài`;
 
         if (list.length === 0) {
-            leftList.innerHTML = `<div class="p-8 text-center text-gray-400 italic text-xs">Không tìm thấy bảng điểm nào phù hợp.</div>`;
+            leftList.innerHTML = `<div class="p-8 text-center text-gray-400 italic text-xs">Không tìm thấy điểm thi nào phù hợp.</div>`;
             const pEmpty = document.getElementById('duyet-detail-empty');
             const pPanel = document.getElementById('duyet-detail-panel');
             if (pEmpty) pEmpty.classList.remove('hidden-view');
@@ -428,7 +432,7 @@
     function executeBatchDuyetDiem() {
         const checkedCbs = Array.from(document.querySelectorAll('.duyet-item-cb:checked'));
         if (checkedCbs.length === 0) {
-            showGlobalToast("Cảnh báo", "Vui lòng chọn ít nhất 1 bảng điểm để phê duyệt hàng loạt!", "warning");
+            showGlobalToast("Cảnh báo", "Vui lòng chọn ít nhất 1 túi điểm thi để phê duyệt hàng loạt!", "warning");
             return;
         }
 

@@ -43,7 +43,11 @@
             phongThiGocData = data.phongThiGocData;
             tuiPhachData = data.tuiPhachData;
             phieuGiaoNhanData = data.phieuGiaoNhanData;
-            canBoCoiThiData = data.canBoCoiThiData;
+            canBoCoiThiData = (data.canBoCoiThiData || []).map(g => ({
+                ...g,
+                id: g.code || g.id,
+                code: g.code || g.id
+            }));
             phucKhaoData = data.phucKhaoData;
             auditLogsData = data.auditLogsData || [];
             systemConfigsData = data.systemConfigsData || {};

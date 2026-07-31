@@ -9,7 +9,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        html { font-size: 17px; }
+        html { font-size: 112.5%; }
         body { font-family: 'Inter', sans-serif; }
         .hidden-view { display: none !important; }
         ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -207,7 +207,11 @@
                 phongThiGocData = data.phongThiGocData;
                 tuiPhachData = data.tuiPhachData;
                 phieuGiaoNhanData = data.phieuGiaoNhanData;
-                canBoCoiThiData = data.canBoCoiThiData;
+                canBoCoiThiData = (data.canBoCoiThiData || []).map(g => ({
+                    ...g,
+                    id: g.code || g.id,
+                    code: g.code || g.id
+                }));
                 phucKhaoData = data.phucKhaoData;
                 auditLogsData = data.auditLogsData || [];
                 isStateLoaded = true;
