@@ -54,3 +54,13 @@ google-services.json
 
 # Gradle
 .gradle/
+
+# Python & Django build files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+db.sqlite3
+/staticfiles/
+.vercel
+

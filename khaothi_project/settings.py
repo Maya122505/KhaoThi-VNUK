@@ -74,10 +74,24 @@ WSGI_APPLICATION = 'khaothi_project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+import shutil
+
+IS_VERCEL = "VERCEL" in os.environ
+
+if IS_VERCEL:
+    db_path = "/tmp/db.sqlite3"
+    if not os.path.exists(db_path):
+        try:
+            shutil.copyfile(BASE_DIR / 'db.sqlite3', db_path)
+        except Exception:
+            pass
+else:
+    db_path = BASE_DIR / 'db.sqlite3'
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': db_path,
         'OPTIONS': {
             'timeout': 20,
         }
@@ -120,6 +134,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Media files (user-uploaded files)
 MEDIA_URL = '/media/'

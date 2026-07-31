@@ -940,10 +940,10 @@
     window.handleExecuteTaoPhieuBanGiaoGoc = handleExecuteTaoPhieuBanGiaoGoc;
 
     async function handleConfirmNhanBanGiaoWithFile() {
-        if (!currentSelectedGnDetailPhieu) return;
+        if (!activeNhanPhieuObj) return;
 
         try {
-            const response = await fetch(`/tkt/api/phieu-giao-nhan/${currentSelectedGnDetailPhieu.ma_phieu}/xac-nhan/`, {
+            const response = await fetch(`/tkt/api/phieu-giao-nhan/${activeNhanPhieuObj.ma_phieu}/xac-nhan/`, {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': getCookie('csrftoken')
@@ -1039,25 +1039,53 @@
             }
         }
 
+        // Seeded random based on ma_don to make the shuffling and code generation deterministic per appeal request
+        let seedVal = 0;
+        for (let i = 0; i < p.ma_don.length; i++) {
+            seedVal += p.ma_don.charCodeAt(i);
+        }
+        function seededRandom(s) {
+            let x = Math.sin(s) * 10000;
+            return x - Math.floor(x);
+        }
+
         let p2Code = `${prefix}${String(numVal + 1).padStart(padLen, '0')}`;
         let p3Code = `${prefix}${String(numVal + 2).padStart(padLen, '0')}`;
         let p4Code = `${prefix}${String(numVal + 3).padStart(padLen, '0')}`;
         
         let diemGocVal = parseFloat(p.diem_goc) || 4.6;
-        let diem2Val = (diemGocVal + 1.75 > 9.5) ? (diemGocVal - 1.25).toFixed(2) : (diemGocVal + 1.75).toFixed(2);
-        let diem3Val = (diemGocVal + 2.5 > 9.5) ? (diemGocVal - 2.0).toFixed(2) : (diemGocVal + 2.5).toFixed(2);
-        let diem4Val = (diemGocVal + 3.25 > 9.5) ? (diemGocVal - 1.5).toFixed(2) : (diemGocVal + 1.25).toFixed(2);
+        
+        // Pick deterministic offsets close to diemGocVal (chênh lệch không quá nhiều điểm: 0.0, 0.25, 0.5)
+        let possibleOffsets = [-0.5, -0.25, 0.0, 0.25, 0.5];
+        let o1 = possibleOffsets[Math.floor(seededRandom(seedVal) * possibleOffsets.length)];
+        let o2 = possibleOffsets[Math.floor(seededRandom(seedVal + 1) * possibleOffsets.length)];
+        let o3 = possibleOffsets[Math.floor(seededRandom(seedVal + 2) * possibleOffsets.length)];
+
+        let diem2Val = Math.max(0, Math.min(10, diemGocVal + o1)).toFixed(2);
+        let diem3Val = Math.max(0, Math.min(10, diemGocVal + o2)).toFixed(2);
+        let diem4Val = Math.max(0, Math.min(10, diemGocVal + o3)).toFixed(2);
 
         const savedScores = p.saved_scores || [];
         const papersBundle = [
-            { code: phachCodeStr, diemGoc: p.diem_goc || '4.60', diemMoi: savedScores[0] || p.diem_phuc_khao_cuoi || '', label: 'Bài xin phúc khảo' },
-            { code: p2Code, diemGoc: diem2Val, diemMoi: savedScores[1] || '', label: 'Bài rút kèm 1 (Ngụy trang)' },
-            { code: p3Code, diemGoc: diem3Val, diemMoi: savedScores[2] || '', label: 'Bài rút kèm 2 (Ngụy trang)' },
-            { code: p4Code, diemGoc: diem4Val, diemMoi: savedScores[3] || '', label: 'Bài rút kèm 3 (Ngụy trang)' }
+            { code: phachCodeStr, diemGoc: p.diem_goc || '4.60', diemMoi: savedScores[0] || p.diem_phuc_khao_cuoi || '', label: 'Bài xin phúc khảo', isTarget: true },
+            { code: p2Code, diemGoc: diem2Val, diemMoi: savedScores[1] || '', label: 'Bài rút kèm 1 (Ngụy trang)', isTarget: false },
+            { code: p3Code, diemGoc: diem3Val, diemMoi: savedScores[2] || '', label: 'Bài rút kèm 2 (Ngụy trang)', isTarget: false },
+            { code: p4Code, diemGoc: diem4Val, diemMoi: savedScores[3] || '', label: 'Bài rút kèm 3 (Ngụy trang)', isTarget: false }
         ];
 
+        // Store original order of codes for score saving mapping
+        p.temp_codes = [phachCodeStr, p2Code, p3Code, p4Code];
+
+        // Shuffle deterministically based on seedVal
+        let shuffledBundle = [...papersBundle];
+        let shuffleSeed = seedVal + 100;
+        for (let i = shuffledBundle.length - 1; i > 0; i--) {
+            const j = Math.floor(seededRandom(shuffleSeed++) * (i + 1));
+            [shuffledBundle[i], shuffledBundle[j]] = [shuffledBundle[j], shuffledBundle[i]];
+        }
+
         const infoTuiPhach = document.getElementById('pk-info-tui-phach');
-        if (infoTuiPhach) infoTuiPhach.innerText = `Bộ 4 bài: ${phachCodeStr}, ${p2Code}, ${p3Code}, ${p4Code}`;
+        if (infoTuiPhach) infoTuiPhach.innerText = `Bộ 4 bài: ${shuffledBundle.map(item => item.code).join(', ')}`;
 
         const btnRutBai = document.getElementById('pk-btn-rut-bai');
         const btnLuuDiem = document.getElementById('pk-btn-luu-diem');
@@ -1096,14 +1124,14 @@
         const tbody = document.getElementById('pk-tbody');
         if (tbody) {
             tbody.innerHTML = '';
-            papersBundle.forEach((item, idx) => {
+            shuffledBundle.forEach((item, idx) => {
                 const isReadonlyAttr = isCompleted ? 'disabled readonly' : '';
                 const inputStyle = isCompleted 
                     ? 'w-24 bg-gray-100 text-gray-700 border border-gray-300 font-bold cursor-not-allowed text-center py-1 rounded' 
                     : 'w-24 bg-white border border-gray-300 focus:border-red-800 text-center font-bold text-gray-800 rounded py-1 transition-all outline-none';
                 const displayValue = item.diemMoi || (isCompleted ? item.diemGoc : '');
 
-                const labelSpan = (idx === 0) ? `<span class="text-[10px] font-sans font-semibold text-blue-900 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded ml-2">${item.label}</span>` : '';
+                const labelSpan = (item.label === 'Bài xin phúc khảo') ? `<span class="text-[10px] font-sans font-semibold text-blue-900 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded ml-2">${item.label}</span>` : '';
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-gray-50 border-b border-gray-100">
@@ -1276,7 +1304,15 @@
         let hasAnyScore = false;
         let bundleDetails = [];
 
-        rows.forEach((tr, index) => {
+        // Check target code
+        let targetPhachCode = 'P-102';
+        if (p.ma_phach) {
+            targetPhachCode = typeof p.ma_phach === 'object' ? (p.ma_phach.ma_phach || p.ma_phach.code || p.ma_phach.id || 'P-102') : String(p.ma_phach);
+        } else if (p.sbd_ma_phach) {
+            targetPhachCode = String(p.sbd_ma_phach);
+        }
+
+        rows.forEach((tr) => {
             const tds = tr.querySelectorAll('td');
             const input = tr.querySelector('input');
             const val = input ? input.value.trim() : '';
@@ -1284,7 +1320,8 @@
 
             let phachCode = tds[0]?.childNodes[0]?.textContent?.trim() || tds[0]?.innerText?.split(' ')[0] || '';
             let diemOld = parseFloat(tds[1]?.innerText?.trim()) || 0;
-            bundleDetails.push({ code: phachCode, oldScore: diemOld, newScore: val, isTarget: index === 0 });
+            let isTarget = (phachCode === targetPhachCode);
+            bundleDetails.push({ code: phachCode, oldScore: diemOld, newScore: val, isTarget: isTarget });
         });
 
         if (!hasAnyScore) {
@@ -1292,9 +1329,19 @@
             return;
         }
 
-        // Save target paper final score & full 4-paper bundle scores in CSDL structure
-        p.diem_phuc_khao_cuoi = bundleDetails[0].newScore || p.diem_goc;
-        p.saved_scores = bundleDetails.map(b => b.newScore);
+        // Map scores by phachCode
+        const scoreByCode = {};
+        bundleDetails.forEach(b => {
+            scoreByCode[b.code] = b.newScore;
+        });
+
+        // Save target paper final score
+        const targetDetail = bundleDetails.find(b => b.isTarget);
+        p.diem_phuc_khao_cuoi = targetDetail ? targetDetail.newScore : p.diem_goc;
+
+        // Restore original order of 4 papers using temp_codes for CSDL saved_scores list
+        const origCodes = p.temp_codes || [targetPhachCode];
+        p.saved_scores = origCodes.map(code => scoreByCode[code] || '');
         p.danh_sach_phach_rut = bundleDetails;
         p.trang_thai = 'Đã hoàn thành';
 
