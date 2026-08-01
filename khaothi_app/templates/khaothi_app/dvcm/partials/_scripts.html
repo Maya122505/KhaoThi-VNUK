@@ -406,7 +406,7 @@
                         <input type="checkbox" value="${t.id}" ${isChecked ? 'checked' : ''} onchange="toggleSelectMainTui('${t.id}')" class="w-4 h-4 text-[#9e1c22] rounded cursor-pointer" />
                     </td>
                     <td class="px-4 py-3.5 text-center font-mono font-bold text-red-950 whitespace-nowrap">${t.id}</td>
-                    <td class="px-4 py-3.5 text-left font-semibold text-gray-800">${t.subjectName}</td>
+                    <td class="px-4 py-3.5 text-center font-semibold text-gray-800">${t.subjectName}</td>
                     <td class="px-4 py-3.5 text-center font-bold text-gray-700 whitespace-nowrap">${t.papers} bài</td>
                     <td class="px-4 py-3.5 text-center">${statusBadge}</td>
                     <td class="px-4 py-3.5 text-center font-bold text-gray-900 whitespace-nowrap">${gv}</td>
@@ -785,7 +785,7 @@
                         <input type="checkbox" value="${pk.id}" ${isChecked ? 'checked' : ''} onchange="toggleSelectPkItem('${pk.id}')" class="w-4 h-4 text-[#9e1c22] rounded cursor-pointer" />
                     </td>
                     <td class="px-6 py-3.5 text-center font-mono font-bold text-red-950 whitespace-nowrap">${pk.id}</td>
-                    <td class="px-6 py-3.5 text-left font-semibold text-gray-800">${pk.subjectName}</td>
+                    <td class="px-6 py-3.5 text-center font-semibold text-gray-800">${pk.subjectName}</td>
                     <td class="px-6 py-3.5 text-center">${statusBadge}</td>
                     <td class="px-6 py-3.5 text-center font-bold text-gray-900 whitespace-nowrap">${gvPk}</td>
                 </tr>
@@ -1220,7 +1220,7 @@
 
         let source = [];
         if (loai === "1") {
-            // Giáo vụ bàn giao túi phách cho Giảng viên (DVCM ➔ GV)
+            // Giáo vụ bàn giao túi phách cho Giảng viên chấm thi KTHP (DVCM ➔ GV)
             canBoCoiThiData.forEach(gv => {
                 selectUser.innerHTML += `<option value="${gv.code}">${gv.name} (${gv.code})</option>`;
             });
@@ -1235,9 +1235,25 @@
             source = tuiPhachData.filter(t => t.status === "Đã đối chiếu hợp lệ");
         }
 
+        // Cập nhật tiêu đề trang & card tương ứng với loại phiếu đang chọn
+        const titlePage = document.getElementById('dvcm-pbg-title-page');
+        const titleCard = document.getElementById('dvcm-pbg-title-card');
+        const btnSubmit = document.getElementById('dvcm-pbg-btn-submit');
+
+        if (loai === "1") {
+            if (titlePage) titlePage.innerHTML = `<i data-lucide="file-plus" class="w-6 h-6 text-blue-600"></i> Tạo phiếu bàn giao`;
+            if (titleCard) titleCard.innerHTML = `<i data-lucide="file-plus" class="w-5 h-5 text-[#9e1c22]"></i> Tạo phiếu bàn giao`;
+            if (btnSubmit) btnSubmit.innerHTML = `<i data-lucide="send" class="w-4 h-4"></i> GỬI PHIẾU BÀN GIAO`;
+        } else {
+            if (titlePage) titlePage.innerHTML = `<i data-lucide="send" class="w-6 h-6 text-red-600"></i> Tạo phiếu trả bài`;
+            if (titleCard) titleCard.innerHTML = `<i data-lucide="send" class="w-5 h-5 text-[#9e1c22]"></i> Tạo phiếu trả bài`;
+            if (btnSubmit) btnSubmit.innerHTML = `<i data-lucide="send" class="w-4 h-4"></i> GỬI PHIẾU TRẢ BÀI`;
+        }
+
         populateGiaoNhanFilterSubjects(source, b => b.subjectName);
         giaoNhanSelectedIds.clear();
         filterGiaoNhanList();
+        if (typeof initIcons === 'function') initIcons();
     }
 
     let activeNhanPhieuId = null;

@@ -1,7 +1,7 @@
 <div id="view-ban-giao-bai" class="view-section hidden-view w-full h-full animate-fade-in flex flex-col gap-6">
     <div class="flex justify-between items-end border-b border-gray-200 pb-4">
         <div>
-            <h2 class="text-2xl font-bold text-[#9e1c22] flex items-center gap-2">
+            <h2 id="dvcm-pbg-title-page" class="text-2xl font-bold text-[#9e1c22] flex items-center gap-2">
                 <i data-lucide="send" class="w-6 h-6 text-red-600"></i> Tạo phiếu trả bài
             </h2>
         </div>
@@ -12,7 +12,7 @@
         <!-- Left Column: Form Fields and Submit Button -->
         <div class="w-full lg:w-1/2 min-w-0 flex flex-col gap-6 border-r border-gray-100 lg:pr-8 justify-between">
             <div class="space-y-4">
-                <h3 class="font-bold text-gray-800 text-base mb-2 border-b pb-3 flex items-center gap-1.5">
+                <h3 id="dvcm-pbg-title-card" class="font-bold text-gray-800 text-base mb-2 border-b pb-3 flex items-center gap-1.5">
                     <i data-lucide="file-plus" class="w-5 h-5 text-[#9e1c22]"></i> Tạo phiếu bàn giao
                 </h3>
                 
@@ -60,7 +60,7 @@
 
             <!-- Footer constraints and Submit -->
             <div class="mt-4 space-y-4">
-                <button onclick="handleDvcmExecuteTaoPhieu()" class="w-full bg-[#9e1c22] text-white font-bold py-3.5 rounded-xl shadow-md hover:bg-red-800 flex justify-center items-center gap-2 text-sm transition-all transform hover:-translate-y-0.5">
+                <button id="dvcm-pbg-btn-submit" onclick="handleDvcmExecuteTaoPhieu()" class="w-full bg-[#9e1c22] text-white font-bold py-3.5 rounded-xl shadow-md hover:bg-red-800 flex justify-center items-center gap-2 text-sm transition-all transform hover:-translate-y-0.5">
                     <i data-lucide="send" class="w-4 h-4"></i> GỬI PHIẾU BÀN GIAO
                 </button>
             </div>
