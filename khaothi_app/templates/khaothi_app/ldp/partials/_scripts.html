@@ -341,9 +341,10 @@
         if (panelEmpty) panelEmpty.classList.add('hidden-view');
         if (panelForm) panelForm.classList.remove('hidden-view');
 
+        const cbName = item.graderName || item.teacher || item.can_bo || (canBoCoiThiData && canBoCoiThiData.find(g => g.id === item.grader1 || g.code === item.grader1)?.name) || item.grader1 || 'ThS. Nguyễn Văn A';
         document.getElementById('detail-tui-id').innerText = `Túi bài thi: ${item.id}`;
         document.getElementById('detail-hp-name').innerText = `Học phần: ${item.subjectName} (${item.subjectId || ''})`;
-        document.getElementById('detail-meta-info').innerText = `Số lượng: ${item.papers} bài thi | Phòng: ${Array.isArray(item.rooms) ? item.rooms.join(', ') : (item.rooms || 'Phòng 101')}`;
+        document.getElementById('detail-meta-info').innerText = `Số lượng: ${item.papers} bài thi | Cán bộ chấm thi: ${cbName}`;
 
         const badgeEl = document.getElementById('detail-status-badge');
         const actionBox = document.getElementById('detail-action-container');

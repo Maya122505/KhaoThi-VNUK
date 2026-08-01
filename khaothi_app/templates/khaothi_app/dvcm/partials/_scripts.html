@@ -1716,7 +1716,7 @@
         document.getElementById('entry-title-sub').innerText = `Học phần: ${item.subjectName} (${item.subjectId || ''})`;
         const graderObj = canBoCoiThiData.find(g => g.id === item.grader1 || g.code === item.grader1);
         const graderName = graderObj ? graderObj.name : (item.grader1 || 'Chưa phân công');
-        document.getElementById('entry-meta-info').innerText = `Số lượng: ${item.papers || 25} bài thi | Giám khảo: ${graderName}`;
+        document.getElementById('entry-meta-info').innerText = `Số lượng: ${item.papers || 25} bài thi | Cán bộ chấm thi: ${graderName}`;
 
         const badgeEl = document.getElementById('entry-status-badge');
         const actionBox = document.getElementById('entry-action-container');
