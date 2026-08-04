@@ -93,3 +93,43 @@
         </div>
     </div>
 </div>
+
+<!-- Modal: XÁC THỰC PHÊ DUYỆT ĐIỂM THI BẰNG MẬT KHẨU CHO DVCM -->
+<div id="modal-dvcm-duyet-diem" class="hidden-view fixed inset-0 bg-black/60 z-[300] flex items-center justify-center animate-fade-in p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-scale-up border border-gray-100 flex flex-col font-sans">
+        <!-- Header -->
+        <div class="bg-[#9e1c22] px-5 py-3.5 text-white flex justify-between items-center">
+            <div class="flex items-center gap-2 font-bold text-base">
+                <i data-lucide="shield-check" class="w-5 h-5 text-yellow-400"></i>
+                <span>XÁC THỰC PHÊ DUYỆT CẤP KHOA / ĐVCM</span>
+            </div>
+            <button onclick="hideDvcmDuyetDiemModal()" class="text-white/80 hover:text-white transition-colors focus:outline-none cursor-pointer" title="Đóng">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <!-- Body -->
+        <div class="p-6 flex flex-col gap-4 text-xs">
+            <p class="text-slate-700 text-sm font-medium leading-relaxed">
+                Để phê duyệt xác nhận điểm thi KTHP cho <strong id="dvcm-duyet-doc-name" class="text-[#9e1c22]">0 túi bài thi</strong>, vui lòng nhập mật khẩu tài khoản của Trưởng đơn vị chuyên môn để xác thực trách nhiệm.
+            </p>
+            <div>
+                <label class="block font-bold text-slate-800 mb-1.5 text-xs">Mật khẩu xác thực của bạn:</label>
+                <input type="password" id="dvcm-duyet-password" placeholder="Nhập mật khẩu tài khoản của bạn..." class="w-full p-3 border border-slate-300 rounded-xl focus:border-[#9e1c22] focus:ring-1 focus:ring-[#9e1c22] outline-none font-mono text-sm shadow-2xs" onkeyup="if(event.key==='Enter') confirmDvcmDuyetDiemExecute()" />
+                <span id="dvcm-duyet-error" class="hidden-view text-red-600 font-bold block mt-1.5 text-xs">
+                    <i data-lucide="alert-circle" class="w-3.5 h-3.5 inline pb-0.5"></i> Mật khẩu xác thực chưa chính xác. Vui lòng kiểm tra lại.
+                </span>
+            </div>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="px-6 pb-6 flex gap-3">
+            <button onclick="hideDvcmDuyetDiemModal()" class="flex-1 bg-slate-100 text-slate-700 font-bold py-2.5 rounded-xl hover:bg-slate-200 transition-colors text-sm cursor-pointer">
+                Hủy bỏ
+            </button>
+            <button onclick="confirmDvcmDuyetDiemExecute()" class="flex-1 bg-[#9e1c22] hover:bg-red-800 text-white font-bold py-2.5 rounded-xl shadow-md transition-all text-sm flex items-center justify-center gap-1.5 cursor-pointer transform hover:-translate-y-0.5">
+                <i data-lucide="check-circle" class="w-4 h-4"></i> Xác nhận phê duyệt
+            </button>
+        </div>
+    </div>
+</div>

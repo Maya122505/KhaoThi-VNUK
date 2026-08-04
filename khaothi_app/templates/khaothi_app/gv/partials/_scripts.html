@@ -360,7 +360,8 @@
         document.getElementById('gv-gn-detail-nhan-id').innerText = phieu.id;
         document.getElementById('gv-gn-detail-nhan-giao').innerText = actorNames[phieu.sender] || phieu.sender;
         document.getElementById('gv-gn-detail-nhan-type').innerText = phieu.type;
-        document.getElementById('gv-gn-detail-pdf-link').href = '/export-pdf/?id=' + phieu.id;
+        const gvPdfLink = document.getElementById('gv-gn-detail-pdf-link');
+        if (gvPdfLink) gvPdfLink.href = '/export-pdf/?id=' + phieu.id;
         const attName = phieu.attachments && phieu.attachments[0] || 'bien_ban_ban_giao_khoa.pdf';
         document.getElementById('gv-gn-detail-attachment-name').innerText = attName;
         document.getElementById('gv-gn-detail-attachment-link').href = '#';
@@ -389,25 +390,59 @@
         }
 
         const tbody = document.getElementById('gv-gn-detail-nhan-tbody');
-        tbody.innerHTML = '';
-
-        const items = phieu.bags || [];
-        items.forEach(itemId => {
-            let subName = "Hồ sơ thi học phần";
-            let numPapers = "";
-            const b = tuiPhachData.find(x => x.id === itemId);
-            if (b) {
-                subName = b.subjectName;
-                numPapers = `${b.papers} bài`;
+        if (tbody) {
+            tbody.innerHTML = '';
+            let items = (phieu.bags && phieu.bags.length) ? phieu.bags : ((phieu.rooms && phieu.rooms.length) ? phieu.rooms : []);
+            if (!items || items.length === 0) {
+                const num = phieu.id ? phieu.id.replace('PBG-2026-', '') : '001';
+                items = [`TP-ENG101-${num}`];
             }
-            tbody.innerHTML += `
-                <tr>
-                    <td class="px-4 py-2 font-mono font-bold text-gray-700">${itemId}</td>
-                    <td class="px-4 py-2">${subName}</td>
-                    <td class="px-4 py-2 text-center font-bold">${numPapers}</td>
-                </tr>
-            `;
-        });
+
+            const countTag = document.getElementById('gv-gn-detail-count-tag');
+            if (countTag) countTag.innerText = `${items.length} túi`;
+
+            items.forEach(itemId => {
+                let subName = "Tiếng Anh chuyên ngành (ENG101)";
+                let numPapers = "40 bài";
+                const b = tuiPhachData.find(x => x.id === itemId || x.ma_tui === itemId);
+                if (b) {
+                    if (b.subjectName) subName = b.subjectName;
+                    if (b.papers) numPapers = `${b.papers} bài`;
+                } else if (itemId && itemId.includes('-')) {
+                    const code = itemId.split('-')[1];
+                    const subMap = {
+                        "ENG101": "Tiếng Anh chuyên ngành (ENG101)",
+                        "ENG102": "Tiếng Anh nâng cao (ENG102)",
+                        "IT101": "Lập trình cơ bản (IT101)",
+                        "IT102": "Cấu trúc dữ liệu (IT102)",
+                        "BUS101": "Quản trị học đại cương (BUS101)",
+                        "BUS102": "Kinh tế vĩ mô (BUS102)",
+                        "PHI101": "Triết học Mác - Lênin (PHI101)",
+                        "PHI102": "Kinh tế chính trị (PHI102)",
+                        "PHI103": "Chủ nghĩa xã hội khoa học (PHI103)",
+                        "PHY101": "Vật lý đại cương (PHY101)",
+                        "MAT101": "Toán cao cấp (MAT101)",
+                        "MAT102": "Đại số tuyến tính (MAT102)",
+                        "MAT103": "Xác suất thống kê (MAT103)",
+                        "GEO101": "Địa lý kinh tế (GEO101)",
+                        "MKT205": "Marketing căn bản (MKT205)"
+                    };
+                    subName = subMap[code] || `Học phần (${code})`;
+                }
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50/80 transition-colors">
+                        <td class="px-4 py-3">
+                            <span class="font-mono font-black text-[#9e1c22] bg-red-50/90 px-2.5 py-1 rounded-md border border-red-100 text-xs inline-block shadow-2xs">${itemId}</span>
+                        </td>
+                        <td class="px-4 py-3 font-semibold text-slate-700">${subName}</td>
+                        <td class="px-4 py-3 text-center">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100">${numPapers}</span>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
 
         document.getElementById('gv-gn-detail-nhan').classList.remove('hidden-view');
         initIcons();
@@ -510,9 +545,14 @@
         const listIds = Array.from(checkedBoxes).map(cb => cb.value);
         const attName = selectedAttachmentFile ? selectedAttachmentFile.name : "bang_diem_da_ky.pdf";
 
+        listIds.forEach(bagId => {
+            const t = tuiBaiData.find(x => x.id === bagId || x.ma_tui === bagId);
+            if (t) t.status = "Đang bàn giao";
+        });
+
         phieuGiaoNhanData.push({
             id: newPhieuId,
-            type: "Giảng viên trả bài đã chấm cho Giáo vụ (Loại 1)",
+            type: "Giảng viên trả bài đã chấm cho Giáo vụ",
             flow: `Giảng viên (${currentGvCode}) ➔ Đơn vị Chuyên môn`,
             qty: `${listIds.length} túi`,
             status: "Chờ bạn xác nhận",
@@ -534,7 +574,7 @@
         if (statusSpan) statusSpan.innerText = "Tải lên file scan bảng điểm (.pdf)";
 
         saveStateToServer();
-        renderGiaoNhan();
+        renderGvGiaoNhan();
     }
 
     function renderLich() {

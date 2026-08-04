@@ -186,18 +186,19 @@ for i in range(1, 52):
     log = ""
     
     if i % 3 == 0:
-        p_type = "Khảo thí bàn giao bài thi gốc cho Thư ký chấm thi (Loại 1)"
+        p_type = "Khảo thí bàn giao bài thi gốc cho Thư ký chấm thi"
         flow = "Tổ Khảo thí ➔ Thư ký Chấm thi"
         sender = "tkt"
         recipient = "tkct"
         status = "Chờ bạn xác nhận" if i > 30 else "Đã hoàn tất"
-        rooms = [f"LHP-{i:03d}"]
-        bags = None
-        qty = "1 phòng"
+        sub_code, _ = SUBJECTS_LIST[i % len(SUBJECTS_LIST)]
+        rooms = None
+        bags = [f"TB-{sub_code}-{i:03d}"]
+        qty = "1 túi"
         if status == "Đã hoàn tất":
             log = "Đã ký số niêm phong nhận bài gốc thành công bởi Thư ký Chấm thi vào 2026-07-12 10:00:00"
     elif i % 3 == 1:
-        p_type = "Giáo vụ bàn giao túi phách cho Giảng viên chấm thi (Loại 2)"
+        p_type = "Giáo vụ bàn giao túi phách cho Giảng viên chấm thi"
         flow = "Đơn vị Chuyên môn ➔ Giảng viên"
         sender = "dvcm"
         recipient = "gv"
@@ -214,7 +215,7 @@ for i in range(1, 52):
         bags = [f"TP-{sub_code}-{i:03d}"]
         qty = "1 túi"
         if i % 9 == 2:
-            p_type = "Giảng viên trả bài đã chấm cho Giáo vụ (Loại 1)"
+            p_type = "Giảng viên trả bài đã chấm cho Giáo vụ"
             flow = "Giảng viên ➔ Đơn vị Chuyên môn"
             sender = "gv"
             recipient = "dvcm"
@@ -222,7 +223,7 @@ for i in range(1, 52):
             if status == "Đã hoàn tất":
                 log = "Đã tiếp nhận bài chấm bởi Giáo vụ ĐVCM vào 2026-07-12 14:00:00"
         elif i % 9 == 5:
-            p_type = "Giáo vụ trả bài đã chấm về Tổ khảo thí để lưu trữ (Loại 2)"
+            p_type = "Giáo vụ trả bài đã chấm về Tổ khảo thí để lưu trữ"
             flow = "Đơn vị Chuyên môn ➔ Tổ Khảo thí"
             sender = "dvcm"
             recipient = "tkt"
@@ -230,7 +231,7 @@ for i in range(1, 52):
             if status == "Đã hoàn tất":
                 log = "Đã hoàn tất lưu trữ cất giữ bởi Tổ Khảo thí vào 2026-07-12 15:00:00"
         else:
-            p_type = "Thư ký chấm thi trả túi bài thi về Tổ khảo thí (Loại 3)"
+            p_type = "Thư ký chấm thi trả túi bài thi về Tổ khảo thí"
             flow = "Thư ký Chấm thi ➔ Tổ Khảo thí"
             sender = "tkct"
             recipient = "tkt"
@@ -801,8 +802,9 @@ def seed_database_relational():
         if pg["bags"]:
             for b in pg["bags"]:
                 tp_obj = TuiPhach.objects.filter(ma_tui=b).first()
-                if tp_obj:
-                    ChiTietGiaoNhan.objects.create(phieu=pg_obj, tui_phach=tp_obj, tinh_trang="Nguyên vẹn")
+                if not tp_obj:
+                    tp_obj = TuiPhach.objects.create(ma_tui=b, so_luong_bai=40, trang_thai="MoiTao")
+                ChiTietGiaoNhan.objects.create(phieu=pg_obj, tui_phach=tp_obj, tinh_trang="Nguyên vẹn")
 
     # Seed 11: DonPhucKhao
     for pk in INITIAL_PHUC_KHAO:
@@ -966,10 +968,24 @@ def get_state(request):
             elif pc.vai_tro == "Grader 2":
                 grader2 = pc.giang_vien.ma_giang_vien
             
+        sub_id = tp.tui_bai_thi.lich_thi.lop_hp.hoc_phan.ma_hoc_phan if (tp.tui_bai_thi and tp.tui_bai_thi.lich_thi and tp.tui_bai_thi.lich_thi.lop_hp and tp.tui_bai_thi.lich_thi.lop_hp.hoc_phan) else ""
+        sub_name = tp.tui_bai_thi.lich_thi.lop_hp.hoc_phan.ten_hoc_phan if (tp.tui_bai_thi and tp.tui_bai_thi.lich_thi and tp.tui_bai_thi.lich_thi.lop_hp and tp.tui_bai_thi.lich_thi.lop_hp.hoc_phan) else ""
+        if not sub_name and tp.ma_tui and "-" in tp.ma_tui:
+            parts = tp.ma_tui.split("-")
+            if len(parts) >= 2:
+                parsed_code = parts[1]
+                sub_map = {s[0]: s[1] for s in SUBJECTS_LIST}
+                if parsed_code in sub_map:
+                    sub_id = parsed_code
+                    sub_name = f"{sub_map[parsed_code]} ({parsed_code})"
+                else:
+                    sub_id = parsed_code
+                    sub_name = f"Học phần ({parsed_code})"
+
         tui_phach_data.append({
             "id": tp.ma_tui,
-            "subjectId": tp.tui_bai_thi.lich_thi.lop_hp.hoc_phan.ma_hoc_phan if (tp.tui_bai_thi and tp.tui_bai_thi.lich_thi and tp.tui_bai_thi.lich_thi.lop_hp and tp.tui_bai_thi.lich_thi.lop_hp.hoc_phan) else "",
-            "subjectName": tp.tui_bai_thi.lich_thi.lop_hp.hoc_phan.ten_hoc_phan if (tp.tui_bai_thi and tp.tui_bai_thi.lich_thi and tp.tui_bai_thi.lich_thi.lop_hp and tp.tui_bai_thi.lich_thi.lop_hp.hoc_phan) else "",
+            "subjectId": sub_id,
+            "subjectName": sub_name,
             "papers": tp.so_luong_bai,
             "rooms": [tp.tui_bai_thi.lich_thi.ma_lich_thi] if (tp.tui_bai_thi and tp.tui_bai_thi.lich_thi) else [],
             "status": tp.trang_thai,

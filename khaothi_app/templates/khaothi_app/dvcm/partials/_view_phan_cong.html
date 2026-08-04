@@ -44,7 +44,6 @@
                                 </th>
                                 <th class="px-4 py-3.5 text-center whitespace-nowrap">Mã túi</th>
                                 <th class="px-4 py-3.5 text-center whitespace-nowrap">Tên học phần</th>
-                                <th class="px-4 py-3.5 text-center whitespace-nowrap">Số bài</th>
                                 <th class="px-4 py-3.5 text-center whitespace-nowrap">Trạng thái</th>
                                 <th class="px-4 py-3.5 text-center whitespace-nowrap">Cán bộ phụ trách</th>
                             </tr>
@@ -108,8 +107,9 @@
                         <label class="font-bold text-gray-800 text-sm">
                             Chọn Giảng viên phụ trách:
                         </label>
-                        <input type="text" id="select-gv-panel-main" list="gv-datalist-main" placeholder="-- Click chọn hoặc gõ tên/mã giảng viên --" class="p-2.5 border border-gray-300 rounded-lg text-sm font-bold text-gray-900 outline-none focus:border-[#9e1c22] bg-white w-full shadow-xs" />
-                        <datalist id="gv-datalist-main"></datalist>
+                        <select id="select-gv-panel-main" class="p-2.5 border border-gray-300 rounded-lg text-sm font-bold text-gray-900 outline-none focus:border-[#9e1c22] bg-white w-full shadow-xs cursor-pointer">
+                            <option value="">-- Click chọn Giảng viên phụ trách --</option>
+                        </select>
                     </div>
 
                     <button onclick="triggerSaveFromPanelMain()" class="w-full bg-[#9e1c22] hover:bg-red-800 text-white font-bold py-3 rounded-lg shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer text-sm uppercase tracking-wide">
@@ -220,8 +220,9 @@
 
                     <div class="flex flex-col gap-2">
                         <label class="font-bold text-gray-800 text-sm">Chọn Giảng viên chấm phúc khảo:</label>
-                        <input type="text" id="select-gv-panel-pk" list="gv-datalist-pk" placeholder="-- Click chọn hoặc gõ tên/mã giảng viên --" class="p-2.5 border border-gray-300 rounded-lg text-sm font-bold text-gray-900 outline-none focus:border-[#9e1c22] bg-white w-full shadow-xs" />
-                        <datalist id="gv-datalist-pk"></datalist>
+                        <select id="select-gv-panel-pk" class="p-2.5 border border-gray-300 rounded-lg text-sm font-bold text-gray-900 outline-none focus:border-[#9e1c22] bg-white w-full shadow-xs cursor-pointer">
+                            <option value="">-- Click chọn Giảng viên chấm phúc khảo --</option>
+                        </select>
                     </div>
 
                     <button onclick="triggerSaveFromPanelPk()" class="w-full bg-[#9e1c22] hover:bg-red-800 text-white font-bold py-3 rounded-lg shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer text-sm uppercase tracking-wide">
@@ -275,27 +276,32 @@
 </div>
 
 <!-- Modal Xác Nhận Phân Công (Confirm Modal Window) -->
-<div id="modal-confirm-assign" class="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-[300] hidden-view animate-fade-in">
-    <div class="bg-white rounded-xl shadow-2xl border border-gray-200 max-w-md w-full p-6 flex flex-col gap-4 text-sm font-sans">
-        <div class="flex items-center gap-3 text-blue-900 border-b border-gray-100 pb-3">
-            <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-700 flex items-center justify-center font-bold">
-                <i data-lucide="help-circle" class="w-6 h-6"></i>
+<div id="modal-confirm-assign" class="fixed inset-0 bg-black/60 z-[300] hidden-view flex items-center justify-center animate-fade-in p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-scale-up border border-gray-100 flex flex-col font-sans">
+        <!-- Header -->
+        <div class="bg-[#9e1c22] px-5 py-3.5 text-white flex justify-between items-center">
+            <div class="flex items-center gap-2 font-bold text-base">
+                <i data-lucide="help-circle" class="w-5 h-5 text-white/90"></i>
+                <span id="confirm-modal-title">Xác nhận phân công</span>
             </div>
-            <div>
-                <h3 class="font-extrabold text-base text-gray-900" id="confirm-modal-title">Xác nhận phân công</h3>
-                <p class="text-xs text-gray-500">Vui lòng kiểm tra lại trước khi xác nhận lưu vào CSDL</p>
-            </div>
+            <button onclick="closeConfirmModal()" class="text-white/80 hover:text-white transition-colors focus:outline-none cursor-pointer" title="Đóng">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
         </div>
 
-        <p class="text-base font-semibold text-gray-800 leading-relaxed" id="confirm-modal-msg">
-            Bạn có chắc chắn muốn lưu phân công không?
-        </p>
+        <!-- Body -->
+        <div class="p-6">
+            <p class="text-slate-700 text-sm font-medium leading-relaxed" id="confirm-modal-msg">
+                Bạn có chắc chắn muốn lưu phân công không?
+            </p>
+        </div>
 
-        <div class="flex justify-end gap-3 pt-3 border-t border-gray-100">
-            <button onclick="closeConfirmModal()" class="px-5 py-2.5 rounded-lg border border-gray-300 font-bold text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer">
+        <!-- Footer Actions -->
+        <div class="px-6 pb-6 flex gap-3">
+            <button onclick="closeConfirmModal()" class="flex-1 bg-slate-100 text-slate-700 font-bold py-2.5 rounded-xl hover:bg-slate-200 transition-colors text-sm cursor-pointer">
                 Hủy
             </button>
-            <button id="confirm-modal-ok-btn" onclick="executeConfirmSave()" class="px-6 py-2.5 rounded-lg bg-[#9e1c22] hover:bg-red-800 text-white font-bold shadow transition-colors cursor-pointer flex items-center gap-1.5">
+            <button id="confirm-modal-ok-btn" onclick="executeConfirmSave()" class="flex-1 bg-[#9e1c22] hover:bg-red-800 text-white font-bold py-2.5 rounded-xl shadow-md transition-all text-sm flex items-center justify-center gap-1.5 cursor-pointer transform hover:-translate-y-0.5">
                 <i data-lucide="check" class="w-4 h-4"></i> Đồng ý
             </button>
         </div>

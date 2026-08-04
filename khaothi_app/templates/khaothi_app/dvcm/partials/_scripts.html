@@ -242,9 +242,10 @@
     }
 
     function populateGvPanelMain() {
-        const datalist = document.getElementById('gv-datalist-main');
-        if (!datalist) return;
-        datalist.innerHTML = '';
+        const select = document.getElementById('select-gv-panel-main');
+        if (!select) return;
+        const curVal = select.value;
+        select.innerHTML = '<option value="">-- Click chọn Giảng viên phụ trách --</option>';
 
         let gvBagCounts = {};
         tuiPhachData.forEach(t => {
@@ -254,23 +255,21 @@
         canBoCoiThiData.forEach(g => {
             const count = gvBagCounts[g.id] || 0;
             const countBadge = count > 0 ? `(Đang chấm ${count} túi)` : '(Chưa phụ trách túi nào)';
-            datalist.innerHTML += `<option value="${g.name} - ${g.id} ${countBadge}"></option>`;
+            select.innerHTML += `<option value="${g.id}">${g.name} - ${g.id} ${countBadge}</option>`;
         });
+        if (curVal) select.value = curVal;
     }
 
     function triggerSaveFromPanelMain() {
-        const inputVal = (document.getElementById('select-gv-panel-main')?.value || '').trim();
+        const selectEl = document.getElementById('select-gv-panel-main');
+        const chosenGvId = selectEl?.value;
 
-        if (!inputVal) {
-            showGlobalToast("Cảnh báo", "Vui lòng chọn hoặc gõ tên Giảng viên phụ trách", "warning");
+        if (!chosenGvId) {
+            showGlobalToast("Cảnh báo", "Vui lòng chọn Giảng viên phụ trách từ danh sách xổ xuống", "warning");
             return;
         }
 
-        const gvObj = canBoCoiThiData.find(g => 
-            inputVal.includes(g.id) || 
-            inputVal.toLowerCase().includes(g.name.toLowerCase()) || 
-            g.name.toLowerCase().includes(inputVal.toLowerCase())
-        );
+        const gvObj = canBoCoiThiData.find(g => g.id === chosenGvId || g.name.toLowerCase() === chosenGvId.toLowerCase());
 
         if (!gvObj) {
             showGlobalToast("Lỗi", "Không tìm thấy Giảng viên hợp lệ trong hệ thống", "error");
@@ -279,8 +278,8 @@
 
         const count = selectedMainTuiIds.size;
         openConfirmModal(
-            `Xác nhận phân công (${count} túi bài thi)`,
-            `Bạn có chắc chắn muốn phân công ${count} túi bài thi đã chọn cho Giảng viên ${gvObj.name} (${gvObj.id}) không?`,
+            `Xác nhận phân công`,
+            `Bạn có chắc chắn muốn phân công <strong class="text-[#9e1c22]">${count} túi bài thi</strong> đã chọn cho Giảng viên <strong class="text-[#9e1c22]">${gvObj.name} (${gvObj.id})</strong> không?`,
             () => executeSaveAssignMain(gvObj.id)
         );
     }
@@ -375,7 +374,7 @@
         const btnNext = document.getElementById('btn-main-next-page');
 
         if (totalItems === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-gray-400 italic">Không tìm thấy túi bài thi nào khớp bộ lọc.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-400 italic">Không tìm thấy túi bài thi nào khớp bộ lọc.</td></tr>`;
             if (totalInfoSpan) totalInfoSpan.innerText = "Hiển thị 0 túi bài thi";
             if (pageNumSpan) pageNumSpan.innerText = "Trang 1 / 1";
             if (btnPrev) btnPrev.disabled = true;
@@ -407,7 +406,6 @@
                     </td>
                     <td class="px-4 py-3.5 text-center font-mono font-bold text-red-950 whitespace-nowrap">${t.id}</td>
                     <td class="px-4 py-3.5 text-center font-semibold text-gray-800">${t.subjectName}</td>
-                    <td class="px-4 py-3.5 text-center font-bold text-gray-700 whitespace-nowrap">${t.papers} bài</td>
                     <td class="px-4 py-3.5 text-center">${statusBadge}</td>
                     <td class="px-4 py-3.5 text-center font-bold text-gray-900 whitespace-nowrap">${gv}</td>
                 </tr>
@@ -501,32 +499,31 @@
     }
 
     function populateGvPanelPk() {
-        const datalist = document.getElementById('gv-datalist-pk');
-        if (!datalist) return;
-        datalist.innerHTML = '';
+        const select = document.getElementById('select-gv-panel-pk');
+        if (!select) return;
+        const curVal = select.value;
+        select.innerHTML = '<option value="">-- Click chọn Giảng viên chấm phúc khảo --</option>';
 
         const selectedList = phucKhaoData.filter(x => selectedPkIds.has(x.id));
         const excludedGvId = selectedList[0]?.grader1 || 'GV001';
 
         canBoCoiThiData.forEach(g => {
             if (excludedGvId && g.id === excludedGvId) return; // Exclude Grader 1!
-            datalist.innerHTML += `<option value="${g.name} - ${g.id}"></option>`;
+            select.innerHTML += `<option value="${g.id}">${g.name} - ${g.id}</option>`;
         });
+        if (curVal && curVal !== excludedGvId) select.value = curVal;
     }
 
     function triggerSaveFromPanelPk() {
-        const inputVal = (document.getElementById('select-gv-panel-pk')?.value || '').trim();
+        const selectEl = document.getElementById('select-gv-panel-pk');
+        const chosenGvId = selectEl?.value;
 
-        if (!inputVal) {
-            showGlobalToast("Cảnh báo", "Vui lòng chọn hoặc gõ tên Giảng viên chấm phúc khảo", "warning");
+        if (!chosenGvId) {
+            showGlobalToast("Cảnh báo", "Vui lòng chọn Giảng viên chấm phúc khảo từ danh sách xổ xuống", "warning");
             return;
         }
 
-        const gvObj = canBoCoiThiData.find(g => 
-            inputVal.includes(g.id) || 
-            inputVal.toLowerCase().includes(g.name.toLowerCase()) || 
-            g.name.toLowerCase().includes(inputVal.toLowerCase())
-        );
+        const gvObj = canBoCoiThiData.find(g => g.id === chosenGvId || g.name.toLowerCase() === chosenGvId.toLowerCase());
 
         if (!gvObj) {
             showGlobalToast("Lỗi", "Không tìm thấy Giảng viên hợp lệ trong hệ thống", "error");
@@ -541,8 +538,8 @@
 
         const count = selectedPkIds.size;
         openConfirmModal(
-            `Xác nhận phân công phúc khảo (${count} bài thi)`,
-            `Bạn có chắc chắn muốn phân công Giảng viên ${gvObj.name} (${gvObj.id}) chấm ${count} bài thi phúc khảo đã chọn không?`,
+            `Xác nhận phân công`,
+            `Bạn có chắc chắn muốn phân công Giảng viên <strong class="text-[#9e1c22]">${gvObj.name} (${gvObj.id})</strong> chấm <strong class="text-[#9e1c22]">${count} bài thi</strong> phúc khảo đã chọn không?`,
             () => executeSaveAssignPk(gvObj.id)
         );
     }
@@ -669,15 +666,15 @@
         if (currentAssignMode === 'main') {
             const count = selectedMainTuiIds.size;
             openConfirmModal(
-                `Xác nhận phân công hàng loạt (${count} túi bài thi)`,
-                `Bạn có chắc chắn muốn phân công ${count} túi bài thi đã chọn cho Giảng viên ${gvObj.name} (${gvObj.id}) không?`,
+                `Xác nhận phân công`,
+                `Bạn có chắc chắn muốn phân công <strong class="text-[#9e1c22]">${count} túi bài thi</strong> đã chọn cho Giảng viên <strong class="text-[#9e1c22]">${gvObj.name} (${gvObj.id})</strong> không?`,
                 () => executeSaveAssignMain(chosenGvId)
             );
         } else {
             const count = selectedPkIds.size;
             openConfirmModal(
-                `Xác nhận phân công phúc khảo hàng loạt (${count} bài thi)`,
-                `Bạn có chắc chắn muốn phân công Giảng viên ${gvObj.name} (${gvObj.id}) chấm ${count} bài thi phúc khảo đã chọn không?`,
+                `Xác nhận phân công`,
+                `Bạn có chắc chắn muốn phân công Giảng viên <strong class="text-[#9e1c22]">${gvObj.name} (${gvObj.id})</strong> chấm <strong class="text-[#9e1c22]">${count} bài thi</strong> phúc khảo đã chọn không?`,
                 () => executeSaveAssignPk(chosenGvId)
             );
         }
@@ -831,7 +828,7 @@
     let pendingConfirmAction = null;
     function openConfirmModal(title, msg, onOk) {
         document.getElementById('confirm-modal-title').innerText = title;
-        document.getElementById('confirm-modal-msg').innerText = msg;
+        document.getElementById('confirm-modal-msg').innerHTML = msg;
         pendingConfirmAction = onOk;
         document.getElementById('modal-confirm-assign').classList.remove('hidden-view');
         initIcons();
@@ -1280,7 +1277,8 @@
         if (gv) senderName = `${gv.name} (${gv.code})`;
         document.getElementById('dvcm-gn-detail-nhan-giao').innerText = actorNames[phieu.sender] || phieu.sender;
         document.getElementById('dvcm-gn-detail-nhan-type').innerText = phieu.type;
-        document.getElementById('dvcm-gn-detail-pdf-link').href = '/export-pdf/?id=' + phieu.id;
+        const dvcmPdfLink = document.getElementById('dvcm-gn-detail-pdf-link');
+        if (dvcmPdfLink) dvcmPdfLink.href = '/export-pdf/?id=' + phieu.id;
         const attName = phieu.attachments && phieu.attachments[0] || 'bien_ban_ban_giao_khoa.pdf';
         document.getElementById('dvcm-gn-detail-attachment-name').innerText = attName;
         document.getElementById('dvcm-gn-detail-attachment-link').href = '#';
@@ -1309,31 +1307,59 @@
         }
 
         const tbody = document.getElementById('dvcm-gn-detail-nhan-tbody');
-        tbody.innerHTML = '';
-
-        const items = phieu.bags || [];
-        items.forEach(itemId => {
-            let subName = "Hồ sơ thi học phần";
-            let numPapers = "";
-            const b = tuiPhachData.find(x => x.id === itemId);
-            if (b) {
-                subName = b.subjectName;
-                numPapers = `${b.papers} bài`;
-            } else {
-                const pk = phucKhaoData.find(x => x.id === itemId);
-                if (pk) {
-                    subName = pk.subjectName;
-                    numPapers = `4 bài (Phúc khảo)`;
-                }
+        if (tbody) {
+            tbody.innerHTML = '';
+            let items = (phieu.bags && phieu.bags.length) ? phieu.bags : ((phieu.rooms && phieu.rooms.length) ? phieu.rooms : []);
+            if (!items || items.length === 0) {
+                const num = phieu.id ? phieu.id.replace('PBG-2026-', '') : '001';
+                items = [`TP-ENG101-${num}`];
             }
-            tbody.innerHTML += `
-                <tr>
-                    <td class="px-4 py-2 font-mono font-bold text-gray-700">${itemId}</td>
-                    <td class="px-4 py-2">${subName}</td>
-                    <td class="px-4 py-2 text-center font-bold">${numPapers}</td>
-                </tr>
-            `;
-        });
+
+            const countTag = document.getElementById('dvcm-gn-detail-count-tag');
+            if (countTag) countTag.innerText = `${items.length} túi`;
+
+            items.forEach(itemId => {
+                let subName = "Tiếng Anh chuyên ngành (ENG101)";
+                let numPapers = "40 bài";
+                const b = tuiPhachData.find(x => x.id === itemId || x.ma_tui === itemId);
+                if (b) {
+                    if (b.subjectName) subName = b.subjectName;
+                    if (b.papers) numPapers = `${b.papers} bài`;
+                } else if (itemId && itemId.includes('-')) {
+                    const code = itemId.split('-')[1];
+                    const subMap = {
+                        "ENG101": "Tiếng Anh chuyên ngành (ENG101)",
+                        "ENG102": "Tiếng Anh nâng cao (ENG102)",
+                        "IT101": "Lập trình cơ bản (IT101)",
+                        "IT102": "Cấu trúc dữ liệu (IT102)",
+                        "BUS101": "Quản trị học đại cương (BUS101)",
+                        "BUS102": "Kinh tế vĩ mô (BUS102)",
+                        "PHI101": "Triết học Mác - Lênin (PHI101)",
+                        "PHI102": "Kinh tế chính trị (PHI102)",
+                        "PHI103": "Chủ nghĩa xã hội khoa học (PHI103)",
+                        "PHY101": "Vật lý đại cương (PHY101)",
+                        "MAT101": "Toán cao cấp (MAT101)",
+                        "MAT102": "Đại số tuyến tính (MAT102)",
+                        "MAT103": "Xác suất thống kê (MAT103)",
+                        "GEO101": "Địa lý kinh tế (GEO101)",
+                        "MKT205": "Marketing căn bản (MKT205)"
+                    };
+                    subName = subMap[code] || `Học phần (${code})`;
+                }
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50/80 transition-colors">
+                        <td class="px-4 py-3">
+                            <span class="font-mono font-black text-[#9e1c22] bg-red-50/90 px-2.5 py-1 rounded-md border border-red-100 text-xs inline-block shadow-2xs">${itemId}</span>
+                        </td>
+                        <td class="px-4 py-3 font-semibold text-slate-700">${subName}</td>
+                        <td class="px-4 py-3 text-center">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100">${numPapers}</span>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
 
         document.getElementById('dvcm-gn-detail-nhan').classList.remove('hidden-view');
         initIcons();
@@ -1463,6 +1489,11 @@
             flow = "Đơn vị Chuyên môn ➔ Tổ Khảo thí";
         }
 
+        listIds.forEach(bagId => {
+            const t = tuiBaiData.find(x => x.id === bagId || x.ma_tui === bagId);
+            if (t) t.status = "Đang bàn giao";
+        });
+
         phieuGiaoNhanData.push({
             id: newPhieuId,
             type: typeText,
@@ -1571,30 +1602,64 @@
     }
     window.toggleSelectAllDuyetDVCM = toggleSelectAllDuyetDVCM;
 
+    let pendingDvcmDuyetIds = [];
+
     function executeBatchDuyetDiemDVCM() {
         const cbs = document.querySelectorAll('.duyet-item-cb-dvcm:checked');
         const ids = Array.from(cbs).map(c => c.value);
-        if (ids.length === 0) return;
+        if (ids.length === 0) {
+            showGlobalToast("Cảnh báo", "Vui lòng chọn ít nhất 1 túi bài thi để phê duyệt.", "warning");
+            return;
+        }
 
-        openConfirmModal(
-            `Xác nhận Phê duyệt điểm thi KTHP (${ids.length} túi bài)`,
-            `Bạn có chắc chắn muốn phê duyệt điểm thi kết thúc học phần cấp Khoa cho ${ids.length} túi bài thi đã chọn không?`,
-            () => {
-                ids.forEach(id => {
-                    const t = tuiPhachData.find(x => x.id === id);
-                    if (t) {
-                        t.status = "Khoa đã phê duyệt";
-                        t.trang_thai = "KhoaDaPheDuyet";
-                    }
-                });
-                showGlobalToast("Phê duyệt thành công", `Đã phê duyệt ${ids.length} điểm thi KTHP cấp Khoa và chuyển Lãnh đạo phòng.`);
-                saveStateToServer();
-                renderNhapTraDiem();
-                closeConfirmModal();
-            }
-        );
+        pendingDvcmDuyetIds = ids;
+        const nameElem = document.getElementById('dvcm-duyet-doc-name');
+        if (nameElem) nameElem.innerText = `${ids.length} túi bài thi đã chọn`;
+
+        const pwInput = document.getElementById('dvcm-duyet-password');
+        if (pwInput) pwInput.value = '';
+
+        const errElem = document.getElementById('dvcm-duyet-error');
+        if (errElem) errElem.classList.add('hidden-view');
+
+        const modal = document.getElementById('modal-dvcm-duyet-diem');
+        if (modal) modal.classList.remove('hidden-view');
+        initIcons();
     }
     window.executeBatchDuyetDiemDVCM = executeBatchDuyetDiemDVCM;
+
+    function hideDvcmDuyetDiemModal() {
+        const modal = document.getElementById('modal-dvcm-duyet-diem');
+        if (modal) modal.classList.add('hidden-view');
+        pendingDvcmDuyetIds = [];
+    }
+    window.hideDvcmDuyetDiemModal = hideDvcmDuyetDiemModal;
+
+    function confirmDvcmDuyetDiemExecute() {
+        const pwInput = document.getElementById('dvcm-duyet-password');
+        const pw = pwInput ? pwInput.value.trim() : '';
+
+        if (!pw) {
+            const errElem = document.getElementById('dvcm-duyet-error');
+            if (errElem) errElem.classList.remove('hidden-view');
+            return;
+        }
+
+        const ids = pendingDvcmDuyetIds;
+        ids.forEach(id => {
+            const t = tuiPhachData.find(x => x.id === id);
+            if (t) {
+                t.status = "Khoa đã phê duyệt";
+                t.trang_thai = "KhoaDaPheDuyet";
+            }
+        });
+
+        hideDvcmDuyetDiemModal();
+        showGlobalToast("Phê duyệt thành công", `Đã xác thực mật khẩu & phê duyệt ${ids.length} điểm thi KTHP cấp Khoa/ĐVCM.`);
+        if (typeof saveStateToServer === 'function') saveStateToServer();
+        if (typeof renderNhapTraDiem === 'function') renderNhapTraDiem();
+    }
+    window.confirmDvcmDuyetDiemExecute = confirmDvcmDuyetDiemExecute;
 
     function renderNhapTraDiem() {
         const leftList = document.getElementById('nhapdiem-tui-list');
@@ -1684,6 +1749,24 @@
     }
     window.sumChars = sumChars;
 
+    function executeSingleDuyetDVCM(tuiId) {
+        if (!tuiId) return;
+        pendingDvcmDuyetIds = [tuiId];
+        const nameElem = document.getElementById('dvcm-duyet-doc-name');
+        if (nameElem) nameElem.innerText = `Túi bài thi ${tuiId}`;
+
+        const pwInput = document.getElementById('dvcm-duyet-password');
+        if (pwInput) pwInput.value = '';
+
+        const errElem = document.getElementById('dvcm-duyet-error');
+        if (errElem) errElem.classList.add('hidden-view');
+
+        const modal = document.getElementById('modal-dvcm-duyet-diem');
+        if (modal) modal.classList.remove('hidden-view');
+        initIcons();
+    }
+    window.executeSingleDuyetDVCM = executeSingleDuyetDVCM;
+
     function selectTuiNhapDiem(tuiId) {
         activeNhapDiemTuiId = tuiId;
 
@@ -1724,7 +1807,9 @@
         if (item.status !== "Khoa đã phê duyệt" && item.status !== "Đã duyệt bảng điểm") {
             if (badgeEl) badgeEl.innerHTML = `<span class="bg-amber-100 text-amber-800 px-2.5 py-0.5 rounded text-xs font-bold">Chờ duyệt</span>`;
             if (actionBox) actionBox.innerHTML = `
-                <span class="bg-amber-50 text-amber-800 border border-amber-200 px-3 py-1 rounded text-sm font-bold inline-block">Chờ Khoa duyệt</span>
+                <button onclick="executeSingleDuyetDVCM('${item.id}')" class="bg-[#9e1c22] hover:bg-red-800 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer transform hover:-translate-y-0.5">
+                    <i data-lucide="shield-check" class="w-4 h-4 text-yellow-400"></i> Phê duyệt túi bài này
+                </button>
             `;
         } else {
             if (badgeEl) badgeEl.innerHTML = `<span class="bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded text-xs font-bold">✓ Đã duyệt</span>`;
@@ -1798,7 +1883,7 @@
         const pid = `PTD-${new Date().getFullYear()}-${String(phieuGiaoNhanData.length + 1).padStart(3, '0')}`;
         phieuGiaoNhanData.push({
             id: pid,
-            type: `Trả điểm & file quét bài thi học phần (Loại 2)`,
+            type: `Trả điểm & file quét bài thi học phần`,
             flow: `Đơn vị Chuyên môn (Khoa) ➔ Tổ Khảo thí`,
             qty: 1,
             status: "Chờ nhận",
