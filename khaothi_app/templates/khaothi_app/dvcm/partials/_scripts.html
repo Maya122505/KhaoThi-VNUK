@@ -238,26 +238,28 @@
         } else {
             emptyState.classList.remove('hidden-view');
             activeState.classList.add('hidden-view');
+            
+            const selectVal = document.getElementById('select-gv-panel-main');
+            const inputVal = document.getElementById('search-gv-panel-main-input');
+            if (selectVal) selectVal.value = '';
+            if (inputVal) inputVal.value = '';
         }
     }
 
     function populateGvPanelMain() {
-        const select = document.getElementById('select-gv-panel-main');
-        if (!select) return;
-        const curVal = select.value;
-        select.innerHTML = '<option value="">-- Click chọn Giảng viên phụ trách --</option>';
-
-        let gvBagCounts = {};
-        tuiPhachData.forEach(t => {
-            if (t.grader1) gvBagCounts[t.grader1] = (gvBagCounts[t.grader1] || 0) + 1;
-        });
-
-        canBoCoiThiData.forEach(g => {
-            const count = gvBagCounts[g.id] || 0;
-            const countBadge = count > 0 ? `(Đang chấm ${count} túi)` : '(Chưa phụ trách túi nào)';
-            select.innerHTML += `<option value="${g.id}">${g.name} - ${g.id} ${countBadge}</option>`;
-        });
-        if (curVal) select.value = curVal;
+        const selectVal = document.getElementById('select-gv-panel-main');
+        const input = document.getElementById('search-gv-panel-main-input');
+        if (!selectVal || !input) return;
+        
+        const gvId = selectVal.value;
+        if (gvId) {
+            const g = canBoCoiThiData.find(x => x.id === gvId);
+            if (g) {
+                input.value = `${g.name} (${g.id})`;
+            }
+        } else {
+            input.value = '';
+        }
     }
 
     function triggerSaveFromPanelMain() {
@@ -495,23 +497,32 @@
         } else {
             emptyState.classList.remove('hidden-view');
             activeState.classList.add('hidden-view');
+            
+            const selectVal = document.getElementById('select-gv-panel-pk');
+            const inputVal = document.getElementById('search-gv-panel-pk-input');
+            if (selectVal) selectVal.value = '';
+            if (inputVal) inputVal.value = '';
         }
     }
 
     function populateGvPanelPk() {
-        const select = document.getElementById('select-gv-panel-pk');
-        if (!select) return;
-        const curVal = select.value;
-        select.innerHTML = '<option value="">-- Click chọn Giảng viên chấm phúc khảo --</option>';
-
+        const selectVal = document.getElementById('select-gv-panel-pk');
+        const input = document.getElementById('search-gv-panel-pk-input');
+        if (!selectVal || !input) return;
+        
+        const gvId = selectVal.value;
         const selectedList = phucKhaoData.filter(x => selectedPkIds.has(x.id));
         const excludedGvId = selectedList[0]?.grader1 || 'GV001';
 
-        canBoCoiThiData.forEach(g => {
-            if (excludedGvId && g.id === excludedGvId) return; // Exclude Grader 1!
-            select.innerHTML += `<option value="${g.id}">${g.name} - ${g.id}</option>`;
-        });
-        if (curVal && curVal !== excludedGvId) select.value = curVal;
+        if (gvId && gvId !== excludedGvId) {
+            const g = canBoCoiThiData.find(x => x.id === gvId);
+            if (g) {
+                input.value = `${g.name} (${g.id})`;
+            }
+        } else {
+            input.value = '';
+            selectVal.value = '';
+        }
     }
 
     function triggerSaveFromPanelPk() {
@@ -599,38 +610,21 @@
     window.openAssignPopupForBatchPk = openAssignPopupForBatchPk;
 
     function populateGvPopupOptions(excludedGvId) {
-        const select = document.getElementById('select-gv-popup');
-        if (!select) return;
-        const kw = (document.getElementById('search-gv-popup-keyword')?.value || '').toLowerCase().trim();
-
-        const curVal = select.value;
-        select.innerHTML = '<option value="">-- Chọn giảng viên --</option>';
-
-        // Calculate count of bags currently assigned to each teacher
-        let gvBagCounts = {};
-        tuiPhachData.forEach(t => {
-            if (t.grader1) gvBagCounts[t.grader1] = (gvBagCounts[t.grader1] || 0) + 1;
-        });
-
-        canBoCoiThiData.forEach(g => {
-            if (excludedGvId && g.id === excludedGvId) return; // HIDDEN automatically!
-
-            const count = gvBagCounts[g.id] || 0;
-            const countBadge = count > 0 ? ` (Đang chấm ${count} túi bài)` : ' (Chưa phụ trách túi nào)';
-            const match = !kw || g.name.toLowerCase().includes(kw) || g.id.toLowerCase().includes(kw);
-            if (match) {
-                select.innerHTML += `<option value="${g.id}">${g.name} (${g.id})${countBadge}</option>`;
+        const selectVal = document.getElementById('select-gv-popup');
+        const input = document.getElementById('search-gv-popup-input');
+        if (!selectVal || !input) return;
+        
+        const gvId = selectVal.value;
+        if (gvId && gvId !== excludedGvId) {
+            const g = canBoCoiThiData.find(x => x.id === gvId);
+            if (g) {
+                input.value = `${g.name} (${g.id})`;
             }
-        });
-        if (curVal && curVal !== excludedGvId) select.value = curVal;
+        } else {
+            input.value = '';
+            selectVal.value = '';
+        }
     }
-
-    function filterGvPopupOptions() {
-        const firstPk = phucKhaoData.find(x => selectedPkIds.has(x.id));
-        const excluded = currentAssignMode === 'pk' ? (firstPk?.grader1 || 'GV001') : null;
-        populateGvPopupOptions(excluded);
-    }
-    window.filterGvPopupOptions = filterGvPopupOptions;
 
     function closeAssignPopup() {
         document.getElementById('modal-assign-popup')?.classList.add('hidden-view');
@@ -856,8 +850,16 @@
             const selectLoai = document.getElementById('dvcm-select-pbg-loai');
             if (selectLoai) {
                 if (tab === 'tao-tra-bai' || tab === 'tao') {
-                    selectLoai.value = "2";
+                    selectLoai.innerHTML = `
+                        <option value="3">Đơn vị chuyên môn trả bài đã chấm về Tổ khảo thí để lưu trữ</option>
+                        <option value="4">Đơn vị chuyên môn trả hồ sơ phúc khảo về Tổ khảo thí</option>
+                    `;
+                    selectLoai.value = "3";
                 } else if (tab === 'tao-ban-giao') {
+                    selectLoai.innerHTML = `
+                        <option value="1">Đơn vị chuyên môn bàn giao túi phách cho Giảng viên chấm thi KTHP</option>
+                        <option value="2">Đơn vị chuyên môn bàn giao bài thi cho Giảng viên chấm Phúc khảo</option>
+                    `;
                     selectLoai.value = "1";
                 }
                 if (typeof handleDvcmGiaoNhanLoaiChange === 'function') {
@@ -1221,15 +1223,21 @@
             canBoCoiThiData.forEach(gv => {
                 selectUser.innerHTML += `<option value="${gv.code}">${gv.name} (${gv.code})</option>`;
             });
-            source = tuiPhachData.filter(t => t.status === "Đã khóa phách" || t.status === "Chờ khớp điểm");
-        } else if (loai === "5") {
-            // Giáo vụ trả hồ sơ phúc khảo về Tổ khảo thí
-            selectUser.innerHTML = `<option value="tkt">Tổ Khảo thí (tkt)</option>`;
-            source = phucKhaoData.filter(pk => pk.status === "Đang chấm phúc khảo");
-        } else {
+            source = tuiPhachData.filter(t => t.status === "Đã khóa phách" || t.status === "Chờ khớp điểm" || t.status === "Đang chấm");
+        } else if (loai === "2") {
+            // Giáo vụ bàn giao bài thi cho Giảng viên chấm Phúc khảo (DVCM ➔ GV)
+            canBoCoiThiData.forEach(gv => {
+                selectUser.innerHTML += `<option value="${gv.code}">${gv.name} (${gv.code})</option>`;
+            });
+            source = phucKhaoData.filter(pk => pk.status === "Chờ phân công" || pk.status === "Đang chấm phúc khảo" || pk.status === "Mới tạo");
+        } else if (loai === "3") {
             // Giáo vụ trả bài đã chấm về Tổ khảo thí (DVCM ➔ TKT)
             selectUser.innerHTML = `<option value="tkt">Tổ Khảo thí (tkt)</option>`;
-            source = tuiPhachData.filter(t => t.status === "Đã đối chiếu hợp lệ");
+            source = tuiPhachData.filter(t => t.status === "Đã đối chiếu hợp lệ" || t.status === "Đã khóa phách");
+        } else if (loai === "4" || loai === "5") {
+            // Giáo vụ trả hồ sơ phúc khảo về Tổ khảo thí (DVCM ➔ TKT)
+            selectUser.innerHTML = `<option value="tkt">Tổ Khảo thí (tkt)</option>`;
+            source = phucKhaoData.filter(pk => pk.status === "Đang chấm phúc khảo" || pk.status === "Đã chấm xong phúc khảo");
         }
 
         // Cập nhật tiêu đề trang & card tương ứng với loại phiếu đang chọn
@@ -1237,7 +1245,7 @@
         const titleCard = document.getElementById('dvcm-pbg-title-card');
         const btnSubmit = document.getElementById('dvcm-pbg-btn-submit');
 
-        if (loai === "1") {
+        if (loai === "1" || loai === "2") {
             if (titlePage) titlePage.innerHTML = `<i data-lucide="file-plus" class="w-6 h-6 text-blue-600"></i> Tạo phiếu bàn giao`;
             if (titleCard) titleCard.innerHTML = `<i data-lucide="file-plus" class="w-5 h-5 text-[#9e1c22]"></i> Tạo phiếu bàn giao`;
             if (btnSubmit) btnSubmit.innerHTML = `<i data-lucide="send" class="w-4 h-4"></i> GỬI PHIẾU BÀN GIAO`;
@@ -1478,9 +1486,10 @@
         let recipient = userVal;
         let flow = "";
 
-        if (loaiVal === "1") {
+        if (loaiVal === "1" || loaiVal === "2") {
             flow = `Đơn vị Chuyên môn ➔ Giảng viên (${userVal})`;
-        } else if (loaiVal === "5") {
+            recipient = userVal;
+        } else if (loaiVal === "4" || loaiVal === "5") {
             qtyText = `${listIds.length} đơn`;
             recipient = "tkt";
             flow = "Đơn vị Chuyên môn ➔ Tổ Khảo thí (Trả phúc khảo)";
@@ -1491,7 +1500,12 @@
 
         listIds.forEach(bagId => {
             const t = tuiBaiData.find(x => x.id === bagId || x.ma_tui === bagId);
-            if (t) t.status = "Đang bàn giao";
+            if (t) {
+                t.status = "Đang bàn giao";
+            } else {
+                const pk = phucKhaoData.find(x => x.id === bagId);
+                if (pk) pk.status = "Đang bàn giao";
+            }
         });
 
         phieuGiaoNhanData.push({
@@ -2080,4 +2094,219 @@
         gnHistCurrentPage += dir;
         renderGiaoNhan();
     }
+
+    // =============================================================
+    // SEARCHABLE DROPDOWNS IMPLEMENTATION
+    // =============================================================
+    
+    // 1. MAIN PANEL DROPDOWN
+    function showMainGvDropdown() {
+        document.getElementById('main-gv-dropdown-list').classList.remove('hidden-view');
+        document.getElementById('main-gv-chevron').classList.add('rotate-180');
+        filterMainGvDropdown();
+    }
+    window.showMainGvDropdown = showMainGvDropdown;
+
+    function filterMainGvDropdown() {
+        const input = document.getElementById('search-gv-panel-main-input');
+        const listDiv = document.getElementById('main-gv-dropdown-list');
+        if (!input || !listDiv) return;
+
+        const kw = input.value.toLowerCase().trim();
+        listDiv.innerHTML = '';
+
+        let gvBagCounts = {};
+        tuiPhachData.forEach(t => {
+            if (t.grader1) gvBagCounts[t.grader1] = (gvBagCounts[t.grader1] || 0) + 1;
+        });
+
+        const matches = canBoCoiThiData.filter(g => {
+            return !kw || g.name.toLowerCase().includes(kw) || g.id.toLowerCase().includes(kw);
+        });
+
+        if (matches.length === 0) {
+            listDiv.innerHTML = `<div class="p-3 text-xs text-gray-400 italic text-center">Không tìm thấy giảng viên</div>`;
+            return;
+        }
+
+        matches.forEach(g => {
+            const count = gvBagCounts[g.id] || 0;
+            const countBadge = count > 0 ? `(Đang chấm ${count} túi)` : '(Chưa phụ trách)';
+            listDiv.innerHTML += `
+                <div class="px-4 py-2.5 hover:bg-red-50 text-xs font-bold text-gray-800 cursor-pointer transition-colors flex justify-between items-center"
+                     onclick="selectMainGv('${g.id}', '${g.name} (${g.id})')">
+                    <span>${g.name} (${g.id})</span>
+                    <span class="text-[10px] text-gray-500 font-normal font-sans">${countBadge}</span>
+                </div>
+            `;
+        });
+    }
+    window.filterMainGvDropdown = filterMainGvDropdown;
+
+    function selectMainGv(id, displayName) {
+        document.getElementById('select-gv-panel-main').value = id;
+        document.getElementById('search-gv-panel-main-input').value = displayName;
+        hideMainGvDropdown();
+    }
+    window.selectMainGv = selectMainGv;
+
+    function hideMainGvDropdown() {
+        document.getElementById('main-gv-dropdown-list').classList.add('hidden-view');
+        document.getElementById('main-gv-chevron').classList.remove('rotate-180');
+    }
+    window.hideMainGvDropdown = hideMainGvDropdown;
+
+    // 2. PK PANEL DROPDOWN
+    function showPkGvDropdown() {
+        document.getElementById('pk-gv-dropdown-list').classList.remove('hidden-view');
+        document.getElementById('pk-gv-chevron').classList.add('rotate-180');
+        filterPkGvDropdown();
+    }
+    window.showPkGvDropdown = showPkGvDropdown;
+
+    function filterPkGvDropdown() {
+        const input = document.getElementById('search-gv-panel-pk-input');
+        const listDiv = document.getElementById('pk-gv-dropdown-list');
+        if (!input || !listDiv) return;
+
+        const kw = input.value.toLowerCase().trim();
+        listDiv.innerHTML = '';
+
+        const selectedList = phucKhaoData.filter(x => selectedPkIds.has(x.id));
+        const excludedGvId = selectedList[0]?.grader1 || 'GV001';
+
+        const matches = canBoCoiThiData.filter(g => {
+            if (excludedGvId && g.id === excludedGvId) return false;
+            return !kw || g.name.toLowerCase().includes(kw) || g.id.toLowerCase().includes(kw);
+        });
+
+        if (matches.length === 0) {
+            listDiv.innerHTML = `<div class="p-3 text-xs text-gray-400 italic text-center">Không tìm thấy giảng viên</div>`;
+            return;
+        }
+
+        matches.forEach(g => {
+            listDiv.innerHTML += `
+                <div class="px-4 py-2.5 hover:bg-red-50 text-xs font-bold text-gray-800 cursor-pointer transition-colors"
+                     onclick="selectPkGv('${g.id}', '${g.name} (${g.id})')">
+                    ${g.name} (${g.id})
+                </div>
+            `;
+        });
+    }
+    window.filterPkGvDropdown = filterPkGvDropdown;
+
+    function selectPkGv(id, displayName) {
+        document.getElementById('select-gv-panel-pk').value = id;
+        document.getElementById('search-gv-panel-pk-input').value = displayName;
+        hidePkGvDropdown();
+    }
+    window.selectPkGv = selectPkGv;
+
+    function hidePkGvDropdown() {
+        document.getElementById('pk-gv-dropdown-list').classList.add('hidden-view');
+        document.getElementById('pk-gv-chevron').classList.remove('rotate-180');
+    }
+    window.hidePkGvDropdown = hidePkGvDropdown;
+
+    // 3. POPUP MODAL DROPDOWN
+    function showPopupGvDropdown() {
+        document.getElementById('popup-gv-dropdown-list').classList.remove('hidden-view');
+        document.getElementById('popup-gv-chevron').classList.add('rotate-180');
+        filterPopupGvDropdown();
+    }
+    window.showPopupGvDropdown = showPopupGvDropdown;
+
+    function filterPopupGvDropdown() {
+        const input = document.getElementById('search-gv-popup-input');
+        const listDiv = document.getElementById('popup-gv-dropdown-list');
+        if (!input || !listDiv) return;
+
+        const kw = input.value.toLowerCase().trim();
+        listDiv.innerHTML = '';
+
+        const firstPk = phucKhaoData.find(x => selectedPkIds.has(x.id));
+        const excludedGvId = currentAssignMode === 'pk' ? (firstPk?.grader1 || 'GV001') : null;
+
+        let gvBagCounts = {};
+        tuiPhachData.forEach(t => {
+            if (t.grader1) gvBagCounts[t.grader1] = (gvBagCounts[t.grader1] || 0) + 1;
+        });
+
+        const matches = canBoCoiThiData.filter(g => {
+            if (excludedGvId && g.id === excludedGvId) return false;
+            return !kw || g.name.toLowerCase().includes(kw) || g.id.toLowerCase().includes(kw);
+        });
+
+        if (matches.length === 0) {
+            listDiv.innerHTML = `<div class="p-3 text-xs text-gray-400 italic text-center">Không tìm thấy giảng viên</div>`;
+            return;
+        }
+
+        matches.forEach(g => {
+            const count = gvBagCounts[g.id] || 0;
+            const countBadge = count > 0 ? ` (Đang chấm ${count} túi)` : ' (Chưa phụ trách)';
+            listDiv.innerHTML += `
+                <div class="px-4 py-2.5 hover:bg-blue-50 text-xs font-bold text-gray-800 cursor-pointer transition-colors flex justify-between items-center"
+                     onclick="selectPopupGv('${g.id}', '${g.name} (${g.id})')">
+                    <span>${g.name} (${g.id})</span>
+                    <span class="text-[10px] text-gray-500 font-normal font-sans">${countBadge}</span>
+                </div>
+            `;
+        });
+    }
+    window.filterPopupGvDropdown = filterPopupGvDropdown;
+
+    function selectPopupGv(id, displayName) {
+        document.getElementById('select-gv-popup').value = id;
+        document.getElementById('search-gv-popup-input').value = displayName;
+        hidePopupGvDropdown();
+    }
+    window.selectPopupGv = selectPopupGv;
+
+    function hidePopupGvDropdown() {
+        document.getElementById('popup-gv-dropdown-list').classList.add('hidden-view');
+        document.getElementById('popup-gv-chevron').classList.remove('rotate-180');
+    }
+    window.hidePopupGvDropdown = hidePopupGvDropdown;
+
+    // Document click listener to close dropdowns when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('#searchable-select-main-container')) {
+            hideMainGvDropdown();
+        }
+        if (!e.target.closest('#searchable-select-pk-container')) {
+            hidePkGvDropdown();
+        }
+        if (!e.target.closest('#modal-assign-popup')) {
+            // make sure we don't close when focusing the input itself
+            if (!e.target.closest('#search-gv-popup-input') && !e.target.closest('#popup-gv-dropdown-list')) {
+                hidePopupGvDropdown();
+            }
+        }
+    });
+
+    function executeRejectDVCM(tuiId) {
+        const reason = prompt("Vui lòng nhập lý do từ chối duyệt / trả về:");
+        if (reason === null) return; // cancelled
+        const reasonTrimmed = reason.trim();
+        if (!reasonTrimmed) {
+            alert("Lý do từ chối không được để trống!");
+            return;
+        }
+        
+        const t = tuiPhachData.find(x => x.id === tuiId);
+        if (t) {
+            t.status = "Chờ nhập điểm"; // Reopen editing rights for Lecturer
+            t.rejectReason = reasonTrimmed;
+            showGlobalToast("Đã trả về", `Đã từ chối duyệt và trả bảng điểm túi ${tuiId} về cho Giảng viên chỉnh sửa. Lý do: "${reasonTrimmed}"`);
+            saveStateToServer();
+            renderNhapTraDiem();
+            
+            // Clear details panel
+            document.getElementById('entry-panel-empty').classList.remove('hidden-view');
+            document.getElementById('entry-panel-form').classList.add('hidden-view');
+        }
+    }
+    window.executeRejectDVCM = executeRejectDVCM;
 </script>

@@ -1066,11 +1066,30 @@
             pInState.status = "Đã hoàn tất";
             pInState.trang_thai = "DaHoanTat";
             isSuccess = true;
+            
+            // Cập nhật trạng thái các túi bài thi tương ứng thành "Đã trả bài"
+            if (pInState.bags && Array.isArray(pInState.bags)) {
+                pInState.bags.forEach(bid => {
+                    const t = tuiPhachData.find(x => x.id === bid || x.ma_tui === bid);
+                    if (t) {
+                        t.status = "Đã trả bài";
+                    }
+                });
+            }
         }
         if (activeNhanPhieuObj) {
             activeNhanPhieuObj.status = "Đã hoàn tất";
             activeNhanPhieuObj.trang_thai = "DaHoanTat";
             isSuccess = true;
+            
+            if (activeNhanPhieuObj.bags && Array.isArray(activeNhanPhieuObj.bags)) {
+                activeNhanPhieuObj.bags.forEach(bid => {
+                    const t = tuiPhachData.find(x => x.id === bid || x.ma_tui === bid);
+                    if (t) {
+                        t.status = "Đã trả bài";
+                    }
+                });
+            }
         }
 
         if (isSuccess) {

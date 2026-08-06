@@ -39,6 +39,7 @@
     let phucKhaoData = [];
     let traCuuPageSize = 3;
     let detailActiveTab = "view";
+    let auditLogsData = [];
 
     async function loadStateFromServer() {
         try {
@@ -59,6 +60,7 @@
                 code: g.code || g.id
             }));
             phucKhaoData = data.phucKhaoData;
+            auditLogsData = data.auditLogsData || [];
             isStateLoaded = true;
         } catch (e) {
             console.error("Lỗi đồng bộ dữ liệu từ server:", e);
@@ -83,7 +85,8 @@
                     tuiBaiData: tuiBaiData,
                     phieuGiaoNhanData,
                     canBoCoiThiData,
-                    phucKhaoData
+                    phucKhaoData,
+                    auditLogsData
                 })
             });
         } catch (e) {
@@ -702,10 +705,12 @@
         tbody.innerHTML = '';
 
         const filterStatus = document.getElementById('filter-tui-status') ? document.getElementById('filter-tui-status').value : '';
+        const filterDot = document.getElementById('filter-tui-dot-thi') ? document.getElementById('filter-tui-dot-thi').value : '';
         const list = tuiBaiData.filter(t => 
             (filterId === "" || t.id.includes(filterId)) && 
             (filterMon === "" || t.subjectId === filterMon) &&
-            (filterStatus === "" || t.status === filterStatus)
+            (filterStatus === "" || t.status === filterStatus) &&
+            (filterDot === "" || !t.dotThi || t.dotThi === filterDot)
         );
         if (list.length === 0) {
             tbody.innerHTML = `<tr><td colspan="5" class="text-center text-gray-400 py-6 italic">Không tìm thấy túi bài thi phù hợp.</td></tr>`;
@@ -750,7 +755,7 @@
 
             tbody.innerHTML += `
             <tr class="hover:bg-gray-50 transition-colors">
-                <td class="px-6 py-4 font-mono font-bold text-blue-900">${t.id}</td>
+                <td onclick="showTuiDetailPanel('${t.id}')" class="px-6 py-4 font-mono font-bold text-blue-900 cursor-pointer hover:underline hover:text-blue-700" title="Xem chi tiết túi bài thi">${t.id}</td>
                 <td class="px-6 py-4 font-medium text-slate-700">${sName}</td>
                 <td class="px-6 py-4 text-center font-semibold">${t.papers}</td>
                 <td class="px-6 py-4 text-center"><span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-bold">${t.status}</span></td>
@@ -777,6 +782,8 @@
         document.getElementById('filter-tui-mon').value = '';
         const statusEl = document.getElementById('filter-tui-status');
         if (statusEl) statusEl.value = '';
+        const dotEl = document.getElementById('filter-tui-dot-thi');
+        if (dotEl) dotEl.value = '';
         traCuuCurrentPage = 1;
         renderViewTraCuuTui();
     }
@@ -790,6 +797,9 @@
         const detailTuiId = document.getElementById('detail-tui-id');
         if (detailTuiId) detailTuiId.innerText = tui.id;
         
+        const detailHocPhan = document.getElementById('detail-tui-hoc-phan');
+        if (detailHocPhan) detailHocPhan.innerText = tui.subjectName || tui.subjectId || "Chưa xác định";
+
         const detailStatus = document.getElementById('detail-tui-status');
         if (detailStatus) detailStatus.innerText = tui.status;
         
@@ -929,16 +939,16 @@
             const pPapers = p.papers || p.so_bai || 30;
             currentTotal += pPapers;
             const displayName = p.name || p.phong || rid;
-            const btn = !isLocked ? `<button onclick="moveRoomAdjust('A', '${rid}')" class="text-red-500 hover:bg-red-50 p-1.5 rounded bg-white shadow-sm border border-gray-200 font-bold"><i data-lucide="arrow-right" class="w-4 h-4"></i></button>` : '';
-            panelA.innerHTML += `<div class="p-2 border border-gray-200 rounded flex justify-between items-center bg-white text-xs shadow-sm font-mono font-bold text-gray-700"><div>${displayName}<br><span class="text-[10px] text-gray-500 font-sans font-normal">${pPapers} bài</span></div>${btn}</div>`;
+            const btn = !isLocked ? `<button onclick="moveRoomAdjust('A', '${rid}')" class="text-red-500 hover:bg-red-50 p-1.5 rounded bg-white shadow-sm border border-gray-200 font-bold" title="Rút khỏi túi"><i data-lucide="arrow-right" class="w-4 h-4"></i></button>` : '';
+            panelA.innerHTML += `<div class="p-2 border border-gray-200 rounded flex justify-between items-center bg-white text-xs shadow-sm font-mono font-bold text-gray-700"><div>${displayName}<br><span class="inline-block mt-0.5 px-2 py-0.5 bg-gray-100 border border-gray-200 text-gray-500 rounded text-[10px] font-sans font-medium select-none" title="Số lượng bài tự động đồng bộ từ danh sách thi">${pPapers} bài (Tự động)</span></div>${btn}</div>`;
         });
 
         tempRoomsTableB.forEach(rid => {
             const p = phongThiData.find(x => x.id === rid || x.name === rid || x.phong === rid) || { id: rid, papers: 30 };
             const pPapers = p.papers || p.so_bai || 30;
             const displayName = p.name || p.phong || rid;
-            const btn = !isLocked ? `<button onclick="moveRoomAdjust('B', '${rid}')" class="text-green-600 hover:bg-green-50 p-1.5 rounded bg-white shadow-sm border border-gray-200 font-bold"><i data-lucide="arrow-left" class="w-4 h-4"></i></button>` : '';
-            panelB.innerHTML += `<div class="p-2 border border-dashed border-gray-300 rounded flex justify-between items-center bg-gray-50 text-xs shadow-sm font-mono font-bold text-gray-600">${btn}<div class="text-right">${displayName}<br><span class="text-[10px] text-gray-500 font-sans font-normal">${pPapers} bài</span></div></div>`;
+            const btn = !isLocked ? `<button onclick="moveRoomAdjust('B', '${rid}')" class="text-green-600 hover:bg-green-50 p-1.5 rounded bg-white shadow-sm border border-gray-200 font-bold" title="Thêm vào túi"><i data-lucide="arrow-left" class="w-4 h-4"></i></button>` : '';
+            panelB.innerHTML += `<div class="p-2 border border-dashed border-gray-300 rounded flex justify-between items-center bg-gray-50 text-xs shadow-sm font-mono font-bold text-gray-600">${btn}<div class="text-right">${displayName}<br><span class="inline-block mt-0.5 px-2 py-0.5 bg-gray-100 border border-gray-200 text-gray-500 rounded text-[10px] font-sans font-medium select-none" title="Số lượng bài tự động đồng bộ từ danh sách thi">${pPapers} bài (Tự động)</span></div></div>`;
         });
 
         const indicator = document.getElementById('detail-tui-indicator');
@@ -1303,6 +1313,7 @@
             // Clear tempPhach
             delete tui.tempPhach;
             localStorage.removeItem(`tempPhach_${tui.id}`);
+            sessionStorage.removeItem('tkct_activeTuiDoiChieuId');
             
             document.getElementById('ndc-btn-verify').disabled = true;
             document.getElementById('ndc-btn-verify').className = "flex-1 bg-gray-400 text-white font-bold py-3 rounded cursor-not-allowed flex items-center justify-center gap-2";
@@ -1366,10 +1377,35 @@
     function hideKhoaModal() { document.getElementById('modal-khoa').classList.add('hidden-view'); }
 
     function confirmKhoaExecute() {
-        if (document.getElementById('modal-khoa-pw-input').value === "123456") {
-            tuiBaiData.find(x => x.id === activeTuiKhoaId).status = "Đã khóa phách";
+        const tui = tuiBaiData.find(x => x.id === activeTuiKhoaId);
+        if (!tui) return;
+
+        if (tui.status !== "Đã đối chiếu hợp lệ") {
+            showGlobalToast("Lỗi bảo mật", "Túi bài thi chưa qua bước đối chiếu hợp lệ, không thể thực hiện khóa.", "error");
             hideKhoaModal();
-            showGlobalToast("Thành công", "Khóa túi phách thành công.");
+            return;
+        }
+
+        if (document.getElementById('modal-khoa-pw-input').value === "123456") {
+            tui.status = "Đã khóa phách";
+            
+            // Ghi vết lịch sử hoạt động (Audit log)
+            const now = new Date();
+            const timeStr = now.getFullYear() + '-' +
+                String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                String(now.getDate()).padStart(2, '0') + ' ' +
+                String(now.getHours()).padStart(2, '0') + ':' +
+                String(now.getMinutes()).padStart(2, '0') + ':' +
+                String(now.getSeconds()).padStart(2, '0');
+                
+            auditLogsData.push({
+                time: timeStr,
+                actor: "Thư ký Chấm thi",
+                action: `Khóa niêm phong túi phách ${tui.id} thành công`
+            });
+
+            hideKhoaModal();
+            showGlobalToast("Thành công", "Khóa niêm phong túi phách thành công.");
             renderViewKhoaPhach();
             renderDashboard();
         } else {

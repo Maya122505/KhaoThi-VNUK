@@ -352,7 +352,9 @@
         if (item.status === "Khoa đã phê duyệt") {
             if (badgeEl) badgeEl.innerHTML = `<span class="bg-amber-100 text-amber-800 px-2.5 py-0.5 rounded text-xs font-bold">Chờ duyệt</span>`;
             if (actionBox) actionBox.innerHTML = `
-                <span class="bg-amber-50 text-amber-800 border border-amber-200 px-3 py-1 rounded text-sm font-bold inline-block">Chờ Lãnh đạo duyệt</span>
+                <button onclick="showDuyetModal('diem', '${item.id}', 'Túi bài thi ${item.id}')" class="bg-[#9e1c22] hover:bg-red-800 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer transform hover:-translate-y-0.5">
+                    <i data-lucide="shield-check" class="w-4 h-4 text-yellow-400"></i> Phê duyệt túi bài này
+                </button>
             `;
         } else {
             if (badgeEl) badgeEl.innerHTML = `<span class="bg-green-100 text-green-800 px-2.5 py-0.5 rounded text-xs font-bold">✓ Đã duyệt</span>`;
@@ -1101,4 +1103,78 @@
         }).join('');
     }
     window.renderDuyetDeThi = renderDuyetDeThi;
+
+    // ==========================================================
+    // REJECTION MODAL IMPLEMENTATION FOR LDP
+    // ==========================================================
+    let tuChoiType = null;
+    let tuChoiTargetId = null;
+
+    function showTuChoiModal(type, targetId, docName) {
+        tuChoiType = type;
+        tuChoiTargetId = targetId;
+        document.getElementById('tuchoi-target-title').innerText = docName;
+        document.getElementById('tuchoi-lydo').value = '';
+        document.getElementById('tuchoi-error').classList.add('hidden-view');
+        document.getElementById('modal-tu-choi').classList.remove('hidden-view');
+    }
+    window.showTuChoiModal = showTuChoiModal;
+
+    function hideTuChoiModal() {
+        document.getElementById('modal-tu-choi').classList.add('hidden-view');
+    }
+    window.hideTuChoiModal = hideTuChoiModal;
+
+    function confirmTuChoiExecute() {
+        const lydoInput = document.getElementById('tuchoi-lydo');
+        const lydo = lydoInput ? lydoInput.value.trim() : '';
+
+        if (!lydo) {
+            document.getElementById('tuchoi-error').classList.remove('hidden-view');
+            return;
+        }
+
+        const targetIds = Array.isArray(tuChoiTargetId) ? tuChoiTargetId : [tuChoiTargetId];
+
+        targetIds.forEach(tid => {
+            if (tuChoiType === 'diem') {
+                const t = tuiPhachData.find(x => x.id === tid);
+                if (t) {
+                    t.status = "Chờ nhập điểm"; // Reopen editing rights for Grader
+                    t.rejectReason = lydo;
+                }
+            } else if (tuChoiType === 'pk') {
+                const p = phucKhaoData.find(x => x.id === tid);
+                if (p) {
+                    p.status = "Chờ phân công";
+                    p.rejectReason = lydo;
+                }
+            } else if (tuChoiType === 'duyet-lich') {
+                if (systemConfigsData.lichThiStatus) {
+                    systemConfigsData.lichThiStatus[tid] = 'Từ chối';
+                }
+            }
+        });
+
+        hideTuChoiModal();
+        showGlobalToast("Từ chối phê duyệt", `Đã từ chối và trả hồ sơ ${targetIds.length} mục với lý do: "${lydo}"`);
+        if (typeof saveStateToServer === 'function') saveStateToServer();
+        
+        // Refresh views
+        if (activeViewId === 'view-home') renderHome();
+        if (typeof renderDuyetDiem === 'function') renderDuyetDiem();
+        if (typeof renderDuyetPhucKhao === 'function') renderDuyetPhucKhao();
+        
+        // Hide detail panel if it was open
+        const detailPanel = document.getElementById('duyet-detail-panel');
+        const emptyState = document.getElementById('duyet-detail-empty');
+        if (detailPanel) detailPanel.classList.add('hidden-view');
+        if (emptyState) emptyState.classList.remove('hidden-view');
+    }
+    window.confirmTuChoiExecute = confirmTuChoiExecute;
+
+    function executeRejectLDP(tuiId) {
+        showTuChoiModal('diem', tuiId, `Túi bài thi ${tuiId}`);
+    }
+    window.executeRejectLDP = executeRejectLDP;
 </script>

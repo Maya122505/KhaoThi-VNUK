@@ -40,15 +40,18 @@
             <div id="ndc-success"
                 class="hidden-view bg-green-50 text-green-800 p-4 rounded border border-green-200 mb-4 flex items-start gap-3 animate-fade-in">
                 <i data-lucide="check-circle-2" class="shrink-0 w-5 h-5 mt-0.5 text-green-600"></i>
-                <div>
-                    <h4 class="font-bold text-green-900">Dữ liệu khớp 100%</h4>
-                    <p class="text-xs mt-1 text-green-800">Dữ liệu hợp lệ. Vui lòng chuyển sang chức năng 
+                <div class="flex-1">
+                    <h4 class="font-bold text-green-900">Dữ liệu khớp hoàn toàn</h4>
+                    <p class="text-xs mt-1 text-green-800">Dữ liệu khớp hoàn toàn. Vui lòng thực hiện cắt phách, đóng túi vật lý và sử dụng chức năng 
                         <button onclick="navigateToKhoaPhachFromDoiChieu()" type="button" class="inline-flex items-center gap-1 text-blue-700 hover:text-blue-900 font-bold underline cursor-pointer bg-transparent border-0 p-0 text-xs transition-colors">
                             [Khóa danh sách mã phách] <i data-lucide="arrow-right" class="w-3.5 h-3.5 inline"></i>
                         </button> 
-                        để niêm phong túi bài thi.
+                        để niêm phong.
                     </p>
                 </div>
+                <button onclick="resetViewDoiChieu()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-1.5 px-4 rounded text-xs transition-colors shrink-0">
+                    Đóng
+                </button>
             </div>
 
             <div

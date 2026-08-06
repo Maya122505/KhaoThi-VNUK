@@ -27,6 +27,11 @@
                 <option value="CS101">Nhập môn Lập trình</option>
                 <option value="MKT205">Marketing căn bản</option>
             </select>
+            <select id="filter-tui-dot-thi" onchange="traCuuCurrentPage=1; renderViewTraCuuTui()" class="border border-gray-300 rounded px-3 py-2 bg-white text-sm outline-none">
+                <option value="">Đợt thi: Tất cả</option>
+                <option value="Dot1">Đợt 1 (Học kỳ I)</option>
+                <option value="Dot2">Đợt 2 (Học kỳ II)</option>
+            </select>
             <select id="filter-tui-status" onchange="traCuuCurrentPage=1; renderViewTraCuuTui()" class="border border-gray-300 rounded px-3 py-2 bg-white text-sm outline-none">
                 <option value="">Trạng thái: Tất cả</option>
                 <option value="Chưa làm phách">Chưa làm phách</option>
@@ -82,6 +87,10 @@
                     <div class="flex justify-between items-center border-b border-gray-100 pb-2">
                         <span class="text-gray-500">Mã túi bài thi:</span>
                         <span id="detail-tui-id" class="font-mono font-bold text-lg text-gray-800">--</span>
+                    </div>
+                    <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+                        <span class="text-gray-500">Học phần:</span>
+                        <span id="detail-tui-hoc-phan" class="font-semibold text-gray-800">--</span>
                     </div>
                     <div class="flex justify-between items-center border-b border-gray-100 pb-2">
                         <span class="text-gray-500">Trạng thái:</span>
