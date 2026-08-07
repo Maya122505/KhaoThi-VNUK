@@ -14,6 +14,10 @@
     let phucKhaoData = [];
     let deThiData = [];
     let danhSachThiData = [];
+    let phongThiData = [];
+    let phanCongPhongData = [];
+    let inSaoData = [];
+    let donGiaRulesData = [];
 
     let isStateLoaded = false;
     let activeViewId = "view-home";
@@ -33,78 +37,7 @@
     let thulaoApprover = "";
     let thulaoApprovedAt = "";
 
-    const defaultDanhSachThiData = [
-        {
-            id: "DS-ENG101",
-            subjectCode: "ENG101",
-            subjectName: "Tiếng Anh GTQT 3 (ENG101)",
-            totalStudents: 120,
-            eligibleStudents: 112,
-            bannedStudents: 8,
-            creator: "Tổ Khảo thí",
-            createdAt: "09:30 18/07/2026",
-            status: "Chờ duyệt",
-            lyDoTuChoi: "",
-            approver: "",
-            approvedAt: ""
-        },
-        {
-            id: "DS-BUS201",
-            subjectCode: "BUS201",
-            subjectName: "Quản trị dự án (BUS201)",
-            totalStudents: 95,
-            eligibleStudents: 91,
-            bannedStudents: 4,
-            creator: "Tổ Khảo thí",
-            createdAt: "14:15 19/07/2026",
-            status: "Chờ duyệt",
-            lyDoTuChoi: "",
-            approver: "",
-            approvedAt: ""
-        },
-        {
-            id: "DS-CS101",
-            subjectCode: "CS101",
-            subjectName: "Nhập môn Lập trình (CS101)",
-            totalStudents: 110,
-            eligibleStudents: 104,
-            bannedStudents: 6,
-            creator: "Tổ Khảo thí",
-            createdAt: "10:00 20/07/2026",
-            status: "Chờ duyệt",
-            lyDoTuChoi: "",
-            approver: "",
-            approvedAt: ""
-        },
-        {
-            id: "DS-MATH102",
-            subjectCode: "MATH102",
-            subjectName: "Toán Giải tích (MATH102)",
-            totalStudents: 88,
-            eligibleStudents: 85,
-            bannedStudents: 3,
-            creator: "Tổ Khảo thí",
-            createdAt: "16:45 20/07/2026",
-            status: "Đã phê duyệt",
-            lyDoTuChoi: "",
-            approver: "ThS. Nguyễn Văn X",
-            approvedAt: "11:20 21/07/2026"
-        },
-        {
-            id: "DS-WEB301",
-            subjectCode: "WEB301",
-            subjectName: "Phát triển Web Django (WEB301)",
-            totalStudents: 102,
-            eligibleStudents: 98,
-            bannedStudents: 4,
-            creator: "Tổ Khảo thí",
-            createdAt: "08:15 21/07/2026",
-            status: "Từ chối",
-            lyDoTuChoi: "Thiếu danh sách đối chiếu từ Tổ Tài vụ đợt 2",
-            approver: "",
-            approvedAt: ""
-        }
-    ];
+
 
     window.onload = async function() {
         initIcons();
@@ -113,9 +46,18 @@
         } catch (err) {
             console.error("Lỗi loadStateFromServer:", err);
         }
-        sessionStorage.removeItem('ldp_activeViewId');
-        navigate('view-home');
+        const hash = window.location.hash.replace('#', '');
+        const initialView = (hash && document.getElementById(`view-${hash}`)) ? `view-${hash}` : 'view-home';
+        navigate(initialView, false);
     };
+
+    window.addEventListener('popstate', function() {
+        const hash = window.location.hash.replace('#', '');
+        const targetView = (hash && document.getElementById(`view-${hash}`)) ? `view-${hash}` : 'view-home';
+        if (activeViewId !== targetView) {
+            navigate(targetView, false);
+        }
+    });
 
     function initIcons() { lucide.createIcons(); }
 
@@ -134,24 +76,22 @@
             tuiPhachData = data.tuiPhachData || [];
             phieuGiaoNhanData = data.phieuGiaoNhanData || [];
             canBoCoiThiData = data.canBoCoiThiData || [];
+            phucKhaoData = data.phucKhaoData || [];
             phongThiData = data.phongThiData || [];
             phanCongPhongData = data.phanCongPhongData || [];
             inSaoData = data.inSaoData || [];
-            const mockDeThiList = [
-                { id: "DT001", hocPhan: "Tiếng Anh GTQT 3", nguoiNop: "TS. Nguyễn Văn Anh", thoiGian: "08:30 10/08/2026", fileName: "De_Thi_Tieng_Anh_GTQT_3_ChinhThuc.docx", ghiChu: "Đề thi trắc nghiệm 60 phút, gồm 50 câu.", trangThai: "Chờ rà soát", nhanXet: "" },
-                { id: "DT002", hocPhan: "Quản trị dự án", nguoiNop: "ThS. Trần Thị Mai", thoiGian: "09:15 10/08/2026", fileName: "De_Thi_Quan_Tri_Du_An_Hocky3.pdf", ghiChu: "Đề thi tự luận 90 phút, 4 câu tình huống.", trangThai: "Chờ rà soát", nhanXet: "" },
-                { id: "DT003", hocPhan: "Nhập môn Lập trình", nguoiNop: "TS. Lê Hoàng Nam", thoiGian: "10:45 10/08/2026", fileName: "De_Thi_Nhap_Mon_Lap_Trinh_Python.pdf", ghiChu: "Thi thực hành lập trình 90 phút, 3 bài tập.", trangThai: "Chờ rà soát", nhanXet: "" },
-                { id: "DT004", hocPhan: "Kinh tế vĩ mô", nguoiNop: "PGS.TS. Vũ Thị Lan", thoiGian: "13:20 11/08/2026", fileName: "De_Thi_Kinh_Te_Vi_Mo_KyI.docx", ghiChu: "40 câu trắc nghiệm + 2 bài tập tính toán.", trangThai: "Chờ rà soát", nhanXet: "" },
-                { id: "DT005", hocPhan: "Cơ sở dữ liệu", nguoiNop: "ThS. Hoàng Văn Đức", thoiGian: "14:00 11/08/2026", fileName: "De_Thi_Co_So_Du_Lieu_SQL.pdf", ghiChu: "Thi tự luận + thực hành truy vấn SQL 75 phút.", trangThai: "Chờ rà soát", nhanXet: "" },
-                { id: "DT006", hocPhan: "Marketing căn bản", nguoiNop: "TS. Phạm Minh Tuấn", thoiGian: "15:30 11/08/2026", fileName: "De_Thi_Marketing_Can_Ban.pdf", ghiChu: "Đề thi 2 câu lý thuyết + 1 bài tập tình huống.", trangThai: "Chờ rà soát", nhanXet: "" },
-                { id: "DT007", hocPhan: "Tài chính doanh nghiệp", nguoiNop: "TS. Đỗ Hoàng Yến", thoiGian: "08:00 12/08/2026", fileName: "De_Thi_Tai_Chinh_Doanh_Nghiep.pdf", ghiChu: "Thi viết 90 phút, được dùng bảng số liệu.", trangThai: "Chờ rà soát", nhanXet: "" },
-                { id: "DT008", hocPhan: "Mạng máy tính", nguoiNop: "ThS. Ngô Quang Vinh", thoiGian: "09:40 12/08/2026", fileName: "De_Thi_Mang_May_Tinh_CCNA.docx", ghiChu: "Đề thi trắc nghiệm trên phần mềm 60 phút.", trangThai: "Chờ rà soát", nhanXet: "" },
-                { id: "DT009", hocPhan: "Xác suất thống kê", nguoiNop: "PGS.TS. Bùi Minh Triết", thoiGian: "11:00 12/08/2026", fileName: "De_Thi_Xac_Suat_Thong_Ke.pdf", ghiChu: "Thi tự luận 90 phút, gồm 5 bài tập.", trangThai: "Chờ rà soát", nhanXet: "" },
-                { id: "DT010", hocPhan: "Lập trình Web", nguoiNop: "ThS. Nguyễn Thị Thu", thoiGian: "14:15 12/08/2026", fileName: "De_Thi_Lap_Trinh_Web_Vite_Nextjs.pdf", ghiChu: "Thi thực hành xây dựng Web App 120 phút.", trangThai: "Chờ rà soát", nhanXet: "" }
-            ];
-            deThiData = (data.deThiData !== undefined && data.deThiData !== null && data.deThiData.length > 0) ? data.deThiData : mockDeThiList;
-            danhSachThiData = (data.danhSachThiData !== undefined && data.danhSachThiData !== null && data.danhSachThiData.length > 0) ? data.danhSachThiData : defaultDanhSachThiData;
+            donGiaRulesData = data.donGiaRulesData || [];
+            if (data.systemConfigsData) {
+                isThulaoApproved = !!data.systemConfigsData.isThulaoApproved;
+                thulaoApprover = data.systemConfigsData.thulaoApprover || "";
+                thulaoApprovedAt = data.systemConfigsData.thulaoApprovedAt || "";
+            }
+            deThiData = data.deThiData || [];
+            danhSachThiData = data.danhSachThiData || [];
             isStateLoaded = true;
+            if (activeViewId) {
+                navigate(activeViewId, false);
+            }
         } catch(e) {
             console.error("Lỗi đồng bộ dữ liệu:", e);
         }
@@ -159,7 +99,7 @@
 
     async function saveStateToServer() {
         try {
-            await fetch('/api/save_state/', {
+            const res = await fetch('/api/save_state/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -177,15 +117,31 @@
                     danhSachThiData,
                     phongThiData,
                     phanCongPhongData,
-                    inSaoData
+                    inSaoData,
+                    donGiaRulesData,
+                    systemConfigsData: {
+                        isThulaoApproved,
+                        thulaoApprover,
+                        thulaoApprovedAt
+                    }
                 })
             });
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                console.error("Server trả về lỗi:", res.status, errData);
+                if (typeof showGlobalToast === "function") {
+                    showGlobalToast("Lỗi đồng bộ", "Không thể lưu dữ liệu lên server. Vui lòng thử lại!", "error");
+                }
+            }
         } catch(e) {
             console.error("Lỗi lưu dữ liệu:", e);
+            if (typeof showGlobalToast === "function") {
+                showGlobalToast("Lỗi đồng bộ", "Không thể kết nối đến server để lưu dữ liệu!", "error");
+            }
         }
     }
 
-    function navigate(viewId) {
+    function navigate(viewId, updateHash = true) {
         document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden-view'));
         const targetView = document.getElementById(viewId);
         if(targetView) targetView.classList.remove('hidden-view');
@@ -193,6 +149,14 @@
         document.querySelectorAll('.nav-btn').forEach(btn => btn.className = "nav-btn px-5 py-3 text-sm font-semibold border-r border-red-800 transition-colors hover:bg-red-800");
 
         activeViewId = viewId;
+        const activeKey = viewId.replace('view-', '');
+        if (updateHash) {
+            const hashStr = '#' + activeKey;
+            if (window.location.hash !== hashStr) {
+                history.pushState(null, '', hashStr);
+            }
+        }
+
         if(viewId === 'view-home') {
             document.getElementById('nav-btn-home').className += " bg-red-800";
             renderHome();
@@ -212,6 +176,8 @@
             document.getElementById('nav-btn-duyet-de-thi').className += " bg-red-800";
             renderDuyetDeThi();
         } else if(viewId === 'view-duyet-diem') {
+            const inp = document.getElementById('duyet-search-input');
+            if(inp) inp.value = '';
             document.getElementById('nav-btn-duyet-diem').className += " bg-red-800";
             renderDuyetDiem();
         } else if(viewId === 'view-duyet-phuc-khao') {
@@ -228,7 +194,7 @@
     // TRANG CHỦ & NHÁNH TÁC VỤ NHANH
     // ==========================================================
     function renderHome() {
-        const countDiem = tuiPhachData.filter(t => t.status === "Đã đối chiếu hợp lệ").length;
+        const countDiem = tuiPhachData.filter(t => t.status === "Đã đối chiếu hợp lệ" || t.status === "Chờ phê duyệt" || t.status === "ChoKhopDiem" || t.status === "Chờ khớp điểm").length;
         const countPk = phucKhaoData.filter(p => p.status === "Đã xử lý").length;
         const countLich = lichThiData.filter(l => !l.status || l.status === "Chờ duyệt" || l.status === "Chờ phê duyệt").length;
         const countDs = danhSachThiData.filter(d => !d.status || d.status === "Chờ duyệt" || d.status === "Chờ phê duyệt").length;
@@ -354,6 +320,18 @@
         if (typeof initIcons !== "undefined") initIcons();
     }
 
+    function isExamReviewedAndPassed(dt) {
+        if (!dt) return false;
+        const st = dt.trangThai || '';
+        if (st === "Đạt" || st === "Dat") return true;
+        if (st === "Chờ rà soát" || st === "ChoRaSoat" || st === "Chờ chỉnh sửa" || st === "Không đạt" || st === "ChoPheDuyet" || st === "Chờ phê duyệt") {
+            const nx = (dt.nhanXet || '').toLowerCase();
+            return (nx.includes("đạt") && !nx.includes("không"));
+        }
+        const nx = (dt.nhanXet || '').toLowerCase();
+        return (nx.includes("đạt") && !nx.includes("không"));
+    }
+
     function renderSelectCheckbox(key, extraClass = "", itemId = "") {
         const isVisible = (selectModesState[key] > 0);
         const isChecked = (selectModesState[key] === 2);
@@ -368,7 +346,7 @@
         }
         const ids = Array.from(checkedCbs).map(cb => cb.getAttribute('data-id')).filter(Boolean);
         if (key === 'duyet-de') {
-            const unreviewed = deThiData.filter(d => ids.includes(d.id) && (d.trangThai === "Chờ rà soát" || d.trangThai === "ChoRaSoat" || !d.trangThai || (!d.nhanXet && d.trangThai !== "Đạt")));
+            const unreviewed = deThiData.filter(d => ids.includes(d.id) && !isExamReviewedAndPassed(d));
             if (unreviewed.length > 0) {
                 showGlobalToast("Cảnh báo", `Có ${unreviewed.length} đề thi chưa được rà soát (${unreviewed.map(u => u.id).join(', ')}). Vui lòng bỏ chọn các đề thi này trước khi phê duyệt!`, "warning");
                 return;
@@ -385,7 +363,7 @@
         }
         const ids = Array.from(checkedCbs).map(cb => cb.getAttribute('data-id')).filter(Boolean);
         if (key === 'duyet-de') {
-            const unreviewed = deThiData.filter(d => ids.includes(d.id) && (d.trangThai === "Chờ rà soát" || d.trangThai === "ChoRaSoat" || !d.trangThai || (!d.nhanXet && d.trangThai !== "Đạt")));
+            const unreviewed = deThiData.filter(d => ids.includes(d.id) && !isExamReviewedAndPassed(d));
             if (unreviewed.length > 0) {
                 showGlobalToast("Cảnh báo", `Có ${unreviewed.length} đề thi chưa được rà soát (${unreviewed.map(u => u.id).join(', ')}). Vui lòng bỏ chọn các đề thi này trước khi từ chối!`, "warning");
                 return;
@@ -509,10 +487,18 @@
             </div>
         `;
 
+        const isApproved = lt.status === "Đã phê duyệt" || lt.status === "Đã duyệt";
+        const btnTuChoiHtml = isApproved ?
+            `<button disabled class="bg-gray-200 text-gray-400 font-bold py-2 px-4 rounded-lg text-xs cursor-not-allowed flex items-center gap-1.5 opacity-60"><i data-lucide="x-circle" class="w-4 h-4"></i> Từ chối</button>` :
+            `<button onclick="hideLdpDetailModal(); showTuChoiModal('lich-thi', '${lt.id}', 'Lịch thi ${lt.id} - ${lt.subjectName}')" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold py-2 px-4 rounded-lg transition-all text-xs flex items-center gap-1.5"><i data-lucide="x-circle" class="w-4 h-4 text-rose-600"></i> Từ chối</button>`;
+        const btnDuyetHtml = isApproved ?
+            `<button disabled class="bg-gray-200 text-gray-400 font-bold py-2 px-4 rounded-lg text-xs cursor-not-allowed flex items-center gap-1.5 opacity-60"><i data-lucide="check-circle-2" class="w-4 h-4"></i> Phê duyệt</button>` :
+            `<button onclick="hideLdpDetailModal(); showDuyetModal('lich-thi', '${lt.id}', 'Lịch thi ${lt.id} - ${lt.subjectName}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-lg shadow-xs transition-all text-xs flex items-center gap-1.5"><i data-lucide="check-circle-2" class="w-4 h-4"></i> Phê duyệt</button>`;
+
         document.getElementById('ldp-detail-footer').innerHTML = `
             <button onclick="hideLdpDetailModal()" class="bg-gray-100 text-gray-700 font-bold py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors text-xs">Đóng</button>
-            <button onclick="hideLdpDetailModal(); showTuChoiModal('lich-thi', '${lt.id}', 'Lịch thi ${lt.id} - ${lt.subjectName}')" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold py-2 px-4 rounded-lg transition-all text-xs flex items-center gap-1.5"><i data-lucide="x-circle" class="w-4 h-4 text-rose-600"></i> Từ chối</button>
-            <button onclick="hideLdpDetailModal(); showDuyetModal('lich-thi', '${lt.id}', 'Lịch thi ${lt.id} - ${lt.subjectName}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-lg shadow-xs transition-all text-xs flex items-center gap-1.5"><i data-lucide="check-circle-2" class="w-4 h-4"></i> Phê duyệt</button>
+            ${btnTuChoiHtml}
+            ${btnDuyetHtml}
         `;
 
         document.getElementById('modal-chi-tiet-ldp').classList.remove('hidden-view');
@@ -636,10 +622,18 @@
             </div>
         `;
 
+        const isApproved = ds.status === "Đã phê duyệt" || ds.status === "Đã duyệt";
+        const btnTuChoiHtml = isApproved ?
+            `<button disabled class="bg-gray-200 text-gray-400 font-bold py-2 px-4 rounded-lg text-xs cursor-not-allowed flex items-center gap-1.5 opacity-60"><i data-lucide="x-circle" class="w-4 h-4"></i> Từ chối</button>` :
+            `<button onclick="hideLdpDetailModal(); showTuChoiModal('duyet-ds', '${ds.id}', 'Danh sách thi ${ds.id} - ${ds.subjectName}')" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold py-2 px-4 rounded-lg transition-all text-xs flex items-center gap-1.5"><i data-lucide="x-circle" class="w-4 h-4 text-rose-600"></i> Từ chối</button>`;
+        const btnDuyetHtml = isApproved ?
+            `<button disabled class="bg-gray-200 text-gray-400 font-bold py-2 px-4 rounded-lg text-xs cursor-not-allowed flex items-center gap-1.5 opacity-60"><i data-lucide="check-circle-2" class="w-4 h-4"></i> Phê duyệt</button>` :
+            `<button onclick="hideLdpDetailModal(); showDuyetModal('duyet-ds', '${ds.id}', 'Danh sách thi ${ds.id} - ${ds.subjectName}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-lg shadow-xs transition-all text-xs flex items-center gap-1.5"><i data-lucide="check-circle-2" class="w-4 h-4"></i> Phê duyệt</button>`;
+
         document.getElementById('ldp-detail-footer').innerHTML = `
             <button onclick="hideLdpDetailModal()" class="bg-gray-100 text-gray-700 font-bold py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors text-xs">Đóng</button>
-            <button onclick="hideLdpDetailModal(); showTuChoiModal('duyet-ds', '${ds.id}', 'Danh sách thi ${ds.id} - ${ds.subjectName}')" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold py-2 px-4 rounded-lg transition-all text-xs flex items-center gap-1.5"><i data-lucide="x-circle" class="w-4 h-4 text-rose-600"></i> Từ chối</button>
-            <button onclick="hideLdpDetailModal(); showDuyetModal('duyet-ds', '${ds.id}', 'Danh sách thi ${ds.id} - ${ds.subjectName}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-lg shadow-xs transition-all text-xs flex items-center gap-1.5"><i data-lucide="check-circle-2" class="w-4 h-4"></i> Phê duyệt</button>
+            ${btnTuChoiHtml}
+            ${btnDuyetHtml}
         `;
 
         document.getElementById('modal-chi-tiet-ldp').classList.remove('hidden-view');
@@ -698,7 +692,7 @@
 
         filtered.forEach((dt, idx) => {
             const st = dt.trangThai || "ChoPheDuyet";
-            const isReviewed = (dt.trangThai === "Đạt" || (dt.nhanXet && dt.nhanXet !== "" && dt.trangThai !== "Chờ rà soát" && dt.trangThai !== "ChoRaSoat" && !dt.nhanXet.toLowerCase().includes("không")));
+            const isReviewed = isExamReviewedAndPassed(dt);
 
             let badge = `<span class="text-amber-600 font-bold whitespace-nowrap inline-flex items-center gap-1"><i data-lucide="clock" class="w-3.5 h-3.5"></i> Chờ phê duyệt</span>`;
             
@@ -788,14 +782,20 @@
             ketQuaRaSoatDetailText = `<span class="text-emerald-700 font-bold">Đạt</span> (${dt.nhanXet})`;
         }
 
-        const isReviewedDetail = (dt.trangThai === "Đạt" || (dt.nhanXet && dt.nhanXet !== "" && dt.trangThai !== "Chờ rà soát" && dt.trangThai !== "ChoRaSoat" && !dt.nhanXet.toLowerCase().includes("không")));
-        const btnDuyetDetailHtml = isReviewedDetail ?
-            `<button onclick="hideLdpDetailModal(); showDuyetModal('de-thi', '${dt.id}', 'Đề thi ${dt.id} - ${dt.hocPhan}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-lg shadow-xs transition-all text-xs flex items-center gap-1.5"><i data-lucide="check-circle-2" class="w-4 h-4"></i> Phê duyệt</button>` :
-            `<button disabled title="Đề thi chưa được Tổ Khảo thí rà soát. Không thể phê duyệt!" class="bg-gray-200 text-gray-400 font-bold py-2 px-4 rounded-lg text-xs cursor-not-allowed flex items-center gap-1.5 opacity-60"><i data-lucide="lock" class="w-4 h-4"></i> Phê duyệt (Chưa rà soát)</button>`;
+        const isReviewedDetail = isExamReviewedAndPassed(dt);
+        const isApproved = dt.trangThai === "DaPheDuyet" || dt.trangThai === "Đã phê duyệt";
 
-        const btnTuChoiDetailHtml = isReviewedDetail ?
-            `<button onclick="hideLdpDetailModal(); showTuChoiModal('de-thi', '${dt.id}', 'Đề thi ${dt.id} - ${dt.hocPhan}')" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold py-2 px-4 rounded-lg transition-all text-xs flex items-center gap-1.5"><i data-lucide="x-circle" class="w-4 h-4 text-rose-600"></i> Từ chối</button>` :
-            `<button disabled title="Đề thi chưa được Tổ Khảo thí rà soát. Không thể từ chối!" class="bg-gray-200 text-gray-400 font-bold py-2 px-4 rounded-lg text-xs cursor-not-allowed flex items-center gap-1.5 opacity-60"><i data-lucide="lock" class="w-4 h-4"></i> Từ chối (Chưa rà soát)</button>`;
+        const btnDuyetDetailHtml = isApproved ?
+            `<button disabled class="bg-gray-200 text-gray-400 font-bold py-2 px-4 rounded-lg text-xs cursor-not-allowed flex items-center gap-1.5 opacity-60"><i data-lucide="check-circle-2" class="w-4 h-4"></i> Phê duyệt</button>` :
+            (isReviewedDetail ?
+                `<button onclick="hideLdpDetailModal(); showDuyetModal('de-thi', '${dt.id}', 'Đề thi ${dt.id} - ${dt.hocPhan}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-lg shadow-xs transition-all text-xs flex items-center gap-1.5"><i data-lucide="check-circle-2" class="w-4 h-4"></i> Phê duyệt</button>` :
+                `<button disabled title="Đề thi chưa được Tổ Khảo thí  rà soát. Không thể phê duyệt!" class="bg-gray-200 text-gray-400 font-bold py-2 px-4 rounded-lg text-xs cursor-not-allowed flex items-center gap-1.5 opacity-60"><i data-lucide="lock" class="w-4 h-4"></i> Phê duyệt (Chưa  rà soát)</button>`);
+
+        const btnTuChoiDetailHtml = isApproved ?
+            `<button disabled class="bg-gray-200 text-gray-400 font-bold py-2 px-4 rounded-lg text-xs cursor-not-allowed flex items-center gap-1.5 opacity-60"><i data-lucide="x-circle" class="w-4 h-4"></i> Từ chối</button>` :
+            (isReviewedDetail ?
+                `<button onclick="hideLdpDetailModal(); showTuChoiModal('de-thi', '${dt.id}', 'Đề thi ${dt.id} - ${dt.hocPhan}')" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold py-2 px-4 rounded-lg transition-all text-xs flex items-center gap-1.5"><i data-lucide="x-circle" class="w-4 h-4 text-rose-600"></i> Từ chối</button>` :
+                `<button disabled title="Đề thi chưa được Tổ Khảo thí  rà soát. Không thể từ chối!" class="bg-gray-200 text-gray-400 font-bold py-2 px-4 rounded-lg text-xs cursor-not-allowed flex items-center gap-1.5 opacity-60"><i data-lucide="lock" class="w-4 h-4"></i> Từ chối (Chưa  rà soát)</button>`);
 
         document.getElementById('ldp-detail-title').innerHTML = `<i data-lucide="info" class="w-5 h-5 text-blue-600"></i> Chi tiết Đề thi`;
         document.getElementById('ldp-detail-body').innerHTML = `
@@ -825,60 +825,216 @@
         document.getElementById('modal-chi-tiet-ldp').classList.add('hidden-view');
     }
 
+    let selectedDuyetDiemIds = [];
+
+    function toggleSelectAllDuyet(checked) {
+        const filterVal = document.getElementById('duyet-filter-select')?.value || 'cho';
+        const filtered = (tuiPhachData || []).filter(t => {
+            if (!t) return false;
+            const st = (t.status || '').trim();
+            if (filterVal === 'cho') return (st === "Đã đối chiếu hợp lệ" || st === "Chờ phê duyệt" || st === "ChoKhopDiem" || st === "Chờ khớp điểm");
+            if (filterVal === 'da') return (st === "Đã duyệt bảng điểm" || st === "Đã phê duyệt");
+            return (st === "Đã đối chiếu hợp lệ" || st === "Chờ phê duyệt" || st === "ChoKhopDiem" || st === "Chờ khớp điểm" || st === "Đã duyệt bảng điểm" || st === "Đã phê duyệt");
+        });
+        if (checked) {
+            selectedDuyetDiemIds = filtered.map(t => t.id);
+        } else {
+            selectedDuyetDiemIds = [];
+        }
+        renderDuyetDiem();
+        updateBatchDuyetButton();
+    }
+    window.toggleSelectAllDuyet = toggleSelectAllDuyet;
+
+    function toggleSelectDuyetDiem(e, id) {
+        if (e && e.stopPropagation) e.stopPropagation();
+        const isChecked = e.target ? e.target.checked : e;
+        if (isChecked) {
+            if (!selectedDuyetDiemIds.includes(id)) selectedDuyetDiemIds.push(id);
+        } else {
+            selectedDuyetDiemIds = selectedDuyetDiemIds.filter(x => x !== id);
+        }
+        updateBatchDuyetButton();
+    }
+    window.toggleSelectDuyetDiem = toggleSelectDuyetDiem;
+
+    function updateBatchDuyetButton() {
+        const btn = document.getElementById('btn-batch-duyet-diem');
+        const countSpan = document.getElementById('count-checked-duyet');
+        if (countSpan) countSpan.innerText = selectedDuyetDiemIds.length;
+        if (btn) {
+            if (selectedDuyetDiemIds.length > 0) {
+                btn.disabled = false;
+                btn.className = "bg-[#9e1c22] hover:bg-red-800 text-white text-xs font-bold px-5 py-2.5 rounded shadow flex items-center gap-2 transition-all cursor-pointer";
+            } else {
+                btn.disabled = true;
+                btn.className = "bg-[#9e1c22] opacity-50 cursor-not-allowed text-white text-xs font-bold px-5 py-2.5 rounded shadow flex items-center gap-2 transition-all";
+            }
+        }
+    }
+
     function executeBatchDuyetDiem() {
-        const checkedList = document.querySelectorAll('.check-duyet-item:checked');
-        if (checkedList.length === 0) {
+        if (selectedDuyetDiemIds.length === 0) {
             showGlobalToast("Thông báo", "Vui lòng chọn ít nhất 1 bảng điểm để phê duyệt!", "error");
             return;
         }
-        checkedList.forEach(cb => {
-            const id = cb.value;
+        const timestamp = new Date().toLocaleString('vi-VN');
+        const approverName = "ThS. Nguyễn Văn X";
+        selectedDuyetDiemIds.forEach(id => {
             const tui = tuiPhachData.find(x => x.id === id);
             if (tui) {
                 tui.status = "Đã duyệt bảng điểm";
-                tui.approver = "Trưởng phòng";
-                tui.approvedAt = new Date().toLocaleString();
+                tui.approver = approverName;
+                tui.approvedAt = timestamp;
             }
         });
-        showGlobalToast("Thành công", `Đã phê duyệt ${checkedList.length} bảng điểm thành công.`);
+        showGlobalToast("Thành công", `Đã phê duyệt ${selectedDuyetDiemIds.length} bảng điểm thành công.`);
+        selectedDuyetDiemIds = [];
+        updateBatchDuyetButton();
         saveStateToServer();
         renderDuyetDiem();
     }
     window.executeBatchDuyetDiem = executeBatchDuyetDiem;
 
     function renderDuyetDiem() {
-        const tbody = document.getElementById('duyet-diem-tbody');
-        tbody.innerHTML = '';
+        const container = document.getElementById('duyet-diem-left-list');
+        if (!container) return;
 
-        const list = tuiPhachData.filter(t => t.status === "Đã đối chiếu hợp lệ" || t.status === "Đã duyệt bảng điểm");
-        if(list.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-12 text-center text-gray-400 italic">Không có bảng điểm nào cần phê duyệt vào lúc này.</td></tr>`;
+        const filterVal = document.getElementById('duyet-filter-select')?.value || 'cho';
+        const kw = (document.getElementById('duyet-search-input')?.value || '').toLowerCase().trim();
+
+        const filtered = (tuiPhachData || []).filter(t => {
+            if (!t) return false;
+            const matchKw = !kw || (t.id && t.id.toLowerCase().includes(kw)) || (t.subjectName && t.subjectName.toLowerCase().includes(kw));
+            const st = (t.status || '').trim();
+            if (filterVal === 'cho') {
+                return matchKw && (st === "Đã đối chiếu hợp lệ" || st === "Chờ phê duyệt" || st === "ChoKhopDiem" || st === "Chờ khớp điểm");
+            } else if (filterVal === 'da') {
+                return matchKw && (st === "Đã duyệt bảng điểm" || st === "Đã phê duyệt");
+            } else {
+                return matchKw && (st === "Đã đối chiếu hợp lệ" || st === "Chờ phê duyệt" || st === "ChoKhopDiem" || st === "Chờ khớp điểm" || st === "Đã duyệt bảng điểm" || st === "Đã phê duyệt");
+            }
+        });
+
+        const countEl = document.getElementById('duyet-list-count');
+        if (countEl) countEl.innerText = `${filtered.length} mục`;
+
+        if (filtered.length === 0) {
+            container.innerHTML = `<div class="p-8 text-center text-gray-400 italic text-xs">Không có bảng điểm nào phù hợp.</div>`;
             return;
         }
 
-        list.forEach(t => {
-            let badge = `<span class="text-amber-600 font-bold whitespace-nowrap inline-flex items-center gap-1"><i data-lucide="clock" class="w-3.5 h-3.5"></i> Chờ phê duyệt</span>`;
-            let actionBtn = `<button onclick="showDuyetModal('diem', '${t.id}', 'Bảng điểm chính thức ${t.id}')" class="bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white border border-emerald-200 hover:border-emerald-600 font-semibold px-2.5 py-1 rounded-md text-xs transition-all duration-150 inline-flex items-center gap-1.5 shadow-2xs"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Phê duyệt</button>`;
-
-            if (t.status === "Đã duyệt bảng điểm") {
-                badge = `<span class="text-emerald-600 font-bold whitespace-nowrap inline-flex items-center gap-1"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Đã phê duyệt</span>`;
-                actionBtn = `<span class="text-gray-400 italic text-xs whitespace-nowrap">Duyệt bởi: ${t.approver || 'Trưởng phòng'}<br>${t.approvedAt || ''}</span>`;
+        let listHtml = '';
+        filtered.forEach(t => {
+            const st = (t.status || '').trim();
+            let badge = `<span class="bg-amber-100 text-amber-900 border border-amber-200 px-2 py-0.5 rounded text-[10px] font-bold">Chờ duyệt</span>`;
+            if (st === "Đã duyệt bảng điểm" || st === "Đã phê duyệt") {
+                badge = `<span class="bg-emerald-100 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded text-[10px] font-bold">✓ Đã duyệt</span>`;
             }
 
-            tbody.innerHTML += `
-                <tr class="hover:bg-gray-50 transition-colors">
-                    <td class="px-6 py-4 font-mono font-bold text-gray-800 whitespace-nowrap">${t.id}</td>
-                    <td class="px-6 py-4 font-semibold text-gray-900">${t.subjectName}</td>
-                    <td class="px-6 py-4 text-center font-medium whitespace-nowrap">${t.papers} bài thi</td>
-                    <td class="px-6 py-4 text-center whitespace-nowrap">${badge}</td>
-                    <td class="px-6 py-4 text-right whitespace-nowrap">${actionBtn}</td>
-                </tr>
+            const isChecked = selectedDuyetDiemIds.includes(t.id);
+
+            listHtml += `
+                <div class="p-3 hover:bg-gray-50 cursor-pointer flex items-center justify-between gap-3 transition-colors border-b border-gray-100" onclick="showDuyetDiemDetail('${t.id}')">
+                    <div class="flex items-center gap-2.5">
+                        <input type="checkbox" value="${t.id}" ${isChecked ? 'checked' : ''} onchange="toggleSelectDuyetDiem(event, '${t.id}')" class="check-duyet-item w-4 h-4 cursor-pointer accent-[#9e1c22]" onclick="event.stopPropagation()">
+                        <div>
+                            <div class="font-bold text-gray-800 text-xs font-mono">${t.id}</div>
+                            <div class="text-[11px] font-medium text-gray-700 mt-0.5">${t.subjectName || 'Học phần'}</div>
+                            <div class="text-[10px] text-gray-400 mt-0.5">${t.papers || 30} bài thi</div>
+                        </div>
+                    </div>
+                    <div>${badge}</div>
+                </div>
             `;
         });
+
+        container.innerHTML = listHtml;
+        if (typeof initIcons !== "undefined") {
+            try { initIcons(); } catch(e) {}
+        }
     }
+
+    function showDuyetDiemDetail(tuiId) {
+        const tui = (tuiPhachData || []).find(x => x.id === tuiId);
+        const emptyView = document.getElementById('duyet-detail-empty');
+        const panelView = document.getElementById('duyet-detail-panel');
+        if (!tui || !panelView) return;
+
+        if (emptyView) emptyView.classList.add('hidden-view');
+        panelView.classList.remove('hidden-view');
+
+        const elTuiId = document.getElementById('detail-tui-id');
+        const elHpName = document.getElementById('detail-hp-name');
+        const elMeta = document.getElementById('detail-meta-info');
+        if (elTuiId) elTuiId.innerText = `Túi bài thi: ${tui.id}`;
+        if (elHpName) elHpName.innerText = `Học phần: ${tui.subjectName || ''}`;
+        if (elMeta) elMeta.innerText = `Số lượng: ${tui.papers || 30} bài thi`;
+
+        const badgeEl = document.getElementById('detail-status-badge');
+        const st = (tui.status || '').trim();
+        if (badgeEl) {
+            if (st === "Đã duyệt bảng điểm" || st === "Đã phê duyệt") {
+                badgeEl.innerHTML = `<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[10px] font-bold">✓ Đã phê duyệt</span>`;
+            } else {
+                badgeEl.innerHTML = `<span class="bg-amber-100 text-amber-900 px-2 py-0.5 rounded text-[10px] font-bold">Chờ phê duyệt</span>`;
+            }
+        }
+
+        const actionContainer = document.getElementById('detail-action-container');
+        if (actionContainer) {
+            if (st === "Đã duyệt bảng điểm" || st === "Đã phê duyệt") {
+                actionContainer.innerHTML = `<span class="text-gray-400 italic text-xs">Phê duyệt bởi: ${tui.approver || 'Trưởng phòng'}<br>${tui.approvedAt || ''}</span>`;
+            } else {
+                actionContainer.innerHTML = `<button onclick="showDuyetModal('diem', '${tui.id}', 'Bảng điểm chính thức ${tui.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded text-xs shadow flex items-center gap-1.5 transition-colors"><i data-lucide="check-circle" class="w-4 h-4"></i> Phê duyệt bảng điểm này</button>`;
+            }
+        }
+
+        const tbody = document.getElementById('duyet-detail-tbody');
+        if (tbody) {
+            let detailRows = '';
+            const phachList = tui.phachGoc || [];
+            const scoresObj = tui.scores || {};
+
+            if (phachList.length === 0) {
+                const totalPapers = tui.papers || 0;
+                for (let i = 1; i <= totalPapers; i++) {
+                    const phachCode = `P${String(i).padStart(3, '0')}`;
+                    detailRows += `
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-2 text-gray-400">${i}</td>
+                            <td class="px-4 py-2 font-mono font-bold text-gray-800">${phachCode}</td>
+                            <td class="px-4 py-2 text-center font-bold text-blue-900">--</td>
+                        </tr>
+                    `;
+                }
+            } else {
+                phachList.forEach((pCode, idx) => {
+                    const sc = scoresObj[pCode];
+                    let scoreVal = '--';
+                    if (sc && sc.grader1 !== null && sc.grader1 !== undefined) {
+                        scoreVal = sc.grader1;
+                    }
+                    detailRows += `
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-2 text-gray-400">${idx + 1}</td>
+                            <td class="px-4 py-2 font-mono font-bold text-gray-800">${pCode}</td>
+                            <td class="px-4 py-2 text-center font-bold text-blue-900">${scoreVal}</td>
+                        </tr>
+                    `;
+                });
+            }
+            tbody.innerHTML = detailRows || `<tr><td colspan="3" class="px-4 py-6 text-center text-gray-400 italic">Chưa có bài thi nào trong túi này.</td></tr>`;
+        }
+        if (typeof initIcons !== "undefined") {
+            try { initIcons(); } catch(e) {}
+        }
+    }
+    window.showDuyetDiemDetail = showDuyetDiemDetail;
 
     function renderDuyetPhucKhao() {
         const tbody = document.getElementById('duyet-phuc-khao-tbody');
+        if (!tbody) return;
         tbody.innerHTML = '';
 
         const list = phucKhaoData.filter(p => p.status === "Đã xử lý" || p.status === "Đã phê duyệt phúc khảo");
@@ -912,6 +1068,7 @@
 
     function renderDuyetThuLao() {
         const tbody = document.getElementById('duyet-thulao-tbody');
+        if (!tbody) return;
         tbody.innerHTML = '';
 
         let grandTotalGV = canBoCoiThiData.length;
@@ -1027,6 +1184,10 @@
             } else if (duyetTargetType === 'de-thi' || duyetTargetType === 'duyet-de') {
                 const dt = deThiData.find(x => x.id === id);
                 if (dt) {
+                    if (!isExamReviewedAndPassed(dt)) {
+                        showGlobalToast("Không thể phê duyệt", `Đề thi ${dt.id} chưa được Tổ Khảo thí  rà soát. Không thể phê duyệt!`, "error");
+                        return;
+                    }
                     dt.trangThai = "Đã phê duyệt";
                     dt.approver = approverName;
                     dt.approvedAt = timestamp;

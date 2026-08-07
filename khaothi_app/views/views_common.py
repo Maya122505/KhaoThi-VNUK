@@ -1023,12 +1023,19 @@ def get_state(request):
         })
         
     # 9. lichThiData
+    sys_configs_str = getattr(state_instance, 'system_configs', '{}')
+    sys_configs = json.loads(sys_configs_str or '{}')
+    lich_statuses = sys_configs.get("lichThiStatuses", {})
+    de_statuses = sys_configs.get("deThiStatuses", {})
+
     lich_thi_data = []
     for lt in LichThi.objects.filter(lop_hp__isnull=False, lop_hp__hoc_phan__isnull=False).select_related('lop_hp__hoc_phan', 'ca_thi', 'phong_thi').prefetch_related('phan_cong_coi_thi__can_bo').order_by('-ma_lich_thi'):
         pc_list = list(lt.phan_cong_coi_thi.all())
         teacher_name = pc_list[0].can_bo.ho_ten if pc_list else ""
         teacher_id = pc_list[0].can_bo.ma_giang_vien if pc_list else ""
         teacher_display = f"{teacher_name} ({teacher_id})" if (teacher_name and teacher_id) else teacher_name
+        
+        st_info = lich_statuses.get(lt.ma_lich_thi, {})
         lich_thi_data.append({
             "id": lt.ma_lich_thi,
             "subjectCode": lt.lop_hp.hoc_phan.ma_hoc_phan if (lt.lop_hp and lt.lop_hp.hoc_phan) else "",
@@ -1038,29 +1045,37 @@ def get_state(request):
             "caThiId": lt.ca_thi.ma_ca_thi,
             "room": lt.phong_thi.ten_phong if lt.phong_thi else "",
             "teacher": teacher_display,
-            "teacherId": teacher_id
+            "teacherId": teacher_id,
+            "status": st_info.get("status", "Chờ duyệt"),
+            "approver": st_info.get("approver", ""),
+            "approvedAt": st_info.get("approvedAt", ""),
+            "lyDoTuChoi": st_info.get("lyDoTuChoi", ""),
+            "rejectedAt": st_info.get("rejectedAt", "")
         })
         
     # 10. hocPhiData
-    hoc_phi_data = []
-    sv_subjects = {}
-    for lhp_sv in LopHocPhanSinhVien.objects.select_related('lop_hp__hoc_phan').all():
-        if lhp_sv.sinh_vien_id and lhp_sv.lop_hp and lhp_sv.lop_hp.hoc_phan:
-            sv_subjects[lhp_sv.sinh_vien_id] = lhp_sv.lop_hp.hoc_phan.ma_hoc_phan
+    if "hocPhiData" in sys_configs and sys_configs["hocPhiData"]:
+        hoc_phi_data = sys_configs["hocPhiData"]
+    else:
+        hoc_phi_data = []
+        sv_subjects = {}
+        for lhp_sv in LopHocPhanSinhVien.objects.select_related('lop_hp__hoc_phan').all():
+            if lhp_sv.sinh_vien_id and lhp_sv.lop_hp and lhp_sv.lop_hp.hoc_phan:
+                sv_subjects[lhp_sv.sinh_vien_id] = lhp_sv.lop_hp.hoc_phan.ma_hoc_phan
 
-    for ts in DanhSachThiSinh.objects.select_related('lich_thi__lop_hp__hoc_phan').all():
-        if ts.sinh_vien_id and ts.lich_thi and ts.lich_thi.lop_hp and ts.lich_thi.lop_hp.hoc_phan:
-            sv_subjects[ts.sinh_vien_id] = ts.lich_thi.lop_hp.hoc_phan.ma_hoc_phan
+        for ts in DanhSachThiSinh.objects.select_related('lich_thi__lop_hp__hoc_phan').all():
+            if ts.sinh_vien_id and ts.lich_thi and ts.lich_thi.lop_hp and ts.lich_thi.lop_hp.hoc_phan:
+                sv_subjects[ts.sinh_vien_id] = ts.lich_thi.lop_hp.hoc_phan.ma_hoc_phan
 
-    for sv in SinhVien.objects.exclude(ma_sinh_vien__startswith="SV-P").select_related('lop_hanh_chinh').all():
-        sub_code = sv_subjects.get(sv.ma_sinh_vien, "PHI101")
-        hoc_phi_data.append({
-            "msv": sv.ma_sinh_vien,
-            "name": sv.ho_ten,
-            "class": sv.lop_hanh_chinh.ma_lop if sv.lop_hanh_chinh else "",
-            "subject": sub_code,
-            "debt": float(sv.debt)
-        })
+        for sv in SinhVien.objects.exclude(ma_sinh_vien__startswith="SV-P").select_related('lop_hanh_chinh').all():
+            sub_code = sv_subjects.get(sv.ma_sinh_vien, "ENG101")
+            hoc_phi_data.append({
+                "msv": sv.ma_sinh_vien,
+                "name": sv.ho_ten,
+                "class": sv.lop_hanh_chinh.ma_lop if sv.lop_hanh_chinh else "24CS01",
+                "subject": sub_code,
+                "debt": float(sv.debt)
+            })
         
     # 11. lopThiDiemData
     maphach_qs = MaPhach.objects.select_related('thi_sinh', 'doi_soat').all()
@@ -1173,6 +1188,8 @@ def get_state(request):
     for dt in DeThi.objects.select_related('hoc_phan').prefetch_related('nop_de_thi__nguoi_nop', 'ra_soat_de_thi__nguoi_rao_soat').order_by('-ma_de_thi'):
         nop = dt.nop_de_thi.first()
         rs = dt.ra_soat_de_thi.first()
+        st_info = de_statuses.get(dt.ma_de_thi, {})
+        default_st = {"ChoRaSoat": "Chờ rà soát", "Dat": "Đạt", "ChoChinhSua": "Chờ chỉnh sửa"}.get(dt.trang_thai, dt.trang_thai)
         de_thi_data.append({
             "id": dt.ma_de_thi,
             "hocPhan": dt.hoc_phan.ten_hoc_phan if dt.hoc_phan else "",
@@ -1180,8 +1197,12 @@ def get_state(request):
             "thoiGian": nop.thoi_gian_nop.strftime('%H:%M %d/%m/%Y') if nop else "",
             "fileName": nop.tep_dinh_kem if nop else "",
             "ghiChu": rs.ghi_chu if rs else "",
-            "trangThai": {"ChoRaSoat": "Chờ rà soát", "Dat": "Đạt", "ChoChinhSua": "Chờ chỉnh sửa"}.get(dt.trang_thai, dt.trang_thai),
-            "nhanXet": rs.ket_qua if rs else ""
+            "trangThai": st_info.get("trangThai", default_st),
+            "nhanXet": rs.ket_qua if rs else "",
+            "approver": st_info.get("approver", ""),
+            "approvedAt": st_info.get("approvedAt", ""),
+            "lyDoTuChoi": st_info.get("lyDoTuChoi", ""),
+            "rejectedAt": st_info.get("rejectedAt", "")
         })
         
     # 15. hocPhanData
@@ -1202,6 +1223,38 @@ def get_state(request):
         in_sao_data = sys_configs["inSaoData"]
 
     phan_cong_phong_data = sys_configs.get("phanCongPhongData", [])
+    don_gia_rules_data = sys_configs.get("donGiaRulesData", [])
+
+    danh_sach_thi_data = json.loads(getattr(state_instance, 'danh_sach_thi_data', '[]') or '[]')
+    if not danh_sach_thi_data:
+        ds_list = []
+        for lhp in LopHocPhan.objects.select_related('hoc_phan').prefetch_related('sinh_vien_lien_ket').all():
+            total_sv = lhp.sinh_vien_lien_ket.count()
+            if total_sv == 0:
+                total_sv = 30
+                eligible_sv = 28
+                banned_sv = 2
+            else:
+                eligible_sv = lhp.sinh_vien_lien_ket.filter(is_eligible=True).count()
+                banned_sv = total_sv - eligible_sv
+                
+            hp_code = lhp.hoc_phan.ma_hoc_phan if lhp.hoc_phan else lhp.ma_lop_hp
+            hp_name = lhp.hoc_phan.ten_hoc_phan if lhp.hoc_phan else lhp.ma_lop_hp
+            ds_list.append({
+                "id": f"DS-{lhp.ma_lop_hp}",
+                "subjectCode": hp_code,
+                "subjectName": f"{hp_name} ({hp_code})",
+                "totalStudents": total_sv,
+                "eligibleStudents": eligible_sv,
+                "bannedStudents": banned_sv,
+                "creator": "Tổ Khảo thí",
+                "createdAt": "09:30 18/07/2026",
+                "status": "Chờ duyệt",
+                "lyDoTuChoi": "",
+                "approver": "",
+                "approvedAt": ""
+            })
+        danh_sach_thi_data = ds_list
 
     return JsonResponse({
         "phongThiGocData": phong_thi_goc_data,
@@ -1221,7 +1274,8 @@ def get_state(request):
         "inSaoData": in_sao_data,
         "deThiData": de_thi_data,
         "hocPhanData": hoc_phan_data,
-        "danhSachThiData": json.loads(getattr(state_instance, 'danh_sach_thi_data', '[]') or '[]')
+        "danhSachThiData": danh_sach_thi_data,
+        "donGiaRulesData": don_gia_rules_data
     })
 
 
@@ -1570,13 +1624,29 @@ def save_state(request):
                         )
                         AuditLog.objects.filter(id=al.id).update(timestamp=dt_val)
                         
-            # 7. Đồng bộ hocPhiData -> SinhVien
+            # 7. Đồng bộ hocPhiData -> SinhVien & system_configs
             if "hocPhiData" in data:
                 for hp in data["hocPhiData"]:
-                    SinhVien.objects.filter(ma_sinh_vien=hp["msv"]).update(
-                        debt=hp["debt"],
-                        is_eligible=(hp["debt"] == 0)
-                    )
+                    if hp.get("msv"):
+                        sv_obj, created = SinhVien.objects.get_or_create(
+                            ma_sinh_vien=hp["msv"],
+                            defaults={
+                                "ho_ten": hp.get("name", hp["msv"]),
+                                "debt": hp.get("debt", 0),
+                                "is_eligible": (hp.get("debt", 0) == 0)
+                            }
+                        )
+                        if not created:
+                            sv_obj.debt = hp.get("debt", 0)
+                            sv_obj.is_eligible = (hp.get("debt", 0) == 0)
+                            if hp.get("name"):
+                                sv_obj.ho_ten = hp["name"]
+                            sv_obj.save()
+                
+                sys_cfgs = json.loads(getattr(state, 'system_configs', '{}') or '{}')
+                sys_cfgs["hocPhiData"] = data["hocPhiData"]
+                state.system_configs = json.dumps(sys_cfgs, ensure_ascii=False)
+                state.save()
                         
             # 8. Đồng bộ kyThiData -> KyThi
             if "kyThiData" in data:
@@ -1850,6 +1920,21 @@ def save_state(request):
                             }
                         )
 
+                sys_cfgs = json.loads(getattr(state, 'system_configs', '{}') or '{}')
+                de_statuses = sys_cfgs.get("deThiStatuses", {})
+                for dt in data["deThiData"]:
+                    if dt.get("id"):
+                        de_statuses[dt["id"]] = {
+                            "trangThai": dt.get("trangThai"),
+                            "approver": dt.get("approver"),
+                            "approvedAt": dt.get("approvedAt"),
+                            "lyDoTuChoi": dt.get("lyDoTuChoi"),
+                            "rejectedAt": dt.get("rejectedAt")
+                        }
+                sys_cfgs["deThiStatuses"] = de_statuses
+                state.system_configs = json.dumps(sys_cfgs, ensure_ascii=False)
+                state.save()
+
             # 13. Đồng bộ lichThiData -> LichThi, LopHocPhan, PhanCongCoiThi
             if "lichThiData" in data:
                 payload_ids = [lt["id"] for lt in data["lichThiData"] if lt.get("id")]
@@ -1969,8 +2054,29 @@ def save_state(request):
                             }
                         )
 
+                sys_cfgs = json.loads(getattr(state, 'system_configs', '{}') or '{}')
+                lich_statuses = sys_cfgs.get("lichThiStatuses", {})
+                for lt in data["lichThiData"]:
+                    if lt.get("id"):
+                        lich_statuses[lt["id"]] = {
+                            "status": lt.get("status"),
+                            "approver": lt.get("approver"),
+                            "approvedAt": lt.get("approvedAt"),
+                            "lyDoTuChoi": lt.get("lyDoTuChoi"),
+                            "rejectedAt": lt.get("rejectedAt")
+                        }
+                sys_cfgs["lichThiStatuses"] = lich_statuses
+                state.system_configs = json.dumps(sys_cfgs, ensure_ascii=False)
+                state.save()
+
             if "danhSachThiData" in data:
                 state.danh_sach_thi_data = json.dumps(data["danhSachThiData"], ensure_ascii=False)
+                state.save()
+
+            if "donGiaRulesData" in data:
+                sys_cfgs = json.loads(getattr(state, 'system_configs', '{}') or '{}')
+                sys_cfgs["donGiaRulesData"] = data["donGiaRulesData"]
+                state.system_configs = json.dumps(sys_cfgs, ensure_ascii=False)
                 state.save()
 
             if "phanCongPhongData" in data:
